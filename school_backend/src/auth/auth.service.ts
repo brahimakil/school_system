@@ -57,11 +57,33 @@ export class AuthService {
     const { email, password } = loginDto;
 
     try {
-      // Get user by email
-      const userRecord = await this.auth.getUserByEmail(email);
+      // First, verify the password by trying to sign in with Firebase Auth
+      // Note: Firebase Admin SDK doesn't have a direct password verification method
+      // We need to use the Firebase REST API to verify the password
+      const response = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email,
+            password,
+            returnSecureToken: true,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new UnauthorizedException('Invalid email or password');
+      }
+
+      const authData = await response.json();
+      const uid = authData.localId;
 
       // Check if user exists in admins collection
-      const adminDoc = await this.db.collection('admins').doc(userRecord.uid).get();
+      const adminDoc = await this.db.collection('admins').doc(uid).get();
 
       if (!adminDoc.exists) {
         throw new UnauthorizedException('You are not authorized as an admin');
@@ -74,23 +96,23 @@ export class AuthService {
       }
 
       // Create custom token
-      const token = await this.auth.createCustomToken(userRecord.uid);
+      const token = await this.auth.createCustomToken(uid);
 
       return {
         success: true,
         message: 'Login successful',
         data: {
-          uid: userRecord.uid,
-          email: userRecord.email,
+          uid: uid,
+          email: email,
           name: adminData.name,
           token,
         },
       };
     } catch (error) {
-      if (error.code === 'auth/user-not-found') {
-        throw new UnauthorizedException('Invalid credentials');
+      if (error instanceof UnauthorizedException) {
+        throw error;
       }
-      throw error;
+      throw new UnauthorizedException('Invalid email or password');
     }
   }
 
