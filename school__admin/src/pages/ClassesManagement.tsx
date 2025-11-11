@@ -244,7 +244,15 @@ const ClassesManagement: React.FC = () => {
           <tbody>
             {groupClasses(filteredClasses).map(classGroup => {
               const mainClass = classGroup[0]; // Use first entry as template
-              const totalStudents = classGroup.reduce((sum, c) => sum + (c.studentCount || 0), 0);
+              
+              // Get unique student IDs across all schedules
+              const uniqueStudentIds = new Set<string>();
+              classGroup.forEach(c => {
+                if (c.studentIds) {
+                  c.studentIds.forEach(id => uniqueStudentIds.add(id));
+                }
+              });
+              const totalStudents = uniqueStudentIds.size;
               
               return (
                 <tr key={`${mainClass.className}-${mainClass.teacherId}`}>
