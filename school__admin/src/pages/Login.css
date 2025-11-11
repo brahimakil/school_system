@@ -240,9 +240,11 @@
   color: #64748b;
   pointer-events: none;
   transition: color 0.3s ease;
+  z-index: 1;
 }
 
-.input-wrapper input {
+.input-wrapper input,
+.input-wrapper .input-with-icon {
   width: 100%;
   padding: 14px 16px 14px 48px;
   background: rgba(30, 41, 59, 0.5);
@@ -254,17 +256,18 @@
   outline: none;
 }
 
-.input-wrapper input::placeholder {
+.input-wrapper input::placeholder,
+.input-wrapper .input-with-icon::placeholder {
   color: #64748b;
 }
 
-.input-wrapper input:focus {
+.input-wrapper input:focus,
+.input-wrapper .input-with-icon:focus {
   background: rgba(30, 41, 59, 0.8);
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.input-wrapper input:focus + .input-icon,
 .input-wrapper:focus-within .input-icon {
   color: #3b82f6;
 }
