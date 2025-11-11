@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+*.log
+
+# Production
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Firebase
+*-firebase-adminsdk-*.json
+
+# Vercel
+.vercel
+
+school_admin/.env
+school_backend/node_modules
+school_admin/node_modules
+school_backend/.env
+school_backend/school-management-eabe0-firebase-adminsdk-fbsvc-c6f0a29be7.json
