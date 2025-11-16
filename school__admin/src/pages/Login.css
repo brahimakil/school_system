@@ -5,7 +5,7 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #0a1929 0%, #1a2f4a 50%, #0f2642 100%);
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
 }
 
 .auth-background {
@@ -107,24 +107,24 @@
 }
 
 .auth-card-inner {
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.3);
   border-radius: 24px;
   padding: 48px 40px;
   box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 80px rgba(59, 130, 246, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 20px 60px rgba(0, 0, 0, 0.1),
+    0 0 80px rgba(59, 130, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
   transition: all 0.3s ease;
 }
 
 .auth-card-inner:hover {
   box-shadow: 
-    0 25px 70px rgba(0, 0, 0, 0.6),
-    0 0 100px rgba(59, 130, 246, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  border-color: rgba(59, 130, 246, 0.3);
+    0 25px 70px rgba(0, 0, 0, 0.15),
+    0 0 100px rgba(59, 130, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  border-color: rgba(59, 130, 246, 0.5);
 }
 
 .auth-header {
@@ -169,16 +169,16 @@
 .auth-header h1 {
   font-size: 32px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #0c4a6e;
   margin-bottom: 8px;
-  background: linear-gradient(135deg, #f8fafc, #cbd5e1);
+  background: linear-gradient(135deg, #0c4a6e, #0369a1);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .auth-header p {
-  color: #94a3b8;
+  color: #64748b;
   font-size: 16px;
 }
 
@@ -220,7 +220,7 @@
 }
 
 .form-group label {
-  color: #cbd5e1;
+  color: #475569;
   font-size: 14px;
   font-weight: 500;
   margin-left: 4px;
@@ -247,10 +247,10 @@
 .input-wrapper .input-with-icon {
   width: 100%;
   padding: 14px 16px 14px 48px;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(71, 85, 105, 0.5);
+  background: rgba(241, 245, 249, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.4);
   border-radius: 12px;
-  color: #f8fafc;
+  color: #0f172a;
   font-size: 15px;
   transition: all 0.3s ease;
   outline: none;
@@ -263,9 +263,9 @@
 
 .input-wrapper input:focus,
 .input-wrapper .input-with-icon:focus {
-  background: rgba(30, 41, 59, 0.8);
+  background: rgba(255, 255, 255, 1);
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .input-wrapper:focus-within .input-icon {
@@ -345,7 +345,7 @@
 }
 
 .auth-footer p {
-  color: #94a3b8;
+  color: #64748b;
   font-size: 14px;
 }
 

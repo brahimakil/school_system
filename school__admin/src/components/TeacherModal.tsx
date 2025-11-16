@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import './TeacherModal.css';
 import { teachersAPI } from '../services/teachers.api';
+import { subjectsAPI } from '../api/subjects.api';
+import type { Subject } from '../api/subjects.api';
 
 interface Teacher {
   id: string;
   fullName: string;
   email: string;
   phoneNumber: string;
-  professions: string[];
+  subjects: string[];
   status: 'active' | 'inactive' | 'pending';
   photoUrl?: string;
 }
@@ -18,24 +20,32 @@ interface TeacherModalProps {
   onSuccess: () => void;
 }
 
-const PROFESSIONS = [
-  'Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 
-  'History', 'Geography', 'Computer Science', 'Physical Education',
-  'Art', 'Music', 'Economics'
-];
-
 const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: '',
     phoneNumber: '',
-    professions: [] as string[],
+    subjects: [] as string[],
     status: 'active' as 'active' | 'inactive' | 'pending',
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState('');
   const [loading, setLoading] = useState(false);
+  const [availableSubjects, setAvailableSubjects] = useState<Subject[]>([]);
+
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
+
+  const fetchSubjects = async () => {
+    try {
+      const subjects = await subjectsAPI.getAll();
+      setAvailableSubjects(subjects);
+    } catch (error) {
+      console.error('Error fetching subjects:', error);
+    }
+  };
 
   useEffect(() => {
     if (teacher) {
@@ -44,7 +54,7 @@ const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, onClose, onSuccess
         email: teacher.email || '',
         password: '',
         phoneNumber: teacher.phoneNumber || '',
-        professions: teacher.professions || [],
+        subjects: teacher.subjects || [],
         status: teacher.status || 'active',
       });
       setPhotoPreview(teacher.photoUrl || '');
@@ -54,7 +64,7 @@ const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, onClose, onSuccess
   }, [teacher]);
 
   const resetForm = () => {
-    setFormData({ fullName: '', email: '', password: '', phoneNumber: '', professions: [], status: 'active' });
+    setFormData({ fullName: '', email: '', password: '', phoneNumber: '', subjects: [], status: 'active' });
     setPhotoFile(null);
     setPhotoPreview('');
   };
@@ -69,44 +79,43 @@ const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, onClose, onSuccess
     }
   };
 
-  const toggleProfession = (profession: string) => {
+  const toggleSubject = (subjectId: string) => {
     setFormData(prev => ({
       ...prev,
-      professions: prev.professions.includes(profession)
-        ? prev.professions.filter(p => p !== profession)
-        : [...prev.professions, profession]
+      subjects: prev.subjects.includes(subjectId)
+        ? prev.subjects.filter(s => s !== subjectId)
+        : [...prev.subjects, subjectId]
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.fullName || !formData.email || (!teacher && !formData.password) || !formData.phoneNumber || formData.professions.length === 0) {
-      alert('Please fill in all required fields');
+    
+    if (!formData.fullName || !formData.email || (!teacher && !formData.password) || !formData.phoneNumber || formData.subjects.length === 0) {
+      alert('Please fill in all required fields and select at least one subject');
       return;
     }
 
     setLoading(true);
     try {
       if (teacher) {
-        // Edit mode
         const data = new FormData();
         data.append('fullName', formData.fullName);
         data.append('email', formData.email);
         if (formData.password) data.append('password', formData.password);
         data.append('phoneNumber', formData.phoneNumber);
-        data.append('professions', JSON.stringify(formData.professions));
+        data.append('subjects', JSON.stringify(formData.subjects));
         data.append('status', formData.status);
         if (photoFile) data.append('photo', photoFile);
 
         await teachersAPI.update(teacher.id, data);
       } else {
-        // Add mode
         const data = new FormData();
         data.append('fullName', formData.fullName);
         data.append('email', formData.email);
         data.append('password', formData.password);
         data.append('phoneNumber', formData.phoneNumber);
-        data.append('professions', JSON.stringify(formData.professions));
+        data.append('subjects', JSON.stringify(formData.subjects));
         data.append('status', formData.status);
         if (photoFile) data.append('photo', photoFile);
 
@@ -186,16 +195,6 @@ const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, onClose, onSuccess
             <select 
               value={formData.status} 
               onChange={e => setFormData({...formData, status: e.target.value as 'active' | 'inactive' | 'pending'})}
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'rgba(30, 41, 59, 0.5)',
-                border: '1px solid rgba(71, 85, 105, 0.5)',
-                borderRadius: '8px',
-                color: '#f8fafc',
-                fontSize: '14px',
-                cursor: 'pointer',
-              }}
             >
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
@@ -204,19 +203,28 @@ const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, onClose, onSuccess
           </div>
 
           <div className="form-group">
-            <label>Professions * (Select one or more)</label>
-            <div className="professions-grid">
-              {PROFESSIONS.map(prof => (
-                <button key={prof} type="button" className={`profession-tag ${formData.professions.includes(prof) ? 'selected' : ''}`} onClick={() => toggleProfession(prof)}>
-                  {prof}
-                </button>
-              ))}
-            </div>
+            <label>Subjects * (Select one or more)</label>
+            {availableSubjects.length === 0 ? (
+              <p style={{ color: '#64748b', fontSize: '14px' }}>Loading subjects...</p>
+            ) : (
+              <div className="subjects-grid">
+                {availableSubjects.map(subject => (
+                  <button 
+                    key={subject.id} 
+                    type="button" 
+                    className={`subject-tag ${formData.subjects.includes(subject.id) ? 'selected' : ''}`} 
+                    onClick={() => toggleSubject(subject.id)}
+                  >
+                    {subject.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="modal-actions">
             <button type="button" className="btn-cancel" onClick={onClose} disabled={loading}>Cancel</button>
-            <button type="submit" className="btn-submit" disabled={loading || formData.professions.length === 0}>
+            <button type="submit" className="btn-submit" disabled={loading || formData.subjects.length === 0}>
               {loading ? 'Saving...' : teacher ? 'Update Teacher' : 'Add Teacher'}
             </button>
           </div>

@@ -1,7 +1,337 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './ManagementPage.css';
+import { studentsAPI } from '../services/students.api';
+import { teachersAPI } from '../services/teachers.api';
+import { getAllClasses } from '../services/classes.api';
+
+interface Activity {
+  id: string;
+  type: 'student' | 'teacher' | 'class';
+  action: string;
+  user: {
+    name: string;
+    detail: string;
+    avatar: string;
+  };
+  time: string;
+  status: 'active' | 'pending' | 'inactive';
+}
+
+interface ClassSchedule {
+  id: string;
+  className: string;
+  teacher: string;
+  teacherId?: string;
+  grade: string;
+  section: string;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+}
 
 const DashboardHome: React.FC = () => {
+  const navigate = useNavigate();
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [schedules, setSchedules] = useState<ClassSchedule[]>([]);
+  const [selectedGrade, setSelectedGrade] = useState<string>('all');
+  const [selectedSection, setSelectedSection] = useState<string>('all');
+  const [selectedTeacher, setSelectedTeacher] = useState<string>('all');
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(getMonday(new Date()));
+
+  const GRADES = [
+    'Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5',
+    'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'
+  ];
+
+  const SECTIONS = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+  const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+  function getMonday(date: Date): Date {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(d.setDate(diff));
+  }
+
+  useEffect(() => {
+    fetchRecentActivities();
+  }, []);
+
+  useEffect(() => {
+    fetchSchedules();
+  }, [selectedGrade, selectedSection, selectedTeacher]);
+
+  const fetchRecentActivities = async () => {
+    try {
+      setLoading(true);
+      const [studentsResponse, teachersResponse, classesResponse] = await Promise.all([
+        studentsAPI.getAll(),
+        teachersAPI.getAll(),
+        getAllClasses(),
+      ]);
+
+      // Handle response - check if it's an array or has a data property
+      const students = Array.isArray(studentsResponse) ? studentsResponse : (studentsResponse as any)?.data || [];
+      const teachers = Array.isArray(teachersResponse) ? teachersResponse : (teachersResponse as any)?.data || [];
+      const classes = Array.isArray(classesResponse) ? classesResponse : (classesResponse as any)?.data || [];
+
+      // Store teachers for filter
+      setTeachers(teachers);
+
+      const recentActivities: Activity[] = [];
+
+      // Get recent students (last 5)
+      const recentStudents = students.slice(-5).reverse();
+      recentStudents.forEach((student: any) => {
+        recentActivities.push({
+          id: student.id,
+          type: 'student',
+          action: 'New student enrolled',
+          user: {
+            name: student.fullName,
+            detail: student.currentGrade ? `${student.currentGrade.grade} ${student.currentGrade.section}` : 'N/A',
+            avatar: student.fullName.charAt(0).toUpperCase(),
+          },
+          time: formatTime(student.createdAt),
+          status: student.status,
+        });
+      });
+
+      // Get recent teachers (last 3)
+      const recentTeachers = teachers.slice(-3).reverse();
+      recentTeachers.forEach((teacher: any) => {
+        recentActivities.push({
+          id: teacher.id,
+          type: 'teacher',
+          action: 'Teacher registered',
+          user: {
+            name: teacher.fullName,
+            detail: teacher.subjects?.[0] || 'Teacher',
+            avatar: teacher.fullName.charAt(0).toUpperCase(),
+          },
+          time: formatTime(teacher.createdAt),
+          status: teacher.status,
+        });
+      });
+
+      // Get recent classes (last 2)
+      const recentClasses = classes.slice(-2).reverse();
+      recentClasses.forEach((cls: any) => {
+        recentActivities.push({
+          id: cls.id,
+          type: 'class',
+          action: 'Class created',
+          user: {
+            name: `${cls.grade} ${cls.section}`,
+            detail: cls.teacher?.fullName || 'No teacher assigned',
+            avatar: cls.grade?.charAt(0) || 'C',
+          },
+          time: formatTime(cls.createdAt),
+          status: 'active',
+        });
+      });
+
+      // Sort by time and take top 10
+      recentActivities.sort((a, b) => {
+        const timeA = parseTimeToMinutes(a.time);
+        const timeB = parseTimeToMinutes(b.time);
+        return timeA - timeB;
+      });
+
+      setActivities(recentActivities.slice(0, 10));
+    } catch (error) {
+      console.error('Error fetching activities:', error);
+      setActivities([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatTime = (dateString: string) => {
+    if (!dateString) return 'Just now';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInMinutes = Math.floor(diffInMs / 60000);
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    if (diffInDays < 30) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
+  };
+
+  const parseTimeToMinutes = (timeString: string): number => {
+    if (timeString === 'Just now') return 0;
+    const match = timeString.match(/(\d+)\s+(minute|hour|day)/);
+    if (!match) return 999999;
+    const value = parseInt(match[1]);
+    const unit = match[2];
+    if (unit === 'minute') return value;
+    if (unit === 'hour') return value * 60;
+    if (unit === 'day') return value * 1440;
+    return 999999;
+  };
+
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case 'active': return 'status-badge active';
+      case 'inactive': return 'status-badge inactive';
+      case 'pending': return 'status-badge pending';
+      default: return 'status-badge';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
+  const fetchSchedules = async () => {
+    try {
+      const classesResponse = await getAllClasses();
+      const classes = Array.isArray(classesResponse) ? classesResponse : (classesResponse as any)?.data || [];
+      
+      const scheduleData: ClassSchedule[] = classes.map((cls: any) => ({
+        id: cls.id,
+        className: cls.className,
+        teacher: cls.teacherName || cls.teacher?.fullName || 'No Teacher',
+        teacherId: cls.teacherId,
+        grade: cls.gradeSections?.[0]?.grade || cls.grade || '',
+        section: cls.gradeSections?.[0]?.section || cls.section || '',
+        dayOfWeek: cls.dayOfWeek,
+        startTime: cls.startTime,
+        endTime: cls.endTime,
+      }));
+
+      // Apply filters
+      const filtered = scheduleData.filter((schedule) => {
+        if (selectedGrade !== 'all' && schedule.grade !== selectedGrade) return false;
+        if (selectedSection !== 'all' && schedule.section !== selectedSection) return false;
+        if (selectedTeacher !== 'all' && schedule.teacherId !== selectedTeacher) return false;
+        return true;
+      });
+
+      setSchedules(filtered);
+    } catch (error) {
+      console.error('Error fetching schedules:', error);
+    }
+  };
+
+  const getScheduleForDay = (day: string) => {
+    return schedules
+      .filter((s) => s.dayOfWeek === day)
+      .sort((a, b) => a.startTime.localeCompare(b.startTime));
+  };
+
+  const previousWeek = () => {
+    const newDate = new Date(currentWeekStart);
+    newDate.setDate(newDate.getDate() - 7);
+    setCurrentWeekStart(newDate);
+  };
+
+  const nextWeek = () => {
+    const newDate = new Date(currentWeekStart);
+    newDate.setDate(newDate.getDate() + 7);
+    setCurrentWeekStart(newDate);
+  };
+
+  const goToToday = () => {
+    setCurrentWeekStart(getMonday(new Date()));
+  };
+
+  const formatWeekRange = () => {
+    const start = new Date(currentWeekStart);
+    const end = new Date(currentWeekStart);
+    end.setDate(end.getDate() + 6);
+    
+    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+    return `${start.toLocaleDateString('en-US', options)} - ${end.toLocaleDateString('en-US', options)}`;
+  };
+
+  const quickActions = [
+    {
+      title: 'Add Student',
+      description: 'Enroll a new student',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M20 8V14M17 11H23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+      action: () => navigate('/dashboard/students'),
+      color: '#3b82f6',
+    },
+    {
+      title: 'Add Teacher',
+      description: 'Register a new teacher',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M20 8V14M17 11H23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+      action: () => navigate('/dashboard/teachers'),
+      color: '#8b5cf6',
+    },
+    {
+      title: 'Create Class',
+      description: 'Set up a new class',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 3H8C9.06087 3 10.0783 3.42143 10.8284 4.17157C11.5786 4.92172 12 5.93913 12 7V21C12 20.2044 11.6839 19.4413 11.1213 18.8787C10.5587 18.3161 9.79565 18 9 18H2V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M22 3H16C14.9391 3 13.9217 3.42143 13.1716 4.17157C12.4214 4.92172 12 5.93913 12 7V21C12 20.2044 12.3161 19.4413 12.8787 18.8787C13.4413 18.3161 14.2044 18 15 18H22V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+      action: () => navigate('/dashboard/classes'),
+      color: '#10b981',
+    },
+    {
+      title: 'Create Quiz',
+      description: 'Add a new quiz or test',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+          <path d="M9.09 9C9.3251 8.33167 9.78915 7.76811 10.4 7.40913C11.0108 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15848 13.7588 7.52152 14.2151 8.06353C14.6713 8.60553 14.9211 9.29152 14.92 10C14.92 12 11.92 13 11.92 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M12 17H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+      action: () => navigate('/dashboard/tasks/quizzes'),
+      color: '#f59e0b',
+    },
+    {
+      title: 'Assign Homework',
+      description: 'Create new homework task',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M16 13H8M16 17H8M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+      action: () => navigate('/dashboard/tasks/homeworks'),
+      color: '#ec4899',
+    },
+    {
+      title: 'View Statistics',
+      description: 'Check all metrics',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 20V10M12 20V4M6 20V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+      action: () => navigate('/dashboard/statistics'),
+      color: '#06b6d4',
+    },
+  ];
+
   return (
     <div className="management-page">
       <div className="page-header">
@@ -9,144 +339,178 @@ const DashboardHome: React.FC = () => {
         <p className="page-description">Welcome to your school management system</p>
       </div>
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-header">
-            <span className="stat-title">Total Students</span>
-            <div className="stat-icon">
+      {/* Weekly Schedule Calendar */}
+      <div className="calendar-section">
+        <div className="calendar-header">
+          <h2 className="section-title">Weekly Schedule</h2>
+          <div className="calendar-controls">
+            <button className="calendar-nav-btn" onClick={previousWeek}>
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-            </div>
-          </div>
-          <div className="stat-value">1,234</div>
-          <div className="stat-change positive">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 19V5M5 12L12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>+12% from last month</span>
+            </button>
+            <button className="calendar-today-btn" onClick={goToToday}>Today</button>
+            <span className="calendar-week-range">{formatWeekRange()}</span>
+            <button className="calendar-nav-btn" onClick={nextWeek}>
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-header">
-            <span className="stat-title">Total Teachers</span>
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
+        <div className="calendar-filters">
+          <div className="filter-group">
+            <label>Grade</label>
+            <select 
+              className="calendar-filter-select" 
+              value={selectedGrade} 
+              onChange={(e) => setSelectedGrade(e.target.value)}
+            >
+              <option value="all">All Grades</option>
+              {GRADES.map(grade => (
+                <option key={grade} value={grade}>{grade}</option>
+              ))}
+            </select>
           </div>
-          <div className="stat-value">87</div>
-          <div className="stat-change positive">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 19V5M5 12L12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>+5% from last month</span>
+
+          <div className="filter-group">
+            <label>Section</label>
+            <select 
+              className="calendar-filter-select" 
+              value={selectedSection} 
+              onChange={(e) => setSelectedSection(e.target.value)}
+            >
+              <option value="all">All Sections</option>
+              {SECTIONS.map(section => (
+                <option key={section} value={section}>Section {section}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label>Teacher</label>
+            <select 
+              className="calendar-filter-select" 
+              value={selectedTeacher} 
+              onChange={(e) => setSelectedTeacher(e.target.value)}
+            >
+              <option value="all">All Teachers</option>
+              {Array.isArray(teachers) && teachers.map(teacher => (
+                <option key={teacher.id} value={teacher.id}>{teacher.fullName}</option>
+              ))}
+            </select>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-header">
-            <span className="stat-title">Total Classes</span>
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2 3H8C9.06087 3 10.0783 3.42143 10.8284 4.17157C11.5786 4.92172 12 5.93913 12 7V21C12 20.2044 11.6839 19.4413 11.1213 18.8787C10.5587 18.3161 9.79565 18 9 18H2V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M22 3H16C14.9391 3 13.9217 3.42143 13.1716 4.17157C12.4214 4.92172 12 5.93913 12 7V21C12 20.2044 12.3161 19.4413 12.8787 18.8787C13.4413 18.3161 14.2044 18 15 18H22V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-          </div>
-          <div className="stat-value">45</div>
-          <div className="stat-change positive">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 19V5M5 12L12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>+3 new classes</span>
-          </div>
+        <div className="calendar-grid">
+          {DAYS.map((day) => {
+            const daySchedules = getScheduleForDay(day);
+            const isToday = day === new Date().toLocaleDateString('en-US', { weekday: 'long' });
+            
+            return (
+              <div key={day} className={`calendar-day ${isToday ? 'today' : ''}`}>
+                <div className="calendar-day-header">
+                  <span className="day-name">{day}</span>
+                  <span className="day-count">{daySchedules.length} {daySchedules.length === 1 ? 'class' : 'classes'}</span>
+                </div>
+                <div className="calendar-day-content">
+                  {daySchedules.length === 0 ? (
+                    <div className="no-classes">No classes scheduled</div>
+                  ) : (
+                    daySchedules.map((schedule) => (
+                      <div key={schedule.id} className="calendar-event">
+                        <div className="event-time">{schedule.startTime} - {schedule.endTime}</div>
+                        <div className="event-title">{schedule.className}</div>
+                        <div className="event-details">
+                          <span className="event-grade">📚 {schedule.grade} {schedule.section}</span>
+                          <span className="event-teacher">👨‍🏫 {schedule.teacher}</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
+      </div>
 
-        <div className="stat-card">
-          <div className="stat-header">
-            <span className="stat-title">Pending Tasks</span>
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 11L12 14L22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-          </div>
-          <div className="stat-value">23</div>
-          <div className="stat-change negative">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 5V19M19 12L12 19L5 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>3 overdue</span>
-          </div>
+      <div className="quick-actions-section">
+        <h2 className="section-title">Quick Actions</h2>
+        <div className="quick-actions-grid">
+          {quickActions.map((action, index) => (
+            <button
+              key={index}
+              className="quick-action-card"
+              onClick={action.action}
+              style={{ '--action-color': action.color } as React.CSSProperties}
+            >
+              <div className="quick-action-icon" style={{ color: action.color }}>
+                {action.icon}
+              </div>
+              <div className="quick-action-content">
+                <h3 className="quick-action-title">{action.title}</h3>
+                <p className="quick-action-description">{action.description}</p>
+              </div>
+              <div className="quick-action-arrow">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 
       <div className="data-table-container">
-        <div style={{ padding: '24px', borderBottom: '1px solid rgba(59, 130, 246, 0.2)' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#f8fafc', margin: 0 }}>Recent Activities</h2>
+        <div style={{ padding: '24px', borderBottom: '1px solid rgba(148, 163, 184, 0.2)' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#0c4a6e', margin: 0 }}>Recent Activities</h2>
         </div>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Activity</th>
-              <th>User</th>
-              <th>Time</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>New student enrolled</td>
-              <td>
-                <div className="user-cell">
-                  <div className="user-avatar">JD</div>
-                  <div>
-                    <div className="user-name">John Doe</div>
-                    <div className="user-detail">Grade 10A</div>
-                  </div>
-                </div>
-              </td>
-              <td>2 hours ago</td>
-              <td><span className="status-badge active"><span className="status-dot"></span>Active</span></td>
-            </tr>
-            <tr>
-              <td>Assignment submitted</td>
-              <td>
-                <div className="user-cell">
-                  <div className="user-avatar">SM</div>
-                  <div>
-                    <div className="user-name">Sarah Miller</div>
-                    <div className="user-detail">Mathematics</div>
-                  </div>
-                </div>
-              </td>
-              <td>5 hours ago</td>
-              <td><span className="status-badge active"><span className="status-dot"></span>Completed</span></td>
-            </tr>
-            <tr>
-              <td>Quiz created</td>
-              <td>
-                <div className="user-cell">
-                  <div className="user-avatar">MJ</div>
-                  <div>
-                    <div className="user-name">Mike Johnson</div>
-                    <div className="user-detail">Science</div>
-                  </div>
-                </div>
-              </td>
-              <td>1 day ago</td>
-              <td><span className="status-badge pending"><span className="status-dot"></span>Pending</span></td>
-            </tr>
-          </tbody>
-        </table>
+        {loading ? (
+          <div style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
+            <div className="loading-spinner"></div>
+            <p>Loading activities...</p>
+          </div>
+        ) : activities.length === 0 ? (
+          <div style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
+            <p>No recent activities</p>
+          </div>
+        ) : (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Activity</th>
+                <th>User</th>
+                <th>Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {activities.map((activity) => (
+                <tr key={activity.id}>
+                  <td>{activity.action}</td>
+                  <td>
+                    <div className="user-cell">
+                      <div className="user-avatar">{activity.user.avatar}</div>
+                      <div>
+                        <div className="user-name">{activity.user.name}</div>
+                        <div className="user-detail">{activity.user.detail}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{activity.time}</td>
+                  <td>
+                    <span className={getStatusBadgeClass(activity.status)}>
+                      <span className="status-dot"></span>
+                      {getStatusText(activity.status)}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

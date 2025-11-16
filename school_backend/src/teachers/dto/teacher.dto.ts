@@ -19,7 +19,7 @@ export class CreateTeacherDto {
 
   @IsArray()
   @IsNotEmpty()
-  professions: string[];
+  subjects: string[];
 
   @IsOptional()
   @IsString()
@@ -50,7 +50,7 @@ export class UpdateTeacherDto {
 
   @IsOptional()
   @IsArray()
-  professions?: string[];
+  subjects?: string[];
 
   @IsOptional()
   @IsString()

@@ -201,16 +201,6 @@ const StudentModal: React.FC<StudentModalProps> = ({ student, onClose, onSuccess
               <select 
                 value={formData.status} 
                 onChange={e => setFormData({...formData, status: e.target.value as 'active' | 'inactive' | 'pending'})}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  background: 'rgba(30, 41, 59, 0.5)',
-                  border: '1px solid rgba(71, 85, 105, 0.5)',
-                  borderRadius: '8px',
-                  color: '#f8fafc',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                }}
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
@@ -254,16 +244,6 @@ const StudentModal: React.FC<StudentModalProps> = ({ student, onClose, onSuccess
                     passedGrades: validPassedGrades
                   });
                 }}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  background: 'rgba(30, 41, 59, 0.5)',
-                  border: '1px solid rgba(71, 85, 105, 0.5)',
-                  borderRadius: '8px',
-                  color: '#f8fafc',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                }}
                 required
               >
                 <option value="">Select Grade</option>
@@ -274,16 +254,6 @@ const StudentModal: React.FC<StudentModalProps> = ({ student, onClose, onSuccess
               <select 
                 value={formData.currentGrade.section} 
                 onChange={e => setFormData({...formData, currentGrade: {...formData.currentGrade, section: e.target.value}})}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  background: 'rgba(30, 41, 59, 0.5)',
-                  border: '1px solid rgba(71, 85, 105, 0.5)',
-                  borderRadius: '8px',
-                  color: '#f8fafc',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                }}
                 required
               >
                 <option value="">Section</option>
@@ -302,8 +272,8 @@ const StudentModal: React.FC<StudentModalProps> = ({ student, onClose, onSuccess
                 onClick={() => setShowPassedGrades(!showPassedGrades)}
                 style={{
                   padding: '6px 12px',
-                  background: 'rgba(59, 130, 246, 0.1)',
-                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  background: 'rgba(59, 130, 246, 0.15)',
+                  border: '1px solid rgba(59, 130, 246, 0.4)',
                   borderRadius: '6px',
                   color: '#3b82f6',
                   fontSize: '12px',
@@ -318,13 +288,13 @@ const StudentModal: React.FC<StudentModalProps> = ({ student, onClose, onSuccess
               <div style={{ 
                 maxHeight: '200px', 
                 overflowY: 'auto',
-                background: 'rgba(30, 41, 59, 0.3)',
+                background: 'rgba(241, 245, 249, 0.5)',
                 borderRadius: '8px',
                 padding: '12px'
               }}>
                 {getAvailablePassedGrades().map(grade => (
                   <div key={grade} style={{ marginBottom: '12px' }}>
-                    <div style={{ color: '#cbd5e1', fontSize: '13px', marginBottom: '6px' }}>{grade}</div>
+                    <div style={{ color: '#475569', fontSize: '13px', marginBottom: '6px', fontWeight: '500' }}>{grade}</div>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                       {SECTIONS.map(section => {
                         const isSelected = formData.passedGrades.some(g => g.grade === grade && g.section === section);
@@ -335,10 +305,10 @@ const StudentModal: React.FC<StudentModalProps> = ({ student, onClose, onSuccess
                             onClick={() => togglePassedGrade(grade, section)}
                             style={{
                               padding: '6px 12px',
-                              background: isSelected ? 'rgba(59, 130, 246, 0.2)' : 'rgba(71, 85, 105, 0.2)',
-                              border: `1px solid ${isSelected ? '#3b82f6' : 'rgba(71, 85, 105, 0.5)'}`,
+                              background: isSelected ? 'rgba(59, 130, 246, 0.25)' : 'rgba(255, 255, 255, 0.8)',
+                              border: `1px solid ${isSelected ? '#3b82f6' : 'rgba(148, 163, 184, 0.4)'}`,
                               borderRadius: '6px',
-                              color: isSelected ? '#3b82f6' : '#94a3b8',
+                              color: isSelected ? '#3b82f6' : '#64748b',
                               fontSize: '12px',
                               cursor: 'pointer',
                             }}

@@ -15,7 +15,7 @@ export class TeachersService {
   }
 
   async create(createTeacherDto: CreateTeacherDto, file?: Express.Multer.File) {
-    const { email, password, fullName, phoneNumber, professions, status } = createTeacherDto;
+    const { email, password, fullName, phoneNumber, subjects, status } = createTeacherDto;
 
     const userRecord = await this.auth.createUser({
       email,
@@ -33,7 +33,7 @@ export class TeachersService {
       fullName,
       email,
       phoneNumber,
-      professions,
+      subjects,
       status: status || 'active',
       photoUrl,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -67,23 +67,29 @@ export class TeachersService {
       throw new NotFoundException('Teacher not found');
     }
 
-    const updateData: any = {
-      ...updateTeacherDto,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
+    const updateData: any = {};
+
+    if (updateTeacherDto.fullName !== undefined) updateData.fullName = updateTeacherDto.fullName;
+    if (updateTeacherDto.email !== undefined) updateData.email = updateTeacherDto.email;
+    if (updateTeacherDto.phoneNumber !== undefined) updateData.phoneNumber = updateTeacherDto.phoneNumber;
+    if (updateTeacherDto.status !== undefined) updateData.status = updateTeacherDto.status;
+    
+    if (updateTeacherDto.subjects !== undefined) {
+      updateData.subjects = updateTeacherDto.subjects;
+    }
+    
+    updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
     if (file) {
       const photoUrl = await this.uploadPhotoOnly(file, id);
       updateData.photoUrl = photoUrl;
     }
 
-    // Remove password from Firestore update if it's being updated
     if (updateTeacherDto.password) {
       await this.auth.updateUser(id, { password: updateTeacherDto.password });
-      delete updateData.password;
     }
 
-    await docRef.update(updateData);
+    await docRef.set(updateData, { merge: true });
 
     if (updateTeacherDto.email) {
       await this.auth.updateUser(id, { email: updateTeacherDto.email });

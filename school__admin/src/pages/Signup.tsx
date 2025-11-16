@@ -88,6 +88,7 @@ const Signup: React.FC = () => {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="John Doe"
                   required
+                  className="input-with-icon"
                 />
               </div>
             </div>
@@ -106,6 +107,7 @@ const Signup: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@example.com"
                   required
+                  className="input-with-icon"
                 />
               </div>
             </div>
@@ -125,6 +127,7 @@ const Signup: React.FC = () => {
                   placeholder="••••••••"
                   required
                   minLength={6}
+                  className="input-with-icon"
                 />
               </div>
             </div>
@@ -144,6 +147,7 @@ const Signup: React.FC = () => {
                   placeholder="••••••••"
                   required
                   minLength={6}
+                  className="input-with-icon"
                 />
               </div>
             </div>

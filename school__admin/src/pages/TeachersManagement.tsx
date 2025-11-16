@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './ManagementPage.css';
 import { teachersAPI } from '../services/teachers.api';
+import { subjectsAPI } from '../api/subjects.api';
+import type { Subject } from '../api/subjects.api';
 import TeacherModal from '../components/TeacherModal';
 
 interface Teacher {
@@ -8,7 +10,7 @@ interface Teacher {
   fullName: string;
   email: string;
   phoneNumber: string;
-  professions: string[];
+  subjects: string[];
   status: 'active' | 'inactive' | 'pending';
   photoUrl?: string;
 }
@@ -16,26 +18,44 @@ interface Teacher {
 const TeachersManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [subjectsMap, setSubjectsMap] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | undefined>(undefined);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchTeachers();
+    fetchData();
   }, []);
 
-  const fetchTeachers = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await teachersAPI.getAll();
-      setTeachers(response.data || []);
+      const [teachersResponse, subjectsResponse] = await Promise.all([
+        teachersAPI.getAll(),
+        subjectsAPI.getAll()
+      ]);
+      setTeachers(teachersResponse.data || []);
+      setSubjects(subjectsResponse);
+      
+      // Create a map of subject ID to subject name
+      const map = new Map<string, string>();
+      subjectsResponse.forEach((subject: Subject) => {
+        map.set(subject.id, subject.name);
+      });
+      setSubjectsMap(map);
     } catch (error) {
-      console.error('Error fetching teachers:', error);
+      console.error('Error fetching data:', error);
       setTeachers([]);
+      setSubjects([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchTeachers = async () => {
+    await fetchData();
   };
 
   const handleAddTeacher = () => {
@@ -68,11 +88,15 @@ const TeachersManagement: React.FC = () => {
     handleModalClose();
   };
 
-  const filteredTeachers = teachers.filter(teacher =>
-    teacher.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    teacher.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    teacher.professions.some(p => p.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredTeachers = teachers.filter(teacher => {
+    const searchLower = searchTerm.toLowerCase();
+    const teacherSubjects = teacher.subjects?.map(subId => subjectsMap.get(subId) || '').filter(Boolean) || [];
+    return (
+      teacher.fullName.toLowerCase().includes(searchLower) ||
+      teacher.email.toLowerCase().includes(searchLower) ||
+      teacherSubjects.some(subName => subName.toLowerCase().includes(searchLower))
+    );
+  });
 
   if (loading) {
     return (
@@ -133,7 +157,7 @@ const TeachersManagement: React.FC = () => {
 
           <div className="stat-card">
             <div className="stat-header">
-              <span className="stat-title">Professions</span>
+              <span className="stat-title">Subjects</span>
               <div className="stat-icon">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" strokeWidth="2"/>
@@ -142,10 +166,10 @@ const TeachersManagement: React.FC = () => {
               </div>
             </div>
             <div className="stat-value">
-              {new Set(teachers.flatMap(t => t.professions)).size}
+              {subjects.length}
             </div>
             <div className="stat-change positive">
-              <span>Different subjects</span>
+              <span>Total subjects</span>
             </div>
           </div>
         </div>
@@ -158,7 +182,7 @@ const TeachersManagement: React.FC = () => {
             </svg>
             <input
               type="text"
-              placeholder="Search teachers by name, email, or profession..."
+              placeholder="Search teachers by name, email, or subjects..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -176,7 +200,7 @@ const TeachersManagement: React.FC = () => {
             <thead>
               <tr>
                 <th>Teacher</th>
-                <th>Professions</th>
+                <th>Subjects</th>
                 <th>Email</th>
                 <th>Phone</th>
                 <th>Status</th>
@@ -210,19 +234,20 @@ const TeachersManagement: React.FC = () => {
                     </td>
                     <td>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                        {teacher.professions.slice(0, 2).map((prof, idx) => (
+                        {teacher.subjects?.slice(0, 2).map((subjectId, idx) => (
                           <span key={idx} style={{
                             padding: '4px 8px',
-                            background: 'rgba(59, 130, 246, 0.1)',
-                            border: '1px solid rgba(59, 130, 246, 0.3)',
+                            background: 'rgba(125, 211, 252, 0.2)',
+                            border: '1px solid rgba(125, 211, 252, 0.4)',
                             borderRadius: '4px',
                             fontSize: '12px',
-                            color: '#3b82f6'
+                            color: '#0c4a6e',
+                            fontWeight: '500'
                           }}>
-                            {prof}
+                            {subjectsMap.get(subjectId) || 'Unknown'}
                           </span>
                         ))}
-                        {teacher.professions.length > 2 && (
+                        {(teacher.subjects?.length || 0) > 2 && (
                           <span style={{
                             padding: '4px 8px',
                             background: 'rgba(100, 116, 139, 0.1)',
@@ -231,7 +256,7 @@ const TeachersManagement: React.FC = () => {
                             fontSize: '12px',
                             color: '#64748b'
                           }}>
-                            +{teacher.professions.length - 2}
+                            +{(teacher.subjects?.length || 0) - 2}
                           </span>
                         )}
                       </div>

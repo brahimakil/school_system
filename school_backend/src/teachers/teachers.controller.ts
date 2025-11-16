@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseInterceptors, UploadedFile, ValidationPipe, UsePipes } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TeachersService } from './teachers.service';
 import { CreateTeacherDto, UpdateTeacherDto } from './dto/teacher.dto';
@@ -9,13 +9,14 @@ export class TeachersController {
 
   @Post()
   @UseInterceptors(FileInterceptor('photo'))
+  @UsePipes(new ValidationPipe({ whitelist: false, forbidNonWhitelisted: false }))
   async create(@Body() body: any, @UploadedFile() file?: Express.Multer.File) {
     const createTeacherDto: CreateTeacherDto = {
       fullName: body.fullName,
       email: body.email,
       password: body.password,
       phoneNumber: body.phoneNumber,
-      professions: JSON.parse(body.professions || '[]'),
+      subjects: JSON.parse(body.subjects || '[]'),
       status: body.status || 'active',
     };
     return this.teachersService.create(createTeacherDto, file);
@@ -33,13 +34,14 @@ export class TeachersController {
 
   @Put(':id')
   @UseInterceptors(FileInterceptor('photo'))
+  @UsePipes(new ValidationPipe({ whitelist: false, forbidNonWhitelisted: false }))
   async update(@Param('id') id: string, @Body() body: any, @UploadedFile() file?: Express.Multer.File) {
     const updateTeacherDto: UpdateTeacherDto = {
       fullName: body.fullName,
       email: body.email,
       password: body.password,
       phoneNumber: body.phoneNumber,
-      professions: body.professions ? JSON.parse(body.professions) : undefined,
+      subjects: body.subjects ? JSON.parse(body.subjects) : undefined,
       status: body.status,
     };
     return this.teachersService.update(id, updateTeacherDto, file);

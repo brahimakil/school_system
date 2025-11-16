@@ -14,6 +14,9 @@ const ClassesManagement: React.FC = () => {
   const [selectedClassGroup, setSelectedClassGroup] = useState<Class[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDay, setSelectedDay] = useState<string>('All');
+  const [selectedGrade, setSelectedGrade] = useState<string>('All');
+  const [selectedSection, setSelectedSection] = useState<string>('All');
+  const [selectedTeacher, setSelectedTeacher] = useState<string>('All');
   const [viewingStudents, setViewingStudents] = useState<{ classId: string; students: any[] } | null>(null);
   const [viewingSchedule, setViewingSchedule] = useState<Class[] | null>(null);
 
@@ -23,7 +26,7 @@ const ClassesManagement: React.FC = () => {
 
   useEffect(() => {
     filterClasses();
-  }, [classes, searchTerm, selectedDay]);
+  }, [classes, searchTerm, selectedDay, selectedGrade, selectedSection, selectedTeacher]);
 
   const loadClasses = async () => {
     try {
@@ -63,8 +66,29 @@ const ClassesManagement: React.FC = () => {
       filtered = filtered.filter(c => c.dayOfWeek === selectedDay);
     }
 
+    if (selectedGrade !== 'All') {
+      filtered = filtered.filter(c => 
+        c.gradeSections.some(gs => gs.grade === selectedGrade)
+      );
+    }
+
+    if (selectedSection !== 'All') {
+      filtered = filtered.filter(c => 
+        c.gradeSections.some(gs => gs.section === selectedSection)
+      );
+    }
+
+    if (selectedTeacher !== 'All') {
+      filtered = filtered.filter(c => c.teacherName === selectedTeacher);
+    }
+
     setFilteredClasses(filtered);
   };
+
+  // Get unique grades, sections, and teachers for filter dropdowns
+  const uniqueGrades = Array.from(new Set(classes.flatMap(c => c.gradeSections.map(gs => gs.grade)))).sort();
+  const uniqueSections = Array.from(new Set(classes.flatMap(c => c.gradeSections.map(gs => gs.section)))).sort();
+  const uniqueTeachers = Array.from(new Set(classes.map(c => c.teacherName).filter(Boolean))).sort();
 
   const handleAddClass = () => {
     setSelectedClass(null);
@@ -211,22 +235,150 @@ const ClassesManagement: React.FC = () => {
             onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
-        <select
-          value={selectedDay}
-          onChange={e => setSelectedDay(e.target.value)}
-          className="filter-select"
-        >
-          <option value="All">All Days</option>
-          {DAYS_ORDER.map(day => (
-            <option key={day} value={day}>{day}</option>
-          ))}
-        </select>
         <button onClick={handleAddClass} className="add-btn">
           <svg viewBox="0 0 24 24" fill="none">
             <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2"/>
           </svg>
           <span>Add Class</span>
         </button>
+      </div>
+
+      {/* Filters Row */}
+      <div style={{ 
+        display: 'flex', 
+        gap: '12px', 
+        marginBottom: '24px',
+        flexWrap: 'wrap',
+        padding: '16px',
+        backgroundColor: '#f9fafb',
+        borderRadius: '12px',
+        border: '1px solid #e5e7eb'
+      }}>
+        <div style={{ flex: '1', minWidth: '150px' }}>
+          <label style={{ 
+            display: 'block', 
+            fontSize: '13px', 
+            fontWeight: 600, 
+            color: '#374151',
+            marginBottom: '6px'
+          }}>
+            Day
+          </label>
+          <select
+            value={selectedDay}
+            onChange={e => setSelectedDay(e.target.value)}
+            className="filter-select"
+            style={{ width: '100%' }}
+          >
+            <option value="All">All Days</option>
+            {DAYS_ORDER.map(day => (
+              <option key={day} value={day}>{day}</option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ flex: '1', minWidth: '150px' }}>
+          <label style={{ 
+            display: 'block', 
+            fontSize: '13px', 
+            fontWeight: 600, 
+            color: '#374151',
+            marginBottom: '6px'
+          }}>
+            Grade
+          </label>
+          <select
+            value={selectedGrade}
+            onChange={e => setSelectedGrade(e.target.value)}
+            className="filter-select"
+            style={{ width: '100%' }}
+          >
+            <option value="All">All Grades</option>
+            {uniqueGrades.map(grade => (
+              <option key={grade} value={grade}>{grade}</option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ flex: '1', minWidth: '150px' }}>
+          <label style={{ 
+            display: 'block', 
+            fontSize: '13px', 
+            fontWeight: 600, 
+            color: '#374151',
+            marginBottom: '6px'
+          }}>
+            Section
+          </label>
+          <select
+            value={selectedSection}
+            onChange={e => setSelectedSection(e.target.value)}
+            className="filter-select"
+            style={{ width: '100%' }}
+          >
+            <option value="All">All Sections</option>
+            {uniqueSections.map(section => (
+              <option key={section} value={section}>{section}</option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ flex: '1', minWidth: '200px' }}>
+          <label style={{ 
+            display: 'block', 
+            fontSize: '13px', 
+            fontWeight: 600, 
+            color: '#374151',
+            marginBottom: '6px'
+          }}>
+            Teacher
+          </label>
+          <select
+            value={selectedTeacher}
+            onChange={e => setSelectedTeacher(e.target.value)}
+            className="filter-select"
+            style={{ width: '100%' }}
+          >
+            <option value="All">All Teachers</option>
+            {uniqueTeachers.map(teacher => (
+              <option key={teacher} value={teacher}>{teacher}</option>
+            ))}
+          </select>
+        </div>
+
+        {(selectedDay !== 'All' || selectedGrade !== 'All' || selectedSection !== 'All' || selectedTeacher !== 'All') && (
+          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+            <button
+              onClick={() => {
+                setSelectedDay('All');
+                setSelectedGrade('All');
+                setSelectedSection('All');
+                setSelectedTeacher('All');
+              }}
+              style={{
+                padding: '8px 16px',
+                fontSize: '14px',
+                fontWeight: 500,
+                color: '#6b7280',
+                backgroundColor: 'white',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = '#f3f4f6';
+                e.currentTarget.style.borderColor = '#9ca3af';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.borderColor = '#d1d5db';
+              }}
+            >
+              Clear Filters
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="data-table-container">

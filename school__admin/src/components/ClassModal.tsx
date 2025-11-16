@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import type { Class, CreateClassData, UpdateClassData } from '../services/classes.api';
-import { deleteClass, createClass, updateClass } from '../services/classes.api';
+import { deleteClass, createClass, updateClass, getAllClasses } from '../services/classes.api';
 import { teachersAPI } from '../services/teachers.api';
+import { subjectsAPI } from '../api/subjects.api';
+import type { Subject } from '../api/subjects.api';
 import './TeacherModal.css';
 
 interface Teacher {
   id: string;
   fullName: string;
+  subjects: string[];
 }
 
 const GRADES = ['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'];
@@ -28,11 +31,19 @@ interface Schedule {
   endTime: string;
 }
 
+interface GradeSectionSchedule {
+  grade: string;
+  section: string;
+  teacherId: string;
+  schedules: Schedule[];
+  expanded: boolean;
+}
+
 const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, classData, relatedClasses = [] }) => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [showGradeSections, setShowGradeSections] = useState(false);
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [originalSchedules, setOriginalSchedules] = useState<Schedule[]>([]); // Track original schedules
+  const [gradeSectionSchedules, setGradeSectionSchedules] = useState<GradeSectionSchedule[]>([]);
   const [formData, setFormData] = useState<CreateClassData>({
     className: '',
     teacherId: '',
@@ -41,11 +52,86 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
     startTime: '',
     endTime: '',
   });
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
+
+  // Helper functions for teachers
+  const getTeachersForSubject = (subjectId: string): Teacher[] => {
+    if (!subjectId) return [];
+    return teachers.filter(t => t.subjects?.includes(subjectId));
+  };
+
+  const setTeacherForGradeSection = (grade: string, section: string, teacherId: string) => {
+    setGradeSectionSchedules(prev => {
+      const existing = prev.find(gss => gss.grade === grade && gss.section === section);
+      if (existing) {
+        return prev.map(gss => 
+          gss.grade === grade && gss.section === section 
+            ? { ...gss, teacherId }
+            : gss
+        );
+      } else {
+        return [...prev, { grade, section, teacherId, schedules: [], expanded: false }];
+      }
+    });
+  };
+
+  const toggleGradeSectionExpanded = (grade: string, section: string) => {
+    setGradeSectionSchedules(prev => prev.map(gss =>
+      gss.grade === grade && gss.section === section
+        ? { ...gss, expanded: !gss.expanded }
+        : gss
+    ));
+  };
+
+  const addScheduleToGradeSection = (grade: string, section: string, day: string) => {
+    setGradeSectionSchedules(prev => prev.map(gss =>
+      gss.grade === grade && gss.section === section
+        ? {
+            ...gss,
+            schedules: [...gss.schedules, {
+              id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              dayOfWeek: day,
+              startTime: '08:00',
+              endTime: '09:00'
+            }]
+          }
+        : gss
+    ));
+  };
+
+  const removeScheduleFromGradeSection = (grade: string, section: string, scheduleId: string) => {
+    setGradeSectionSchedules(prev => prev.map(gss =>
+      gss.grade === grade && gss.section === section
+        ? { ...gss, schedules: gss.schedules.filter(s => s.id !== scheduleId) }
+        : gss
+    ));
+  };
+
+  const updateGradeSectionScheduleTime = (
+    grade: string,
+    section: string,
+    scheduleId: string,
+    field: 'startTime' | 'endTime',
+    value: string
+  ) => {
+    setGradeSectionSchedules(prev => prev.map(gss =>
+      gss.grade === grade && gss.section === section
+        ? {
+            ...gss,
+            schedules: gss.schedules.map(s =>
+              s.id === scheduleId ? { ...s, [field]: value } : s
+            )
+          }
+        : gss
+    ));
+  };
 
   useEffect(() => {
     if (isOpen) {
       loadTeachers();
-      if (classData) {
+      loadSubjects();
+      if (classData && relatedClasses && relatedClasses.length > 0) {
+        // Editing mode: Load from related classes
         setFormData({
           className: classData.className,
           teacherId: classData.teacherId,
@@ -55,32 +141,33 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
           endTime: classData.endTime,
         });
         
-        // If we have related classes, load all their schedules
-        if (relatedClasses && relatedClasses.length > 0) {
-          console.log('=== LOADING RELATED SCHEDULES ===');
-          const allSchedules = relatedClasses.map(c => ({
-            id: c.id || Date.now().toString(),
-            dayOfWeek: c.dayOfWeek,
-            startTime: c.startTime,
-            endTime: c.endTime,
-          }));
-          console.log('All schedules loaded:', allSchedules);
-          setSchedules(allSchedules);
-          setOriginalSchedules(allSchedules); // Store original for comparison
-        } else {
-          // Fallback to single schedule
-          const schedule = {
-            id: Date.now().toString(),
-            dayOfWeek: classData.dayOfWeek,
-            startTime: classData.startTime,
-            endTime: classData.endTime,
-          };
-          setSchedules([schedule]);
-          setOriginalSchedules([schedule]);
+        // Group related classes by grade/section
+        const grouped = new Map<string, GradeSectionSchedule>();
+        for (const cls of relatedClasses) {
+          if (cls.gradeSections && cls.gradeSections.length > 0) {
+            const gs = cls.gradeSections[0];
+            const key = `${gs.grade}-${gs.section}`;
+            if (!grouped.has(key)) {
+              grouped.set(key, {
+                grade: gs.grade,
+                section: gs.section,
+                teacherId: cls.teacherId,
+                schedules: [],
+                expanded: false
+              });
+            }
+            grouped.get(key)!.schedules.push({
+              id: cls.id || Date.now().toString(),
+              dayOfWeek: cls.dayOfWeek,
+              startTime: cls.startTime,
+              endTime: cls.endTime
+            });
+          }
         }
-        
+        setGradeSectionSchedules(Array.from(grouped.values()));
         setShowGradeSections(classData.gradeSections.length > 0);
       } else {
+        // New class mode
         setFormData({
           className: '',
           teacherId: '',
@@ -89,9 +176,9 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
           startTime: '',
           endTime: '',
         });
-        setSchedules([]);
-        setOriginalSchedules([]);
+        setGradeSectionSchedules([]);
         setShowGradeSections(false);
+        setSelectedSubjectId('');
       }
     }
   }, [isOpen, classData, relatedClasses]);
@@ -106,163 +193,218 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
     }
   };
 
+  const loadSubjects = async () => {
+    try {
+      const data = await subjectsAPI.getAll();
+      setSubjects(data);
+    } catch (error) {
+      console.error('Failed to load subjects:', error);
+      setSubjects([]);
+    }
+  };
+
   const toggleGradeSection = (grade: string, section: string) => {
     const exists = formData.gradeSections.some(gs => gs.grade === grade && gs.section === section);
     if (exists) {
+      // Remove from formData and from gradeSectionSchedules
       setFormData(prev => ({
         ...prev,
         gradeSections: prev.gradeSections.filter(gs => !(gs.grade === grade && gs.section === section))
       }));
+      setGradeSectionSchedules(prev => prev.filter(gss => !(gss.grade === grade && gss.section === section)));
     } else {
+      // Add to formData and create entry in gradeSectionSchedules
       setFormData(prev => ({
         ...prev,
         gradeSections: [...prev.gradeSections, { grade, section }]
       }));
+      setGradeSectionSchedules(prev => [...prev, {
+        grade,
+        section,
+        teacherId: '',
+        schedules: [],
+        expanded: false
+      }]);
     }
   };
 
-  const addSchedule = (day: string) => {
-    setSchedules(prev => [...prev, { 
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, 
-      dayOfWeek: day, 
-      startTime: '08:00', 
-      endTime: '09:00' 
-    }]);
+  // Helper function to check if two time ranges overlap
+  const timeRangesOverlap = (start1: string, end1: string, start2: string, end2: string): boolean => {
+    return start1 < end2 && start2 < end1;
   };
 
-  const removeSchedule = (id: string) => {
-    setSchedules(prev => prev.filter(s => s.id !== id));
-  };
+  // Check for scheduling conflicts
+  const checkConflicts = async (gss: GradeSectionSchedule, schedule: Schedule, excludeClassIds: Set<string> = new Set()): Promise<string | null> => {
+    try {
+      const allClasses = await getAllClasses();
+      
+      for (const existingClass of allClasses) {
+        // Skip if it's one of the classes we're currently editing
+        if (excludeClassIds.has(existingClass.id || '')) continue;
 
-  const updateScheduleTime = (id: string, field: 'startTime' | 'endTime', value: string) => {
-    setSchedules(prev => prev.map(s => 
-      s.id === id ? { ...s, [field]: value } : s
-    ));
+        // Check if same day
+        if (existingClass.dayOfWeek !== schedule.dayOfWeek) continue;
+
+        // Check if times overlap
+        if (!timeRangesOverlap(schedule.startTime, schedule.endTime, existingClass.startTime, existingClass.endTime)) continue;
+
+        // CONFLICT 1: Same teacher teaching different classes at same time
+        if (existingClass.teacherId === gss.teacherId) {
+          const existingGS = existingClass.gradeSections[0];
+          const isSameSection = existingGS.grade === gss.grade && existingGS.section === gss.section;
+          
+          if (!isSameSection || existingClass.className !== formData.className) {
+            const teacher = teachers.find(t => t.id === gss.teacherId);
+            return `Teacher ${teacher?.fullName || 'selected'} is already teaching "${existingClass.className}" to ${existingGS.grade} ${existingGS.section} on ${schedule.dayOfWeek} from ${existingClass.startTime} to ${existingClass.endTime}`;
+          }
+        }
+
+        // CONFLICT 2: Same grade/section attending different classes at same time
+        const existingGS = existingClass.gradeSections[0];
+        if (existingGS.grade === gss.grade && existingGS.section === gss.section) {
+          // Only conflict if it's a different class
+          if (existingClass.className !== formData.className) {
+            return `${gss.grade} Section ${gss.section} already has "${existingClass.className}" scheduled on ${schedule.dayOfWeek} from ${existingClass.startTime} to ${existingClass.endTime}`;
+          }
+        }
+      }
+      
+      return null; // No conflicts
+    } catch (error) {
+      console.error('Error checking conflicts:', error);
+      return null;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('=== SUBMIT STARTED ===');
-    console.log('Form Data:', formData);
-    console.log('Schedules:', schedules);
-    console.log('Is Editing?', !!classData);
-    console.log('Related Classes:', relatedClasses);
     
     if (formData.gradeSections.length === 0) {
       alert('Please select at least one grade and section');
       return;
     }
-    if (schedules.length === 0) {
-      alert('Please add at least one schedule (day and time)');
+    if (!selectedSubjectId) {
+      alert('Please select a subject');
       return;
     }
 
-    // Validate all schedules have valid times
-    for (const schedule of schedules) {
-      if (!schedule.startTime || !schedule.endTime) {
-        alert('Please fill in all time fields for each schedule');
+    // Validate all grade/sections have assigned teachers and schedules
+    for (const gradeSection of formData.gradeSections) {
+      const gss = gradeSectionSchedules.find(g => g.grade === gradeSection.grade && g.section === gradeSection.section);
+      if (!gss || !gss.teacherId) {
+        alert(`Please assign a teacher for ${gradeSection.grade} - ${gradeSection.section}.`);
         return;
       }
-      if (schedule.startTime >= schedule.endTime) {
-        alert(`Invalid time range for ${schedule.dayOfWeek}: Start time must be before end time`);
+      if (!gss.schedules || gss.schedules.length === 0) {
+        alert(`Please add at least one schedule for ${gradeSection.grade} - ${gradeSection.section}.`);
         return;
+      }
+      // Validate times for each schedule
+      for (const schedule of gss.schedules) {
+        if (!schedule.startTime || !schedule.endTime) {
+          alert(`Please fill in all time fields for ${gradeSection.grade} - ${gradeSection.section}`);
+          return;
+        }
+        if (schedule.startTime >= schedule.endTime) {
+          alert(`Invalid time range for ${gradeSection.grade} - ${gradeSection.section} on ${schedule.dayOfWeek}`);
+          return;
+        }
+      }
+    }
+
+    // Check for conflicts with existing classes
+    const excludeIds = relatedClasses ? new Set(relatedClasses.map(c => c.id || '')) : new Set<string>();
+    for (const gss of gradeSectionSchedules) {
+      if (!gss.teacherId) continue;
+      
+      for (const schedule of gss.schedules) {
+        const conflict = await checkConflicts(gss, schedule, excludeIds);
+        if (conflict) {
+          alert(`Scheduling Conflict:\n\n${conflict}`);
+          return;
+        }
       }
     }
 
     try {
       if (classData && relatedClasses && relatedClasses.length > 0) {
-        console.log('EDITING MODE - Comparing and updating schedules');
-        console.log('Original schedules:', originalSchedules);
-        console.log('Current schedules:', schedules);
-        
-        // Find schedules to delete (in original but not in current)
-        const schedulesToDelete = originalSchedules.filter(orig => 
-          !schedules.some(curr => curr.id === orig.id)
-        );
-        
-        // Find schedules to update (in both, check if changed)
-        const schedulesToUpdate = schedules.filter(curr => 
-          originalSchedules.some(orig => orig.id === curr.id)
-        );
-        
-        // Find schedules to create (in current but not in original)
-        const schedulesToCreate = schedules.filter(curr => 
-          !originalSchedules.some(orig => orig.id === curr.id)
-        );
-        
-        console.log('To delete:', schedulesToDelete);
-        console.log('To update:', schedulesToUpdate);
-        console.log('To create:', schedulesToCreate);
-        
-        // Delete removed schedules
-        for (const schedule of schedulesToDelete) {
-          console.log('Deleting schedule:', schedule.id);
-          await deleteClass(schedule.id);
+        // EDITING MODE
+        const existingClassIds = new Set(relatedClasses.map(c => c.id));
+        const currentClassIds = new Set<string>();
+
+        // Create or update classes for each grade/section × schedule combination
+        for (const gss of gradeSectionSchedules) {
+          const { grade, section, teacherId, schedules } = gss;
+          if (!teacherId) continue;
+
+          for (const schedule of schedules) {
+            // Find matching existing class
+            const matchingClass = relatedClasses.find(c => 
+              c.dayOfWeek === schedule.dayOfWeek &&
+              c.startTime === schedule.startTime &&
+              c.endTime === schedule.endTime &&
+              c.teacherId === teacherId &&
+              c.gradeSections.length === 1 &&
+              c.gradeSections[0].grade === grade &&
+              c.gradeSections[0].section === section
+            );
+
+            if (matchingClass) {
+              currentClassIds.add(matchingClass.id!);
+              // Update if className changed
+              if (matchingClass.className !== formData.className) {
+                await updateClass(matchingClass.id!, {
+                  className: formData.className,
+                  teacherId,
+                  gradeSections: [{ grade, section }],
+                  dayOfWeek: schedule.dayOfWeek,
+                  startTime: schedule.startTime,
+                  endTime: schedule.endTime
+                });
+              }
+            } else {
+              // Create new class
+              await createClass({
+                className: formData.className,
+                teacherId,
+                gradeSections: [{ grade, section }],
+                dayOfWeek: schedule.dayOfWeek,
+                startTime: schedule.startTime,
+                endTime: schedule.endTime
+              });
+            }
+          }
         }
-        
-        // Update existing schedules
-        for (const schedule of schedulesToUpdate) {
-          const original = originalSchedules.find(o => o.id === schedule.id);
-          // Only update if something changed
-          if (original && (
-            original.dayOfWeek !== schedule.dayOfWeek ||
-            original.startTime !== schedule.startTime ||
-            original.endTime !== schedule.endTime ||
-            JSON.stringify(formData.gradeSections) !== JSON.stringify(classData.gradeSections) ||
-            formData.className !== classData.className ||
-            formData.teacherId !== classData.teacherId
-          )) {
-            console.log('Updating schedule:', schedule.id);
-            await updateClass(schedule.id, {
+
+        // Delete classes that are no longer in the current configuration
+        for (const classId of existingClassIds) {
+          if (classId && !currentClassIds.has(classId)) {
+            await deleteClass(classId);
+          }
+        }
+
+        onSubmit({});
+      } else {
+        // CREATE MODE - Creating one class for each grade/section × schedule combination
+        for (const gss of gradeSectionSchedules) {
+          const { grade, section, teacherId, schedules } = gss;
+          if (!teacherId) continue;
+
+          for (const schedule of schedules) {
+            const submitData = {
               className: formData.className,
-              teacherId: formData.teacherId,
-              gradeSections: formData.gradeSections,
+              teacherId,
+              gradeSections: [{ grade, section }],
               dayOfWeek: schedule.dayOfWeek,
               startTime: schedule.startTime,
               endTime: schedule.endTime,
-            });
-          } else {
-            console.log('Schedule unchanged, skipping:', schedule.id);
+            };
+            await createClass(submitData);
           }
         }
         
-        // Create new schedules
-        for (const schedule of schedulesToCreate) {
-          console.log('Creating new schedule:', schedule);
-          await createClass({
-            className: formData.className,
-            teacherId: formData.teacherId,
-            gradeSections: formData.gradeSections,
-            dayOfWeek: schedule.dayOfWeek,
-            startTime: schedule.startTime,
-            endTime: schedule.endTime,
-          });
-        }
-        
-        // Notify parent that we're done (just for refresh)
-        onSubmit({});
-      } else {
-        console.log('CREATE MODE - Creating', schedules.length, 'class entries');
-        // When creating, create one class entry for each schedule
-        for (let i = 0; i < schedules.length; i++) {
-          const schedule = schedules[i];
-          const submitData = {
-            className: formData.className,
-            teacherId: formData.teacherId,
-            gradeSections: formData.gradeSections,
-            dayOfWeek: schedule.dayOfWeek,
-            startTime: schedule.startTime,
-            endTime: schedule.endTime,
-          };
-          console.log(`Creating class ${i + 1}/${schedules.length}:`, submitData);
-          await createClass(submitData);
-          console.log(`Class ${i + 1} created successfully`);
-        }
-        
-        // Notify parent that we're done (just for refresh)
         onSubmit({});
       }
-      console.log('=== SUBMIT COMPLETED ===');
       onClose();
     } catch (error: any) {
       console.error('Submit error:', error);
@@ -281,27 +423,43 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
         </div>
 
         <form onSubmit={handleSubmit} className="modal-form">
+          {classData && (
+            <div style={{ 
+              marginBottom: '16px', 
+              padding: '10px 16px', 
+              backgroundColor: '#f0f9ff', 
+              border: '2px solid #3b82f6',
+              borderRadius: '8px',
+              fontSize: '15px',
+              fontWeight: 600,
+              color: '#1e40af',
+              textAlign: 'center'
+            }}>
+              Editing: {classData.className}
+            </div>
+          )}
+          
           <div className="form-group">
             <label>Class Name *</label>
             <input
               type="text"
               value={formData.className}
               onChange={e => setFormData({...formData, className: e.target.value})}
-              placeholder="e.g., Chemistry, Mathematics, Physics"
+              placeholder="e.g., Chemistry 101, Math Advanced"
               required
             />
           </div>
 
           <div className="form-group">
-            <label>Teacher *</label>
+            <label>Subject *</label>
             <select
-              value={formData.teacherId}
-              onChange={e => setFormData({...formData, teacherId: e.target.value})}
+              value={selectedSubjectId}
+              onChange={e => setSelectedSubjectId(e.target.value)}
               required
             >
-              <option value="">Select Teacher</option>
-              {teachers.map(teacher => (
-                <option key={teacher.id} value={teacher.id}>{teacher.fullName}</option>
+              <option value="">Select Subject</option>
+              {subjects.map(subject => (
+                <option key={subject.id} value={subject.id}>{subject.name}</option>
               ))}
             </select>
           </div>
@@ -354,56 +512,206 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
             )}
           </div>
 
-          <div className="form-group">
-            <label>Schedule * (Select days and add time slots)</label>
-            <div className="schedule-builder">
-              {DAYS_OF_WEEK.map(day => {
-                const daySchedules = schedules.filter(s => s.dayOfWeek === day);
-                return (
-                  <div key={day} className="day-schedule-group">
-                    <div className="day-header">
-                      <span className="day-name">{day}</span>
-                      <button
-                        type="button"
-                        onClick={() => addSchedule(day)}
-                        className="add-time-btn"
+          {/* Teacher Assignment and Schedules per Grade/Section */}
+          {selectedSubjectId && gradeSectionSchedules.length > 0 && (
+            <div className="form-group">
+              <label>Assign Teachers and Schedules by Grade/Section *</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {gradeSectionSchedules.map((gss, index) => {
+                  const availableTeachers = getTeachersForSubject(selectedSubjectId);
+                  const teacher = teachers.find(t => t.id === gss.teacherId);
+                  
+                  return (
+                    <div key={index} style={{ 
+                      border: '1px solid #e5e7eb', 
+                      borderRadius: '8px', 
+                      overflow: 'hidden'
+                    }}>
+                      {/* Header */}
+                      <div 
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          padding: '12px 16px', 
+                          backgroundColor: '#f9fafb',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => toggleGradeSectionExpanded(gss.grade, gss.section)}
                       >
-                        + Add Time
-                      </button>
-                    </div>
-                    {daySchedules.length > 0 && (
-                      <div className="day-time-slots">
-                        {daySchedules.map(schedule => (
-                          <div key={schedule.id} className="time-slot">
-                            <input
-                              type="time"
-                              value={schedule.startTime}
-                              onChange={e => updateScheduleTime(schedule.id, 'startTime', e.target.value)}
-                              required
-                            />
-                            <span>to</span>
-                            <input
-                              type="time"
-                              value={schedule.endTime}
-                              onChange={e => updateScheduleTime(schedule.id, 'endTime', e.target.value)}
-                              required
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeSchedule(schedule.id)}
-                              className="remove-time-btn"
-                            >
-                              ×
-                            </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span style={{ fontSize: '18px' }}>{gss.expanded ? '▼' : '▶'}</span>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '15px' }}>
+                              {formData.className || 'New Class'} - {gss.grade} - {gss.section}
+                            </div>
+                            <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px' }}>
+                              {teacher ? `Teacher: ${teacher.fullName}` : 'No teacher assigned'} • {gss.schedules.length} schedule(s)
+                            </div>
                           </div>
-                        ))}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+
+                      {/* Expanded Content */}
+                      {gss.expanded && (
+                        <div style={{ padding: '16px', backgroundColor: '#ffffff' }}>
+                          {/* Grade Header */}
+                          <div style={{ 
+                            marginBottom: '20px', 
+                            padding: '12px 16px',
+                            backgroundColor: '#eff6ff',
+                            borderLeft: '4px solid #3b82f6',
+                            borderRadius: '4px'
+                          }}>
+                            <div style={{ fontSize: '16px', fontWeight: 700, color: '#1e40af' }}>
+                              {gss.grade}
+                            </div>
+                            <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
+                              Section {gss.section} • {formData.className || 'New Class'}
+                            </div>
+                          </div>
+
+                          {/* Teacher Selection */}
+                          <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '14px', color: '#374151' }}>
+                              Assign Teacher *
+                            </label>
+                            <select
+                              value={gss.teacherId || ''}
+                              onChange={(e) => setTeacherForGradeSection(gss.grade, gss.section, e.target.value)}
+                              style={{ 
+                                width: '100%',
+                                padding: '10px 12px',
+                                border: '2px solid #e5e7eb',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                outline: 'none',
+                                transition: 'border-color 0.2s'
+                              }}
+                              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              required
+                            >
+                              <option value="">Select Teacher</option>
+                              {availableTeachers.map(t => (
+                                <option key={t.id} value={t.id}>{t.fullName}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {/* Schedules */}
+                          <div>
+                            <label style={{ display: 'block', marginBottom: '12px', fontWeight: 600, fontSize: '14px', color: '#374151' }}>
+                              Schedules (Day & Time) *
+                            </label>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              {DAYS_OF_WEEK.map(day => {
+                                const daySchedules = gss.schedules.filter(s => s.dayOfWeek === day);
+                                return (
+                                  <div key={day} style={{ 
+                                    padding: '12px',
+                                    backgroundColor: '#f9fafb',
+                                    borderRadius: '8px',
+                                    border: '1px solid #e5e7eb'
+                                  }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: daySchedules.length > 0 ? '10px' : '0' }}>
+                                      <span style={{ fontWeight: 600, fontSize: '14px', color: '#1f2937' }}>{day}</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => addScheduleToGradeSection(gss.grade, gss.section, day)}
+                                        style={{
+                                          padding: '6px 16px',
+                                          fontSize: '13px',
+                                          fontWeight: 500,
+                                          backgroundColor: '#3b82f6',
+                                          color: 'white',
+                                          border: 'none',
+                                          borderRadius: '6px',
+                                          cursor: 'pointer',
+                                          transition: 'background-color 0.2s'
+                                        }}
+                                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+                                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
+                                      >
+                                        + Add Time
+                                      </button>
+                                    </div>
+                                    {daySchedules.length > 0 && (
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        {daySchedules.map(schedule => (
+                                          <div key={schedule.id} style={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            gap: '10px',
+                                            padding: '8px 12px',
+                                            backgroundColor: '#ffffff',
+                                            borderRadius: '6px',
+                                            border: '1px solid #e5e7eb'
+                                          }}>
+                                            <input
+                                              type="time"
+                                              value={schedule.startTime}
+                                              onChange={e => updateGradeSectionScheduleTime(gss.grade, gss.section, schedule.id, 'startTime', e.target.value)}
+                                              required
+                                              style={{ 
+                                                padding: '8px 12px', 
+                                                border: '2px solid #e5e7eb', 
+                                                borderRadius: '6px',
+                                                fontSize: '14px',
+                                                outline: 'none'
+                                              }}
+                                            />
+                                            <span style={{ fontWeight: 500, color: '#6b7280' }}>to</span>
+                                            <input
+                                              type="time"
+                                              value={schedule.endTime}
+                                              onChange={e => updateGradeSectionScheduleTime(gss.grade, gss.section, schedule.id, 'endTime', e.target.value)}
+                                              required
+                                              style={{ 
+                                                padding: '8px 12px', 
+                                                border: '2px solid #e5e7eb', 
+                                                borderRadius: '6px',
+                                                fontSize: '14px',
+                                                outline: 'none'
+                                              }}
+                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() => removeScheduleFromGradeSection(gss.grade, gss.section, schedule.id)}
+                                              style={{
+                                                padding: '6px 10px',
+                                                fontSize: '18px',
+                                                fontWeight: 600,
+                                                color: '#ffffff',
+                                                backgroundColor: '#ef4444',
+                                                border: 'none',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer',
+                                                transition: 'background-color 0.2s',
+                                                lineHeight: 1
+                                              }}
+                                              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+                                              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+                                            >
+                                              ✕
+                                            </button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="modal-actions">
             <button type="button" className="btn-cancel" onClick={onClose}>
