@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000';
+import api from '../services/api';
 
 export interface Subject {
   id: string;
@@ -23,42 +23,26 @@ export interface UpdateSubjectData {
 
 export const subjectsAPI = {
   getAll: async (): Promise<Subject[]> => {
-    const response = await fetch(`${API_URL}/subjects`);
-    if (!response.ok) throw new Error('Failed to fetch subjects');
-    const data = await response.json();
-    return Array.isArray(data) ? data : data.data || [];
+    const response = await api.get('/subjects');
+    return Array.isArray(response.data) ? response.data : response.data.data || [];
   },
 
   getById: async (id: string): Promise<Subject> => {
-    const response = await fetch(`${API_URL}/subjects/${id}`);
-    if (!response.ok) throw new Error('Failed to fetch subject');
-    return response.json();
+    const response = await api.get(`/subjects/${id}`);
+    return response.data;
   },
 
   create: async (data: CreateSubjectData): Promise<Subject> => {
-    const response = await fetch(`${API_URL}/subjects`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error('Failed to create subject');
-    return response.json();
+    const response = await api.post('/subjects', data);
+    return response.data;
   },
 
   update: async (id: string, data: UpdateSubjectData): Promise<Subject> => {
-    const response = await fetch(`${API_URL}/subjects/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error('Failed to update subject');
-    return response.json();
+    const response = await api.put(`/subjects/${id}`, data);
+    return response.data;
   },
 
   delete: async (id: string): Promise<void> => {
-    const response = await fetch(`${API_URL}/subjects/${id}`, {
-      method: 'DELETE',
-    });
-    if (!response.ok) throw new Error('Failed to delete subject');
+    await api.delete(`/subjects/${id}`);
   },
 };
