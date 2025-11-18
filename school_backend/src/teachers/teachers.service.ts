@@ -17,32 +17,44 @@ export class TeachersService {
   async create(createTeacherDto: CreateTeacherDto, file?: Express.Multer.File) {
     const { email, password, fullName, phoneNumber, subjects, status } = createTeacherDto;
 
-    const userRecord = await this.auth.createUser({
-      email,
-      password,
-      displayName: fullName,
-    });
+    try {
+      const userRecord = await this.auth.createUser({
+        email,
+        password,
+        displayName: fullName,
+      });
 
-    let photoUrl = '';
-    if (file) {
-      photoUrl = await this.uploadPhotoOnly(file, userRecord.uid);
+      let photoUrl = '';
+      if (file) {
+        photoUrl = await this.uploadPhotoOnly(file, userRecord.uid);
+      }
+
+      const teacherData = {
+        uid: userRecord.uid,
+        fullName,
+        email,
+        phoneNumber,
+        subjects,
+        status: status || 'active',
+        photoUrl,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      };
+
+      await this.db.collection('teachers').doc(userRecord.uid).set(teacherData);
+
+      return { success: true, message: 'Teacher created successfully', data: teacherData };
+    } catch (error) {
+      // Handle Firebase Auth errors with user-friendly messages
+      if (error.code === 'auth/email-already-exists') {
+        throw new Error('This email address is already registered. Please use a different email.');
+      } else if (error.code === 'auth/invalid-email') {
+        throw new Error('Invalid email address format.');
+      } else if (error.code === 'auth/weak-password') {
+        throw new Error('Password is too weak. Please use a stronger password.');
+      }
+      throw error;
     }
-
-    const teacherData = {
-      uid: userRecord.uid,
-      fullName,
-      email,
-      phoneNumber,
-      subjects,
-      status: status || 'active',
-      photoUrl,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
-
-    await this.db.collection('teachers').doc(userRecord.uid).set(teacherData);
-
-    return { success: true, message: 'Teacher created successfully', data: teacherData };
   }
 
   async findAll() {

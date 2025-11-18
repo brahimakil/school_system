@@ -124,7 +124,13 @@ const TeacherModal: React.FC<TeacherModalProps> = ({ teacher, onClose, onSuccess
       resetForm();
       onSuccess();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to save teacher');
+      console.error('Error saving teacher:', error);
+      const errorMessage = 
+        error.response?.data?.message || 
+        error.response?.data?.error ||
+        error.message || 
+        'Failed to save teacher';
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
