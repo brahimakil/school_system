@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { CreateTeacherDto, UpdateTeacherDto } from './dto/teacher.dto';
 
@@ -47,13 +47,13 @@ export class TeachersService {
     } catch (error) {
       // Handle Firebase Auth errors with user-friendly messages
       if (error.code === 'auth/email-already-exists') {
-        throw new Error('This email address is already registered. Please use a different email.');
+        throw new BadRequestException('This email address is already registered. Please use a different email.');
       } else if (error.code === 'auth/invalid-email') {
-        throw new Error('Invalid email address format.');
+        throw new BadRequestException('Invalid email address format.');
       } else if (error.code === 'auth/weak-password') {
-        throw new Error('Password is too weak. Please use a stronger password.');
+        throw new BadRequestException('Password is too weak. Please use a stronger password.');
       }
-      throw error;
+      throw new BadRequestException(error.message || 'Failed to create teacher');
     }
   }
 

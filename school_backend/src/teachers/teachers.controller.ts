@@ -11,22 +11,15 @@ export class TeachersController {
   @UseInterceptors(FileInterceptor('photo'))
   @UsePipes(new ValidationPipe({ whitelist: false, forbidNonWhitelisted: false }))
   async create(@Body() body: any, @UploadedFile() file?: Express.Multer.File) {
-    try {
-      const createTeacherDto: CreateTeacherDto = {
-        fullName: body.fullName,
-        email: body.email,
-        password: body.password,
-        phoneNumber: body.phoneNumber,
-        subjects: JSON.parse(body.subjects || '[]'),
-        status: body.status || 'active',
-      };
-      return this.teachersService.create(createTeacherDto, file);
-    } catch (error) {
-      throw new HttpException(
-        error.message || 'Failed to create teacher',
-        HttpStatus.BAD_REQUEST
-      );
-    }
+    const createTeacherDto: CreateTeacherDto = {
+      fullName: body.fullName,
+      email: body.email,
+      password: body.password,
+      phoneNumber: body.phoneNumber,
+      subjects: JSON.parse(body.subjects || '[]'),
+      status: body.status || 'active',
+    };
+    return this.teachersService.create(createTeacherDto, file);
   }
 
   @Get()
