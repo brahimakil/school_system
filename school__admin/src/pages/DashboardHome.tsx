@@ -39,7 +39,7 @@ const DashboardHome: React.FC = () => {
   const [selectedSection, setSelectedSection] = useState<string>('all');
   const [selectedTeacher, setSelectedTeacher] = useState<string>('all');
   const [teachers, setTeachers] = useState<any[]>([]);
-  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(getMonday(new Date()));
+  const currentWeekStart = getMonday(new Date());
 
   const GRADES = [
     'Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5',
@@ -87,48 +87,59 @@ const DashboardHome: React.FC = () => {
       // Get recent students (last 5)
       const recentStudents = students.slice(-5).reverse();
       recentStudents.forEach((student: any) => {
+        const studentName = student.fullName || student.name || 'Unknown Student';
+        const gradeDetail = student.currentGrade 
+          ? `Grade ${student.currentGrade.grade} ${student.currentGrade.section}` 
+          : 'N/A';
+        
         recentActivities.push({
-          id: student.id,
+          id: student.id || `student-${Date.now()}`,
           type: 'student',
           action: 'New student enrolled',
           user: {
-            name: student.fullName,
-            detail: student.currentGrade ? `${student.currentGrade.grade} ${student.currentGrade.section}` : 'N/A',
-            avatar: student.fullName.charAt(0).toUpperCase(),
+            name: studentName,
+            detail: gradeDetail,
+            avatar: studentName.charAt(0).toUpperCase(),
           },
           time: formatTime(student.createdAt),
-          status: student.status,
+          status: student.status || 'active',
         });
       });
 
       // Get recent teachers (last 3)
       const recentTeachers = teachers.slice(-3).reverse();
       recentTeachers.forEach((teacher: any) => {
+        const teacherName = teacher.fullName || teacher.name || 'Unknown Teacher';
+        const teacherDetail = teacher.subjects?.[0] || teacher.email || 'Teacher';
+        
         recentActivities.push({
-          id: teacher.id,
+          id: teacher.id || teacher.uid || `teacher-${Date.now()}`,
           type: 'teacher',
           action: 'Teacher registered',
           user: {
-            name: teacher.fullName,
-            detail: teacher.subjects?.[0] || 'Teacher',
-            avatar: teacher.fullName.charAt(0).toUpperCase(),
+            name: teacherName,
+            detail: teacherDetail,
+            avatar: teacherName.charAt(0).toUpperCase(),
           },
           time: formatTime(teacher.createdAt),
-          status: teacher.status,
+          status: teacher.status || 'active',
         });
       });
 
       // Get recent classes (last 2)
       const recentClasses = classes.slice(-2).reverse();
       recentClasses.forEach((cls: any) => {
+        const className = cls.className || `${cls.grade || 'Grade'} ${cls.section || ''}`.trim();
+        const teacherName = cls.teacherName || cls.teacher?.fullName || cls.teacher?.name || 'No teacher assigned';
+        
         recentActivities.push({
-          id: cls.id,
+          id: cls.id || `class-${Date.now()}`,
           type: 'class',
           action: 'Class created',
           user: {
-            name: `${cls.grade} ${cls.section}`,
-            detail: cls.teacher?.fullName || 'No teacher assigned',
-            avatar: cls.grade?.charAt(0) || 'C',
+            name: className,
+            detail: teacherName,
+            avatar: className.charAt(0).toUpperCase(),
           },
           time: formatTime(cls.createdAt),
           status: 'active',
@@ -227,22 +238,6 @@ const DashboardHome: React.FC = () => {
     return schedules
       .filter((s) => s.dayOfWeek === day)
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
-  };
-
-  const previousWeek = () => {
-    const newDate = new Date(currentWeekStart);
-    newDate.setDate(newDate.getDate() - 7);
-    setCurrentWeekStart(newDate);
-  };
-
-  const nextWeek = () => {
-    const newDate = new Date(currentWeekStart);
-    newDate.setDate(newDate.getDate() + 7);
-    setCurrentWeekStart(newDate);
-  };
-
-  const goToToday = () => {
-    setCurrentWeekStart(getMonday(new Date()));
   };
 
   const formatWeekRange = () => {
@@ -344,18 +339,7 @@ const DashboardHome: React.FC = () => {
         <div className="calendar-header">
           <h2 className="section-title">Weekly Schedule</h2>
           <div className="calendar-controls">
-            <button className="calendar-nav-btn" onClick={previousWeek}>
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-            <button className="calendar-today-btn" onClick={goToToday}>Today</button>
             <span className="calendar-week-range">{formatWeekRange()}</span>
-            <button className="calendar-nav-btn" onClick={nextWeek}>
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
           </div>
         </div>
 

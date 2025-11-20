@@ -1,168 +1,307 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { studentsAPI } from '../services/students.api';
+import { teachersAPI } from '../services/teachers.api';
+import { getAllClasses } from '../services/classes.api';
+import { getAllQuizzes } from '../services/quizzes.api';
+import { subjectsAPI } from '../api/subjects.api';
 import './ManagementPage.css';
+import './Statistics.css';
+
+interface Stats {
+  students: { total: number; active: number; inactive: number; byGrade: Record<string, number> };
+  teachers: { total: number; active: number; inactive: number; bySubject: Record<string, number> };
+  classes: { total: number; gradeDistribution: Record<string, number> };
+  quizzes: { total: number; pending: number; available: number; completed: number };
+  subjects: { total: number };
+}
 
 const Statistics: React.FC = () => {
+  const [stats, setStats] = useState<Stats>({
+    students: { total: 0, active: 0, inactive: 0, byGrade: {} },
+    teachers: { total: 0, active: 0, inactive: 0, bySubject: {} },
+    classes: { total: 0, gradeDistribution: {} },
+    quizzes: { total: 0, pending: 0, available: 0, completed: 0 },
+    subjects: { total: 0 }
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAllStats();
+  }, []);
+
+  const fetchAllStats = async () => {
+    try {
+      setLoading(true);
+      const [studentsRes, teachersRes, classesRes, quizzesRes, subjectsRes] = await Promise.all([
+        studentsAPI.getAll(),
+        teachersAPI.getAll(),
+        getAllClasses(),
+        getAllQuizzes(),
+        subjectsAPI.getAll()
+      ]);
+
+      const students = Array.isArray(studentsRes) ? studentsRes : (studentsRes as any)?.data || [];
+      const teachers = Array.isArray(teachersRes) ? teachersRes : (teachersRes as any)?.data || [];
+      const classes = Array.isArray(classesRes) ? classesRes : (classesRes as any)?.data || [];
+      const quizzes = Array.isArray(quizzesRes) ? quizzesRes : (quizzesRes as any)?.data || [];
+      const subjects = Array.isArray(subjectsRes) ? subjectsRes : (subjectsRes as any)?.data || [];
+
+      // Calculate student stats
+      const studentsByGrade: Record<string, number> = {};
+      students.forEach((s: any) => {
+        const grade = s.currentGrade?.grade || 'Unknown';
+        studentsByGrade[grade] = (studentsByGrade[grade] || 0) + 1;
+      });
+
+      // Calculate teacher stats by subject
+      const teachersBySubject: Record<string, number> = {};
+      teachers.forEach((t: any) => {
+        (t.subjects || []).forEach((subId: string) => {
+          const subject = subjects.find((s: any) => s.id === subId);
+          if (subject) {
+            teachersBySubject[subject.name] = (teachersBySubject[subject.name] || 0) + 1;
+          }
+        });
+      });
+
+      // Calculate class distribution
+      const gradeDistribution: Record<string, number> = {};
+      classes.forEach((c: any) => {
+        if (c.grade) {
+          const grade = `Grade ${c.grade}`;
+          gradeDistribution[grade] = (gradeDistribution[grade] || 0) + 1;
+        }
+      });
+
+      setStats({
+        students: {
+          total: students.length,
+          active: students.filter((s: any) => s.status === 'active').length,
+          inactive: students.filter((s: any) => s.status === 'inactive').length,
+          byGrade: studentsByGrade
+        },
+        teachers: {
+          total: teachers.length,
+          active: teachers.filter((t: any) => t.status === 'active').length,
+          inactive: teachers.filter((t: any) => t.status === 'inactive').length,
+          bySubject: teachersBySubject
+        },
+        classes: {
+          total: classes.length,
+          gradeDistribution
+        },
+        quizzes: {
+          total: quizzes.length,
+          pending: quizzes.filter((q: any) => q.status === 'pending').length,
+          available: quizzes.filter((q: any) => q.status === 'available').length,
+          completed: quizzes.filter((q: any) => q.status === 'completed').length
+        },
+        subjects: {
+          total: subjects.length
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching statistics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="management-page">
+        <div style={{ padding: '80px', textAlign: 'center' }}>
+          <div className="loading-spinner"></div>
+          <p style={{ marginTop: '20px', color: '#64748b' }}>Loading statistics...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="management-page">
+    <div className="management-page stats-page">
       <div className="page-header">
-        <h1 className="page-title">Statistics & Analytics</h1>
-        <p className="page-description">Comprehensive overview of your school metrics</p>
+        <h1 className="page-title">School Analytics</h1>
+        <p className="page-description">Real-time insights into your school's performance</p>
       </div>
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-header">
-            <span className="stat-title">Total Students</span>
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+      {/* Main Overview Cards */}
+      <div className="stats-overview">
+        <div className="stats-card students-card">
+          <div className="card-visual">
+            <div className="circle-progress" style={{ '--progress': `${(stats.students.active / stats.students.total * 100) || 0}%` } as React.CSSProperties}>
+              <span className="progress-number">{stats.students.total}</span>
             </div>
           </div>
-          <div className="stat-value">1,234</div>
-          <div className="stat-change positive">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 19V5M5 12L12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>+12% from last month</span>
+          <div className="card-content">
+            <h3>Students</h3>
+            <div className="stat-row">
+              <span className="label">Active:</span>
+              <span className="value active">{stats.students.active}</span>
+            </div>
+            <div className="stat-row">
+              <span className="label">Inactive:</span>
+              <span className="value inactive">{stats.students.inactive}</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-header">
-            <span className="stat-title">Total Teachers</span>
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+        <div className="stats-card teachers-card">
+          <div className="card-visual">
+            <div className="circle-progress" style={{ '--progress': `${(stats.teachers.active / stats.teachers.total * 100) || 0}%` } as React.CSSProperties}>
+              <span className="progress-number">{stats.teachers.total}</span>
             </div>
           </div>
-          <div className="stat-value">87</div>
-          <div className="stat-change positive">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 19V5M5 12L12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>+5% from last month</span>
+          <div className="card-content">
+            <h3>Teachers</h3>
+            <div className="stat-row">
+              <span className="label">Active:</span>
+              <span className="value active">{stats.teachers.active}</span>
+            </div>
+            <div className="stat-row">
+              <span className="label">Inactive:</span>
+              <span className="value inactive">{stats.teachers.inactive}</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-header">
-            <span className="stat-title">Total Classes</span>
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2 3H8C9.06087 3 10.0783 3.42143 10.8284 4.17157C11.5786 4.92172 12 5.93913 12 7V21C12 20.2044 11.6839 19.4413 11.1213 18.8787C10.5587 18.3161 9.79565 18 9 18H2V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M22 3H16C14.9391 3 13.9217 3.42143 13.1716 4.17157C12.4214 4.92172 12 5.93913 12 7V21C12 20.2044 12.3161 19.4413 12.8787 18.8787C13.4413 18.3161 14.2044 18 15 18H22V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-          </div>
-          <div className="stat-value">45</div>
-          <div className="stat-change positive">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 19V5M5 12L12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <div className="stats-card classes-card">
+          <div className="card-visual">
+            <svg viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="#e2e8f0" strokeWidth="10" />
+              <circle 
+                cx="50" 
+                cy="50" 
+                r="40" 
+                fill="none" 
+                stroke="#3b82f6" 
+                strokeWidth="10"
+                strokeDasharray={`${(stats.classes.total / 50 * 251.2)} 251.2`}
+                transform="rotate(-90 50 50)"
+              />
+              <text x="50" y="55" textAnchor="middle" fontSize="24" fontWeight="bold" fill="#0c4a6e">{stats.classes.total}</text>
             </svg>
-            <span>+3 new classes</span>
+          </div>
+          <div className="card-content">
+            <h3>Classes</h3>
+            <div className="stat-row">
+              <span className="label">Subjects:</span>
+              <span className="value">{stats.subjects.total}</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-header">
-            <span className="stat-title">Pending Tasks</span>
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 11L12 14L22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+        <div className="stats-card quizzes-card">
+          <div className="card-visual">
+            <div className="mini-stats">
+              <div className="mini-stat">
+                <span className="mini-value">{stats.quizzes.pending}</span>
+                <span className="mini-label">Pending</span>
+              </div>
+              <div className="mini-stat">
+                <span className="mini-value">{stats.quizzes.available}</span>
+                <span className="mini-label">Active</span>
+              </div>
+              <div className="mini-stat">
+                <span className="mini-value">{stats.quizzes.completed}</span>
+                <span className="mini-label">Done</span>
+              </div>
             </div>
           </div>
-          <div className="stat-value">23</div>
-          <div className="stat-change negative">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 5V19M19 12L12 19L5 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>3 overdue</span>
+          <div className="card-content">
+            <h3>Quizzes</h3>
+            <div className="stat-row">
+              <span className="label">Total:</span>
+              <span className="value">{stats.quizzes.total}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Breakdowns */}
+      <div className="stats-details">
+        <div className="detail-section">
+          <h2 className="section-title">Students by Grade</h2>
+          <div className="bars-container">
+            {Object.entries(stats.students.byGrade).length === 0 ? (
+              <p className="no-data">No student data available</p>
+            ) : (
+              Object.entries(stats.students.byGrade)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([grade, count], index) => {
+                  const maxCount = Math.max(...Object.values(stats.students.byGrade));
+                  const percentage = (count / maxCount) * 100;
+                  return (
+                    <div key={`student-grade-${index}`} className="stat-bar">
+                      <div className="bar-label">{grade}</div>
+                      <div className="bar-track">
+                        <div 
+                          className="bar-fill students-fill" 
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
+                      <div className="bar-value">{count}</div>
+                    </div>
+                  );
+                })
+            )}
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-header">
-            <span className="stat-title">Active Quizzes</span>
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                <path d="M9.09 9C9.3251 8.33167 9.78915 7.76811 10.4 7.40913C11.0108 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15848 13.7588 7.52152 14.2151 8.06353C14.6713 8.60553 14.9211 9.29152 14.92 10C14.92 12 11.92 13 11.92 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M12 17H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-          </div>
-          <div className="stat-value">15</div>
-          <div className="stat-change positive">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 19V5M5 12L12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>+2 this week</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-header">
-            <span className="stat-title">Homeworks Due</span>
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-          </div>
-          <div className="stat-value">8</div>
-          <div className="stat-change negative">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 5V19M19 12L12 19L5 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>2 past deadline</span>
+        <div className="detail-section">
+          <h2 className="section-title">Teachers by Subject</h2>
+          <div className="bars-container">
+            {Object.entries(stats.teachers.bySubject).length === 0 ? (
+              <p className="no-data">No teacher subject data available</p>
+            ) : (
+              Object.entries(stats.teachers.bySubject)
+                .sort(([, a], [, b]) => b - a)
+                .slice(0, 10)
+                .map(([subject, count], index) => {
+                  const maxCount = Math.max(...Object.values(stats.teachers.bySubject));
+                  const percentage = (count / maxCount) * 100;
+                  return (
+                    <div key={`teacher-subject-${index}`} className="stat-bar">
+                      <div className="bar-label">{subject}</div>
+                      <div className="bar-track">
+                        <div 
+                          className="bar-fill teachers-fill" 
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
+                      <div className="bar-value">{count}</div>
+                    </div>
+                  );
+                })
+            )}
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-header">
-            <span className="stat-title">Average Attendance</span>
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.709 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M22 4L12 14.01L9 11.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-          </div>
-          <div className="stat-value">94%</div>
-          <div className="stat-change positive">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 19V5M5 12L12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>+2% improvement</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-header">
-            <span className="stat-title">Overall Performance</span>
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 20V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M12 20V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M6 20V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-          </div>
-          <div className="stat-value">87%</div>
-          <div className="stat-change positive">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 19V5M5 12L12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>+5% this semester</span>
+        <div className="detail-section">
+          <h2 className="section-title">Class Distribution</h2>
+          <div className="bars-container">
+            {Object.entries(stats.classes.gradeDistribution).length === 0 ? (
+              <p className="no-data">No class data available</p>
+            ) : (
+              Object.entries(stats.classes.gradeDistribution)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([grade, count], index) => {
+                  const maxCount = Math.max(...Object.values(stats.classes.gradeDistribution));
+                  const percentage = (count / maxCount) * 100;
+                  return (
+                    <div key={`class-grade-${index}`} className="stat-bar">
+                      <div className="bar-label">{grade}</div>
+                      <div className="bar-track">
+                        <div 
+                          className="bar-fill classes-fill" 
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
+                      <div className="bar-value">{count}</div>
+                    </div>
+                  );
+                })
+            )}
           </div>
         </div>
       </div>
