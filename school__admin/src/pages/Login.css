@@ -107,15 +107,15 @@
 }
 
 .auth-card-inner {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(255, 255, 255, 0.25); /* Much more transparent */
+  backdrop-filter: blur(12px); /* Reduced blur to see background better */
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 24px;
   padding: 0; /* Remove padding here, move to children */
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.1),
-    0 0 80px rgba(59, 130, 246, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    0 0 80px rgba(59, 130, 246, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
   transition: all 0.3s ease;
   display: flex; /* Enable flexbox for side-by-side layout */
   overflow: hidden;
@@ -131,14 +131,14 @@
 
 .auth-header {
   flex: 0 0 40%; /* Take up 40% of the width */
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  background: rgba(255, 255, 255, 0.15); /* Very transparent */
   padding: 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  border-right: 1px solid rgba(59, 130, 246, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .auth-content {
@@ -266,8 +266,8 @@
 .input-wrapper .input-with-icon {
   width: 100%;
   padding: 10px 16px 10px 42px; /* Reduced padding */
-  background: rgba(241, 245, 249, 0.8);
-  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(255, 255, 255, 0.4); /* More transparent inputs */
+  border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 10px; /* Slightly smaller radius */
   color: #0f172a;
   font-size: 14px; /* Smaller font */
