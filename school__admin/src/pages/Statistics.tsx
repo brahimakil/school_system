@@ -67,9 +67,12 @@ const Statistics: React.FC = () => {
       // Calculate class distribution
       const gradeDistribution: Record<string, number> = {};
       classes.forEach((c: any) => {
-        if (c.grade) {
-          const grade = `Grade ${c.grade}`;
-          gradeDistribution[grade] = (gradeDistribution[grade] || 0) + 1;
+        if (c.gradeSections && Array.isArray(c.gradeSections)) {
+          const uniqueGrades = new Set(c.gradeSections.map((gs: any) => gs.grade));
+          uniqueGrades.forEach((grade) => {
+            const gradeKey = `Grade ${grade}`;
+            gradeDistribution[gradeKey] = (gradeDistribution[gradeKey] || 0) + 1;
+          });
         }
       });
 

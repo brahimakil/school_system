@@ -13,7 +13,7 @@ const ClassesManagement: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [selectedClassGroup, setSelectedClassGroup] = useState<Class[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDay, setSelectedDay] = useState<string>('All');
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<string>('All');
   const [selectedSection, setSelectedSection] = useState<string>('All');
   const [selectedTeacher, setSelectedTeacher] = useState<string>('All');
@@ -26,7 +26,7 @@ const ClassesManagement: React.FC = () => {
 
   useEffect(() => {
     filterClasses();
-  }, [classes, searchTerm, selectedDay, selectedGrade, selectedSection, selectedTeacher]);
+  }, [classes, searchTerm, selectedDays, selectedGrade, selectedSection, selectedTeacher]);
 
   const loadClasses = async () => {
     try {
@@ -62,8 +62,8 @@ const ClassesManagement: React.FC = () => {
       );
     }
 
-    if (selectedDay !== 'All') {
-      filtered = filtered.filter(c => c.dayOfWeek === selectedDay);
+    if (selectedDays.length > 0) {
+      filtered = filtered.filter(c => selectedDays.includes(c.dayOfWeek));
     }
 
     if (selectedGrade !== 'All') {
@@ -187,39 +187,59 @@ const ClassesManagement: React.FC = () => {
         <p className="page-description">Manage school classes and schedules</p>
       </div>
 
-      <div className="stats-grid" style={{ marginBottom: '24px' }}>
-        <div className="stat-card">
-          <div className="stat-header">
-            <span className="stat-title">Total Classes</span>
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2 3H8C9.06087 3 10.0783 3.42143 10.8284 4.17157C11.5786 4.92172 12 5.93913 12 7V21C12 20.2044 11.6839 19.4413 11.1213 18.8787C10.5587 18.3161 9.79565 18 9 18H2V3Z" stroke="currentColor" strokeWidth="2"/>
-                <path d="M22 3H16C14.9391 3 13.9217 3.42143 13.1716 4.17157C12.4214 4.92172 12 5.93913 12 7V21C12 20.2044 12.3161 19.4413 12.8787 18.8787C13.4413 18.3161 14.2044 18 15 18H22V3Z" stroke="currentColor" strokeWidth="2"/>
-              </svg>
-            </div>
-          </div>
-          <div className="stat-value">{stats.total}</div>
-          <div className="stat-change positive">
-            <span>All schedules</span>
-          </div>
-        </div>
-        {DAYS_ORDER.slice(0, 4).map(day => (
-          <div key={day} className="stat-card">
-            <div className="stat-header">
-              <span className="stat-title">{day}</span>
-              <div className="stat-icon">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" strokeWidth="2"/>
-                </svg>
+      <div className="days-grid" style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
+        gap: '16px', 
+        marginBottom: '32px' 
+      }}>
+        {DAYS_ORDER.map(day => {
+          const isSelected = selectedDays.includes(day);
+          return (
+            <div 
+              key={day} 
+              className="stat-card"
+              onClick={() => {
+                setSelectedDays(prev => 
+                  prev.includes(day) 
+                    ? prev.filter(d => d !== day) 
+                    : [...prev, day]
+                );
+              }}
+              style={{ 
+                cursor: 'pointer',
+                padding: '20px',
+                border: isSelected ? '2px solid #3b82f6' : '1px solid rgba(59, 130, 246, 0.2)',
+                backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.05)' : 'rgba(255, 255, 255, 0.9)',
+                transform: isSelected ? 'translateY(-4px)' : 'none',
+                transition: 'all 0.2s ease',
+                boxShadow: isSelected ? '0 4px 12px rgba(59, 130, 246, 0.15)' : 'none'
+              }}
+            >
+              <div className="stat-header" style={{ marginBottom: '12px' }}>
+                <span className="stat-title" style={{ 
+                  fontSize: '15px', 
+                  fontWeight: 600,
+                  color: isSelected ? '#2563eb' : '#64748b'
+                }}>{day.substring(0, 3)}</span>
+                <div className="stat-icon" style={{ 
+                  width: '32px', 
+                  height: '32px',
+                  backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)'
+                }}>
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '18px', height: '18px' }}>
+                    <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" strokeWidth="2"/>
+                  </svg>
+                </div>
+              </div>
+              <div className="stat-value" style={{ fontSize: '24px', marginBottom: '0' }}>{stats.byDay[day] || 0}</div>
+              <div className="stat-change positive" style={{ fontSize: '12px', marginTop: '4px' }}>
+                <span>Classes</span>
               </div>
             </div>
-            <div className="stat-value">{stats.byDay[day] || 0}</div>
-            <div className="stat-change positive">
-              <span>Classes</span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="page-actions">
@@ -265,12 +285,17 @@ const ClassesManagement: React.FC = () => {
             Day
           </label>
           <select
-            value={selectedDay}
-            onChange={e => setSelectedDay(e.target.value)}
+            value={selectedDays.length === 1 ? selectedDays[0] : (selectedDays.length === 0 ? 'All' : 'Multiple')}
+            onChange={e => {
+              const val = e.target.value;
+              if (val === 'All') setSelectedDays([]);
+              else if (val !== 'Multiple') setSelectedDays([val]);
+            }}
             className="filter-select"
             style={{ width: '100%' }}
           >
             <option value="All">All Days</option>
+            {selectedDays.length > 1 && <option value="Multiple">Multiple Selected</option>}
             {DAYS_ORDER.map(day => (
               <option key={day} value={day}>{day}</option>
             ))}
@@ -346,11 +371,11 @@ const ClassesManagement: React.FC = () => {
           </select>
         </div>
 
-        {(selectedDay !== 'All' || selectedGrade !== 'All' || selectedSection !== 'All' || selectedTeacher !== 'All') && (
+        {(selectedDays.length > 0 || selectedGrade !== 'All' || selectedSection !== 'All' || selectedTeacher !== 'All') && (
           <div style={{ display: 'flex', alignItems: 'flex-end' }}>
             <button
               onClick={() => {
-                setSelectedDay('All');
+                setSelectedDays([]);
                 setSelectedGrade('All');
                 setSelectedSection('All');
                 setSelectedTeacher('All');

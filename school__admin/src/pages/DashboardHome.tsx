@@ -65,6 +65,22 @@ const DashboardHome: React.FC = () => {
     fetchSchedules();
   }, [selectedGrade, selectedSection, selectedTeacher]);
 
+  const parseDate = (dateInput: any): Date => {
+    if (!dateInput) return new Date(0); // Return epoch if missing
+    
+    // Handle Firestore Timestamp (seconds/nanoseconds)
+    if (typeof dateInput === 'object' && (dateInput._seconds !== undefined || dateInput.seconds !== undefined)) {
+      const seconds = dateInput._seconds ?? dateInput.seconds;
+      return new Date(seconds * 1000);
+    }
+    
+    // Handle standard date string/number
+    const date = new Date(dateInput);
+    if (isNaN(date.getTime())) return new Date(0);
+    
+    return date;
+  };
+
   const fetchRecentActivities = async () => {
     try {
       setLoading(true);
@@ -74,26 +90,23 @@ const DashboardHome: React.FC = () => {
         getAllClasses(),
       ]);
 
-      // Handle response - check if it's an array or has a data property
       const students = Array.isArray(studentsResponse) ? studentsResponse : (studentsResponse as any)?.data || [];
       const teachers = Array.isArray(teachersResponse) ? teachersResponse : (teachersResponse as any)?.data || [];
       const classes = Array.isArray(classesResponse) ? classesResponse : (classesResponse as any)?.data || [];
 
-      // Store teachers for filter
       setTeachers(teachers);
 
-      const recentActivities: Activity[] = [];
+      const allActivities: Activity[] = [];
 
-      // Get recent students (last 5)
-      const recentStudents = students.slice(-5).reverse();
-      recentStudents.forEach((student: any) => {
+      // Process Students
+      students.forEach((student: any) => {
         const studentName = student.fullName || student.name || 'Unknown Student';
         const gradeDetail = student.currentGrade 
           ? `Grade ${student.currentGrade.grade} ${student.currentGrade.section}` 
           : 'N/A';
         
-        recentActivities.push({
-          id: student.id || `student-${Date.now()}`,
+        allActivities.push({
+          id: student.id || `student-${Date.now()}-${Math.random()}`,
           type: 'student',
           action: 'New student enrolled',
           user: {
@@ -101,19 +114,18 @@ const DashboardHome: React.FC = () => {
             detail: gradeDetail,
             avatar: studentName.charAt(0).toUpperCase(),
           },
-          time: formatTime(student.createdAt),
+          time: student.createdAt, // Store raw time initially
           status: student.status || 'active',
         });
       });
 
-      // Get recent teachers (last 3)
-      const recentTeachers = teachers.slice(-3).reverse();
-      recentTeachers.forEach((teacher: any) => {
+      // Process Teachers
+      teachers.forEach((teacher: any) => {
         const teacherName = teacher.fullName || teacher.name || 'Unknown Teacher';
         const teacherDetail = teacher.subjects?.[0] || teacher.email || 'Teacher';
         
-        recentActivities.push({
-          id: teacher.id || teacher.uid || `teacher-${Date.now()}`,
+        allActivities.push({
+          id: teacher.id || teacher.uid || `teacher-${Date.now()}-${Math.random()}`,
           type: 'teacher',
           action: 'Teacher registered',
           user: {
@@ -121,19 +133,18 @@ const DashboardHome: React.FC = () => {
             detail: teacherDetail,
             avatar: teacherName.charAt(0).toUpperCase(),
           },
-          time: formatTime(teacher.createdAt),
+          time: teacher.createdAt,
           status: teacher.status || 'active',
         });
       });
 
-      // Get recent classes (last 2)
-      const recentClasses = classes.slice(-2).reverse();
-      recentClasses.forEach((cls: any) => {
+      // Process Classes
+      classes.forEach((cls: any) => {
         const className = cls.className || `${cls.grade || 'Grade'} ${cls.section || ''}`.trim();
         const teacherName = cls.teacherName || cls.teacher?.fullName || cls.teacher?.name || 'No teacher assigned';
         
-        recentActivities.push({
-          id: cls.id || `class-${Date.now()}`,
+        allActivities.push({
+          id: cls.id || `class-${Date.now()}-${Math.random()}`,
           type: 'class',
           action: 'Class created',
           user: {
@@ -141,19 +152,25 @@ const DashboardHome: React.FC = () => {
             detail: teacherName,
             avatar: className.charAt(0).toUpperCase(),
           },
-          time: formatTime(cls.createdAt),
+          time: cls.createdAt,
           status: 'active',
         });
       });
 
-      // Sort by time and take top 10
-      recentActivities.sort((a, b) => {
-        const timeA = parseTimeToMinutes(a.time);
-        const timeB = parseTimeToMinutes(b.time);
-        return timeA - timeB;
+      // Sort by date descending (newest first)
+      allActivities.sort((a, b) => {
+        const dateA = parseDate(a.time);
+        const dateB = parseDate(b.time);
+        return dateB.getTime() - dateA.getTime();
       });
 
-      setActivities(recentActivities.slice(0, 10));
+      // Take top 10 and format time string
+      const recentActivities = allActivities.slice(0, 10).map(activity => ({
+        ...activity,
+        time: formatTime(activity.time)
+      }));
+
+      setActivities(recentActivities);
     } catch (error) {
       console.error('Error fetching activities:', error);
       setActivities([]);
@@ -162,10 +179,13 @@ const DashboardHome: React.FC = () => {
     }
   };
 
-  const formatTime = (dateString: string) => {
-    if (!dateString) return 'Just now';
-    const date = new Date(dateString);
+  const formatTime = (dateInput: any) => {
+    const date = parseDate(dateInput);
     const now = new Date();
+    
+    // If date is invalid or epoch (from parseDate fallback), show generic
+    if (date.getTime() === 0) return 'Just now';
+
     const diffInMs = now.getTime() - date.getTime();
     const diffInMinutes = Math.floor(diffInMs / 60000);
     const diffInHours = Math.floor(diffInMinutes / 60);
@@ -178,17 +198,7 @@ const DashboardHome: React.FC = () => {
     return date.toLocaleDateString();
   };
 
-  const parseTimeToMinutes = (timeString: string): number => {
-    if (timeString === 'Just now') return 0;
-    const match = timeString.match(/(\d+)\s+(minute|hour|day)/);
-    if (!match) return 999999;
-    const value = parseInt(match[1]);
-    const unit = match[2];
-    if (unit === 'minute') return value;
-    if (unit === 'hour') return value * 60;
-    if (unit === 'day') return value * 1440;
-    return 999999;
-  };
+
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {

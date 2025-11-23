@@ -99,63 +99,7 @@ const StudentsManagement: React.FC = () => {
           <p className="page-description">Manage all students and their information</p>
         </div>
 
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-header">
-              <span className="stat-title">Total Students</span>
-              <div className="stat-icon">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17 21V19C17 16.7909 15.2091 15 13 15H5C2.79086 15 1 16.7909 1 19V21" stroke="currentColor" strokeWidth="2"/>
-                  <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2"/>
-                </svg>
-              </div>
-            </div>
-            <div className="stat-value">{students.length}</div>
-            <div className="stat-change positive">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 19V5M5 12L12 5L19 12" stroke="currentColor" strokeWidth="2"/>
-              </svg>
-              <span>Total enrolled</span>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-header">
-              <span className="stat-title">Active Students</span>
-              <div className="stat-icon">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M12 6V12L16 14" stroke="currentColor" strokeWidth="2"/>
-                </svg>
-              </div>
-            </div>
-            <div className="stat-value">
-              {students.filter(s => s.status === 'active').length}
-            </div>
-            <div className="stat-change positive">
-              <span>Currently studying</span>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-header">
-              <span className="stat-title">Grades</span>
-              <div className="stat-icon">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M6.5 2H20V22H6.5A2.5 2.5 0 0 1 4 19.5V4.5A2.5 2.5 0 0 1 6.5 2Z" stroke="currentColor" strokeWidth="2"/>
-                </svg>
-              </div>
-            </div>
-            <div className="stat-value">
-              {new Set(students.map(s => s.currentGrade.grade)).size}
-            </div>
-            <div className="stat-change positive">
-              <span>Different levels</span>
-            </div>
-          </div>
-        </div>
-
+     
         <div className="page-actions">
           <div className="search-box">
             <svg className="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
