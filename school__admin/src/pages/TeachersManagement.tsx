@@ -18,7 +18,6 @@ interface Teacher {
 const TeachersManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subjectsMap, setSubjectsMap] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,7 +36,6 @@ const TeachersManagement: React.FC = () => {
         subjectsAPI.getAll()
       ]);
       setTeachers(teachersResponse.data || []);
-      setSubjects(subjectsResponse);
       
       // Create a map of subject ID to subject name
       const map = new Map<string, string>();
@@ -48,7 +46,6 @@ const TeachersManagement: React.FC = () => {
     } catch (error) {
       console.error('Error fetching data:', error);
       setTeachers([]);
-      setSubjects([]);
     } finally {
       setLoading(false);
     }
