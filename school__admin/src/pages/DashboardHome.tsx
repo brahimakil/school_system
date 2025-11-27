@@ -4,10 +4,14 @@ import './ManagementPage.css';
 import { studentsAPI } from '../services/students.api';
 import { teachersAPI } from '../services/teachers.api';
 import { getAllClasses } from '../services/classes.api';
+import { getAllHomeworks } from '../services/homeworks.api';
+import { getAllQuizzes } from '../services/quizzes.api';
+import { subjectsAPI } from '../api/subjects.api';
+import LoadingScreen from '../components/LoadingScreen';
 
 interface Activity {
   id: string;
-  type: 'student' | 'teacher' | 'class';
+  type: 'student' | 'teacher' | 'class' | 'homework' | 'quiz' | 'subject';
   action: string;
   user: {
     name: string;
@@ -15,7 +19,7 @@ interface Activity {
     avatar: string;
   };
   time: string;
-  status: 'active' | 'pending' | 'inactive';
+  status: 'active' | 'pending' | 'inactive' | 'completed' | 'available' | 'cancelled' | 'past_due';
 }
 
 interface ClassSchedule {
@@ -84,15 +88,21 @@ const DashboardHome: React.FC = () => {
   const fetchRecentActivities = async () => {
     try {
       setLoading(true);
-      const [studentsResponse, teachersResponse, classesResponse] = await Promise.all([
+      const [studentsResponse, teachersResponse, classesResponse, homeworksResponse, quizzesResponse, subjectsResponse] = await Promise.all([
         studentsAPI.getAll(),
         teachersAPI.getAll(),
         getAllClasses(),
+        getAllHomeworks(),
+        getAllQuizzes(),
+        subjectsAPI.getAll(),
       ]);
 
       const students = Array.isArray(studentsResponse) ? studentsResponse : (studentsResponse as any)?.data || [];
       const teachers = Array.isArray(teachersResponse) ? teachersResponse : (teachersResponse as any)?.data || [];
       const classes = Array.isArray(classesResponse) ? classesResponse : (classesResponse as any)?.data || [];
+      const homeworks = Array.isArray(homeworksResponse) ? homeworksResponse : (homeworksResponse as any)?.data || [];
+      const quizzes = Array.isArray(quizzesResponse) ? quizzesResponse : (quizzesResponse as any)?.data || [];
+      const subjects = Array.isArray(subjectsResponse) ? subjectsResponse : (subjectsResponse as any)?.data || [];
 
       setTeachers(teachers);
 
@@ -157,6 +167,63 @@ const DashboardHome: React.FC = () => {
         });
       });
 
+      // Process Homeworks
+      homeworks.forEach((homework: any) => {
+        const homeworkTitle = homework.title || 'Homework';
+        const homeworkDetail = `${homework.className || 'Class'} - ${homework.subject || 'Subject'}`;
+        
+        allActivities.push({
+          id: homework.id || `homework-${Date.now()}-${Math.random()}`,
+          type: 'homework',
+          action: 'Homework assigned',
+          user: {
+            name: homeworkTitle,
+            detail: homeworkDetail,
+            avatar: homeworkTitle.charAt(0).toUpperCase(),
+          },
+          time: homework.createdAt,
+          status: homework.status || 'pending',
+        });
+      });
+
+      // Process Quizzes
+      quizzes.forEach((quiz: any) => {
+        const quizTitle = quiz.title || 'Quiz';
+        const quizDetail = `${quiz.className || 'Class'} - ${quiz.totalMarks || 0} marks`;
+        
+        allActivities.push({
+          id: quiz.id || `quiz-${Date.now()}-${Math.random()}`,
+          type: 'quiz',
+          action: 'Quiz created',
+          user: {
+            name: quizTitle,
+            detail: quizDetail,
+            avatar: quizTitle.charAt(0).toUpperCase(),
+          },
+          time: quiz.createdAt,
+          status: quiz.status || 'pending',
+        });
+      });
+
+      // Process Subjects
+      subjects.forEach((subject: any) => {
+        const subjectName = subject.name || 'Subject';
+        const subjectDetail = subject.code || 'No code';
+        
+        allActivities.push({
+          id: subject.id || `subject-${Date.now()}-${Math.random()}`,
+          type: 'subject',
+          action: 'Subject added',
+          user: {
+            name: subjectName,
+            detail: subjectDetail,
+            avatar: subjectName.charAt(0).toUpperCase(),
+          },
+          time: subject.createdAt,
+          status: 'active',
+        });
+      });
+
       // Sort by date descending (newest first)
       allActivities.sort((a, b) => {
         const dateA = parseDate(a.time);
@@ -205,11 +272,16 @@ const DashboardHome: React.FC = () => {
       case 'active': return 'status-badge active';
       case 'inactive': return 'status-badge inactive';
       case 'pending': return 'status-badge pending';
+      case 'completed': return 'status-badge active';
+      case 'available': return 'status-badge active';
+      case 'cancelled': return 'status-badge inactive';
+      case 'past_due': return 'status-badge inactive';
       default: return 'status-badge';
     }
   };
 
   const getStatusText = (status: string) => {
+    if (status === 'past_due') return 'Past Due';
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
@@ -337,11 +409,60 @@ const DashboardHome: React.FC = () => {
     },
   ];
 
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <div className="management-page">
       <div className="page-header">
         <h1 className="page-title">Dashboard Overview</h1>
         <p className="page-description">Welcome to your school management system</p>
+      </div>
+
+      {/* Hero Carousel Section */}
+      <div className="hero-carousel-section">
+        <div className="carousel-grid">
+          <div className="carousel-tile large-tile">
+            <img 
+              src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1200&h=800&fit=crop" 
+              alt="Students in classroom" 
+              className="tile-image"
+            />
+            <div className="tile-overlay">
+              <h3 className="tile-title">Empower Education</h3>
+              <p className="tile-description">Transform learning experiences with our comprehensive management system</p>
+              <button className="tile-button" onClick={() => navigate('/dashboard/statistics')}>
+                View Analytics
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div className="carousel-tile small-tile">
+            <img 
+              src="https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=600&h=400&fit=crop" 
+              alt="Student success" 
+              className="tile-image"
+            />
+            <div className="tile-overlay">
+              <h3 className="tile-title">Student Success</h3>
+              <p className="tile-description">Track progress and achievements</p>
+            </div>
+          </div>
+          <div className="carousel-tile small-tile">
+            <img 
+              src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600&h=400&fit=crop" 
+              alt="Smart scheduling" 
+              className="tile-image"
+            />
+            <div className="tile-overlay">
+              <h3 className="tile-title">Smart Scheduling</h3>
+              <p className="tile-description">Efficient class management</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Weekly Schedule Calendar */}

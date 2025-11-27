@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './ManagementPage.css';
 import { studentsAPI } from '../services/students.api';
 import StudentModal from '../components/StudentModal';
+import LoadingScreen from '../components/LoadingScreen';
 
 interface GradeSection {
   grade: string;
@@ -81,14 +82,7 @@ const StudentsManagement: React.FC = () => {
   );
 
   if (loading) {
-    return (
-      <div className="management-page">
-        <div className="page-header">
-          <h1 className="page-title">Students Management</h1>
-          <p className="page-description">Loading students...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

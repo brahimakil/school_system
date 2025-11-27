@@ -4,6 +4,7 @@ import { teachersAPI } from '../services/teachers.api';
 import { subjectsAPI } from '../api/subjects.api';
 import type { Subject } from '../api/subjects.api';
 import TeacherModal from '../components/TeacherModal';
+import LoadingScreen from '../components/LoadingScreen';
 
 interface Teacher {
   id: string;
@@ -96,14 +97,7 @@ const TeachersManagement: React.FC = () => {
   });
 
   if (loading) {
-    return (
-      <div className="management-page">
-        <div className="page-header">
-          <h1 className="page-title">Teachers Management</h1>
-          <p className="page-description">Loading teachers...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

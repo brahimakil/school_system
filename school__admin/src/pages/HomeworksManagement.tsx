@@ -3,6 +3,7 @@ import { getAllHomeworks, deleteHomework, type Homework } from '../services/home
 import { getAllClasses } from '../services/classes.api';
 import { teachersAPI } from '../services/teachers.api';
 import HomeworkModal from '../components/HomeworkModal';
+import LoadingScreen from '../components/LoadingScreen';
 import './ManagementPage.css';
 
 const HomeworksManagement: React.FC = () => {
@@ -131,14 +132,7 @@ const HomeworksManagement: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="management-page">
-        <div style={{ padding: '80px', textAlign: 'center' }}>
-          <div className="loading-spinner"></div>
-          <p style={{ marginTop: '20px', color: '#64748b' }}>Loading homeworks...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

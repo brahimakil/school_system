@@ -4,6 +4,7 @@ import { subjectsAPI } from '../api/subjects.api';
 import { teachersAPI } from '../services/teachers.api';
 import type { Subject } from '../api/subjects.api';
 import SubjectModal from '../components/SubjectModal';
+import LoadingScreen from '../components/LoadingScreen';
 
 interface Teacher {
   id: string;
@@ -93,14 +94,7 @@ const SubjectsManagement: React.FC = () => {
   );
 
   if (loading) {
-    return (
-      <div className="management-page">
-        <div className="page-header">
-          <h1 className="page-title">Subjects Management</h1>
-          <p className="page-description">Loading subjects...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

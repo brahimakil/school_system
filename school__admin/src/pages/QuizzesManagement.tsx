@@ -3,6 +3,7 @@ import { getAllQuizzes, deleteQuiz, type Quiz } from '../services/quizzes.api';
 import { getAllClasses } from '../services/classes.api';
 import { teachersAPI } from '../services/teachers.api';
 import QuizModal from '../components/QuizModal';
+import LoadingScreen from '../components/LoadingScreen';
 import './ManagementPage.css';
 
 const QuizzesManagement: React.FC = () => {
@@ -150,7 +151,7 @@ const QuizzesManagement: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return <LoadingScreen />;
   }
 
   return (

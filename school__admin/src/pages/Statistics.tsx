@@ -4,6 +4,7 @@ import { teachersAPI } from '../services/teachers.api';
 import { getAllClasses } from '../services/classes.api';
 import { getAllQuizzes } from '../services/quizzes.api';
 import { subjectsAPI } from '../api/subjects.api';
+import LoadingScreen from '../components/LoadingScreen';
 import './ManagementPage.css';
 import './Statistics.css';
 
@@ -111,14 +112,7 @@ const Statistics: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="management-page">
-        <div style={{ padding: '80px', textAlign: 'center' }}>
-          <div className="loading-spinner"></div>
-          <p style={{ marginTop: '20px', color: '#64748b' }}>Loading statistics...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

@@ -3,12 +3,14 @@ import type { Class } from '../services/classes.api';
 import { getAllClasses, deleteClass, getClassStudents } from '../services/classes.api';
 import ClassModal from '../components/ClassModal';
 import './ManagementPage.css';
+import LoadingScreen from '../components/LoadingScreen';
 
 const DAYS_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const ClassesManagement: React.FC = () => {
   const [classes, setClasses] = useState<Class[]>([]);
   const [filteredClasses, setFilteredClasses] = useState<Class[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [selectedClassGroup, setSelectedClassGroup] = useState<Class[]>([]);
@@ -30,10 +32,13 @@ const ClassesManagement: React.FC = () => {
 
   const loadClasses = async () => {
     try {
+      setLoading(true);
       const data = await getAllClasses();
       setClasses(data);
     } catch (error) {
       console.error('Failed to load classes:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -179,6 +184,10 @@ const ClassesManagement: React.FC = () => {
       return acc;
     }, {} as Record<string, number>),
   };
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="management-page">
