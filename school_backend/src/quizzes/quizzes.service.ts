@@ -66,7 +66,18 @@ export class QuizzesService {
 
   async findAll(): Promise<any[]> {
     const snapshot = await this.quizzesCollection.orderBy('createdAt', 'desc').get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const quizzes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    // Auto-update expired quizzes
+    const updatedCount = await this.autoUpdateExpiredQuizzes(quizzes);
+    
+    // Re-fetch if any were updated to get the latest data
+    if (updatedCount > 0) {
+      const updatedSnapshot = await this.quizzesCollection.orderBy('createdAt', 'desc').get();
+      return updatedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
+    
+    return quizzes;
   }
 
   async findOne(id: string): Promise<any> {
@@ -145,5 +156,37 @@ export class QuizzesService {
 
     const updated = await this.quizzesCollection.doc(id).get();
     return { id: updated.id, ...updated.data() };
+  }
+
+  private async autoUpdateExpiredQuizzes(quizzes: any[]): Promise<number> {
+    const now = new Date();
+    console.log('Checking for expired quizzes. Current time:', now.toISOString());
+    
+    const expiredQuizzes = quizzes.filter(quiz => {
+      if (quiz.status === QuizStatus.COMPLETED || quiz.status === QuizStatus.CANCELLED) {
+        return false;
+      }
+      
+      const endDateTime = new Date(quiz.endDateTime);
+      console.log(`Quiz "${quiz.title}" - End: ${endDateTime.toISOString()}, Status: ${quiz.status}, Expired: ${endDateTime < now}`);
+      return endDateTime < now;
+    });
+
+    if (expiredQuizzes.length > 0) {
+      console.log(`Found ${expiredQuizzes.length} expired quiz(es), updating...`);
+      const updatePromises = expiredQuizzes.map(quiz =>
+        this.quizzesCollection.doc(quiz.id).update({
+          status: QuizStatus.COMPLETED,
+          updatedAt: admin.firestore.Timestamp.now(),
+        })
+      );
+      
+      await Promise.all(updatePromises);
+      console.log(`Auto-expired ${expiredQuizzes.length} quiz(es)`);
+    } else {
+      console.log('No expired quizzes found');
+    }
+    
+    return expiredQuizzes.length;
   }
 }
