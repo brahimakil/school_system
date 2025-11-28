@@ -196,18 +196,20 @@ const ClassesManagement: React.FC = () => {
         <p className="page-description">Manage school classes and schedules</p>
       </div>
 
-      <div className="days-grid" style={{ 
+      <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
-        gap: '16px', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
+        gap: '14px', 
         marginBottom: '32px' 
       }}>
         {DAYS_ORDER.map(day => {
           const isSelected = selectedDays.includes(day);
+          const classCount = stats.byDay[day] || 0;
+          const hasClasses = classCount > 0;
+          
           return (
             <div 
               key={day} 
-              className="stat-card"
               onClick={() => {
                 setSelectedDays(prev => 
                   prev.includes(day) 
@@ -217,35 +219,107 @@ const ClassesManagement: React.FC = () => {
               }}
               style={{ 
                 cursor: 'pointer',
-                padding: '20px',
-                border: isSelected ? '2px solid #3b82f6' : '1px solid rgba(59, 130, 246, 0.2)',
-                backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.05)' : 'rgba(255, 255, 255, 0.9)',
-                transform: isSelected ? 'translateY(-4px)' : 'none',
-                transition: 'all 0.2s ease',
-                boxShadow: isSelected ? '0 4px 12px rgba(59, 130, 246, 0.15)' : 'none'
+                padding: '18px 16px',
+                borderRadius: '14px',
+                border: isSelected ? '2px solid #6366f1' : '1px solid #e5e7eb',
+                backgroundColor: isSelected 
+                  ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0.03) 100%)' 
+                  : 'white',
+                background: isSelected 
+                  ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0.03) 100%)' 
+                  : 'white',
+                transform: isSelected ? 'translateY(-2px)' : 'none',
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: isSelected 
+                  ? '0 8px 20px rgba(99, 102, 241, 0.15), 0 2px 8px rgba(99, 102, 241, 0.08)' 
+                  : '0 2px 4px rgba(0, 0, 0, 0.04)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              onMouseEnter={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.transform = 'none';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.04)';
+                }
               }}
             >
-              <div className="stat-header" style={{ marginBottom: '12px' }}>
-                <span className="stat-title" style={{ 
-                  fontSize: '15px', 
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center',
+                gap: '12px',
+                position: 'relative',
+                zIndex: 1
+              }}>
+                <div style={{ 
+                  fontSize: '14px', 
                   fontWeight: 600,
-                  color: isSelected ? '#2563eb' : '#64748b'
-                }}>{day.substring(0, 3)}</span>
-                <div className="stat-icon" style={{ 
-                  width: '32px', 
-                  height: '32px',
-                  backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)'
+                  color: isSelected ? '#4f46e5' : '#64748b',
+                  letterSpacing: '0.3px',
+                  textTransform: 'uppercase'
                 }}>
-                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '18px', height: '18px' }}>
-                    <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
-                    <path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" strokeWidth="2"/>
-                  </svg>
+                  {day.substring(0, 3)}
+                </div>
+                
+                <div style={{
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '12px',
+                  backgroundColor: hasClasses 
+                    ? (isSelected ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.08)') 
+                    : 'rgba(148, 163, 184, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.25s ease',
+                  border: isSelected ? '2px solid rgba(99, 102, 241, 0.2)' : 'none'
+                }}>
+                  <span style={{ 
+                    fontSize: '22px', 
+                    fontWeight: 700,
+                    color: hasClasses 
+                      ? (isSelected ? '#4f46e5' : '#6366f1') 
+                      : '#94a3b8'
+                  }}>
+                    {classCount}
+                  </span>
+                </div>
+                
+                <div style={{ 
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  color: isSelected ? '#6366f1' : '#94a3b8',
+                  letterSpacing: '0.2px'
+                }}>
+                  {classCount === 1 ? 'Class' : 'Classes'}
                 </div>
               </div>
-              <div className="stat-value" style={{ fontSize: '24px', marginBottom: '0' }}>{stats.byDay[day] || 0}</div>
-              <div className="stat-change positive" style={{ fontSize: '12px', marginTop: '4px' }}>
-                <span>Classes</span>
-              </div>
+              
+              {isSelected && (
+                <div style={{
+                  position: 'absolute',
+                  top: '8px',
+                  right: '8px',
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  backgroundColor: '#6366f1',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
+                }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 13L9 17L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+              )}
             </div>
           );
         })}
