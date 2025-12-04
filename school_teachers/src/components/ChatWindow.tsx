@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import socketService from '../services/socket';
 import { useAuth } from '../context/AuthContext';
 import type { ChatRoom, Message } from '../types/chat.types';
 import MediaPreview from './MediaPreview';
+import { db } from '../config/firebase';
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { chatAPI } from '../services/chatApi';
 import './ChatWindow.css';
 
 interface ChatWindowProps {
@@ -24,82 +26,90 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ room, onBack, onToggleStatus })
 
   useEffect(() => {
     setCurrentRoom(room);
-    // Fetch messages for the room
-    fetchMessages();
+    setLoading(true);
 
-    // Socket listeners
-    const socket = socketService.getSocket();
-    if (socket) {
-      socket.on('new-message', handleNewMessage);
-      socket.on('message-history', handleMessageHistory);
-      socket.on('chat-status-changed', handleStatusChange);
-    }
+    // Real-time listener for messages in this room
+    const q = query(
+      collection(db, 'messages'),
+      where('roomId', '==', room.id),
+      orderBy('timestamp', 'asc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const messagesData: Message[] = [];
+      
+      for (const doc of snapshot.docs) {
+        const data = doc.data();
+        messagesData.push({
+          id: doc.id,
+          roomId: data.roomId,
+          senderId: data.senderId,
+          senderName: data.senderName,
+          senderType: data.senderType,
+          content: data.content,
+          messageType: data.messageType || 'text',
+          mediaUrl: data.mediaUrl,
+          fileName: data.fileName,
+          fileSize: data.fileSize,
+          timestamp: data.timestamp?.toDate() || new Date(),
+        });
+      }
+
+      setMessages(messagesData);
+      setLoading(false);
+    });
+
+    // Real-time listener for room status changes
+    const roomQuery = query(
+      collection(db, 'chatRooms'),
+      where('__name__', '==', room.id)
+    );
+
+    const unsubscribeRoom = onSnapshot(roomQuery, (snapshot) => {
+      for (const doc of snapshot.docs) {
+        const data = doc.data();
+        setCurrentRoom(prev => ({ ...prev, isActive: data.isActive ?? true }));
+      }
+    });
 
     return () => {
-      if (socket) {
-        socket.off('new-message', handleNewMessage);
-        socket.off('message-history', handleMessageHistory);
-        socket.off('chat-status-changed', handleStatusChange);
-      }
+      unsubscribe();
+      unsubscribeRoom();
     };
   }, [room.id]);
-
-  const handleStatusChange = (data: { roomId: string; isActive: boolean }) => {
-    if (data.roomId === room.id) {
-      console.log('Chat status changed:', data);
-      setCurrentRoom(prev => ({ ...prev, isActive: data.isActive }));
-    }
-  };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const fetchMessages = () => {
-    setLoading(true);
-    socketService.emit('get-messages', { roomId: room.id });
-  };
-
-  const handleMessageHistory = (data: Message[]) => {
-    setMessages(data.map(msg => ({
-      ...msg,
-      timestamp: new Date(msg.timestamp)
-    })));
-    setLoading(false);
-  };
-
-  const handleNewMessage = (data: any) => {
-    if (data.roomId === room.id) {
-      setMessages(prev => [...prev, {
-        ...data,
-        timestamp: new Date(data.timestamp)
-      }]);
-    }
-  };
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !user?.id) return;
 
-    socketService.emit('send-message', {
-      roomId: room.id,
-      content: newMessage.trim(),
-      senderId: user?.id,
-      senderName: user?.name,
-      senderType: 'teacher',
-      messageType: 'text',
-    });
+    try {
+      await chatAPI.sendMessage({
+        roomId: room.id,
+        content: newMessage.trim(),
+        senderId: user.id,
+        senderName: user.name || 'Teacher',
+        senderType: 'teacher',
+        messageType: 'text',
+      });
 
-    setNewMessage('');
+      setNewMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Failed to send message');
+    }
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !user?.id) return;
 
     // Validate file size (max 50MB)
     const maxSize = 50 * 1024 * 1024;
@@ -110,31 +120,19 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ room, onBack, onToggleStatus })
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('http://localhost:3000/chat/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const data = await response.json();
+      const uploadData = await chatAPI.uploadFile(file);
 
       // Send message with media
-      socketService.emit('send-message', {
+      await chatAPI.sendMessage({
         roomId: room.id,
-        content: data.fileName,
-        senderId: user?.id,
-        senderName: user?.name,
+        content: uploadData.fileName,
+        senderId: user.id,
+        senderName: user.name || 'Teacher',
         senderType: 'teacher',
-        messageType: data.messageType,
-        mediaUrl: data.url,
-        fileName: data.fileName,
-        fileSize: data.fileSize,
+        messageType: uploadData.messageType,
+        mediaUrl: uploadData.url,
+        fileName: uploadData.fileName,
+        fileSize: uploadData.fileSize,
       });
     } catch (error) {
       console.error('File upload error:', error);

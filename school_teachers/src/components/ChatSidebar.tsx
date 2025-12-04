@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import ChatWindow from './ChatWindow';
 import type { ChatRoom } from '../types/chat.types';
 import ChatRoomList from './ChatRoomList';
-import socketService from '../services/socket';
+import { db } from '../config/firebase';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { chatAPI } from '../services/chatApi';
 import './ChatSidebar.css';
 
 interface ChatSidebarProps {
@@ -11,69 +14,64 @@ interface ChatSidebarProps {
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose }) => {
+  const { user } = useAuth();
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
 
   useEffect(() => {
-    if (isOpen) {
-      // Fetch teacher's chat rooms
-      fetchChatRooms();
+    if (!isOpen || !user?.id) return;
 
-      // Socket listeners
-      const socket = socketService.getSocket();
-      if (socket) {
-        socket.on('room-list-updated', fetchChatRooms);
-        socket.on('new-message', handleNewMessage);
+    // Real-time listener for teacher's chat rooms
+    const q = query(
+      collection(db, 'chatRooms'),
+      where('teacherId', '==', user.id)
+    );
+
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const roomsData: ChatRoom[] = [];
+      
+      for (const doc of snapshot.docs) {
+        const data = doc.data();
+        roomsData.push({
+          id: doc.id,
+          name: data.name || '',
+          type: data.type,
+          classId: data.classId,
+          teacherId: data.teacherId,
+          studentId: data.studentId,
+          isActive: data.isActive ?? true,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date(),
+          lastMessage: data.lastMessage || '',
+          lastMessageTime: data.lastMessageTime?.toDate(),
+          unreadCount: data.unreadCount || 0,
+        } as ChatRoom);
       }
 
-      return () => {
-        if (socket) {
-          socket.off('room-list-updated', fetchChatRooms);
-          socket.off('new-message', handleNewMessage);
-        }
-      };
-    }
-  }, [isOpen]);
-
-  const fetchChatRooms = async () => {
-    try {
-      socketService.emit('get-teacher-rooms', {});
-      socketService.on('teacher-rooms', (data: ChatRoom[]) => {
-        setRooms(data);
+      // Sort by last message time
+      roomsData.sort((a, b) => {
+        const aTime = a.lastMessageTime?.getTime() || 0;
+        const bTime = b.lastMessageTime?.getTime() || 0;
+        return bTime - aTime;
       });
-    } catch (error) {
-      console.error('Failed to fetch chat rooms:', error);
-    }
-  };
 
-  const handleNewMessage = (data: any) => {
-    // Update unread count for rooms
-    setRooms(prev =>
-      prev.map(room =>
-        room.id === data.roomId && room.id !== selectedRoom?.id
-          ? { ...room, unreadCount: (room.unreadCount || 0) + 1, lastMessage: data.message, lastMessageTime: new Date() }
-          : room
-      )
-    );
-  };
+      setRooms(roomsData);
+    });
+
+    return () => unsubscribe();
+  }, [isOpen, user?.id]);
 
   const handleRoomSelect = (room: ChatRoom) => {
     setSelectedRoom(room);
-    // Join room
-    socketService.emit('join-room', { roomId: room.id });
-    // Clear unread count
-    setRooms(prev =>
-      prev.map(r => (r.id === room.id ? { ...r, unreadCount: 0 } : r))
-    );
   };
 
-  const handleToggleRoomStatus = (roomId: string, isActive: boolean) => {
-    socketService.emit('toggle-chat-status', { roomId, isActive });
-    setRooms(prev =>
-      prev.map(room =>
-        room.id === roomId ? { ...room, isActive } : room
-      )
-    );
+  const handleToggleRoomStatus = async (roomId: string, isActive: boolean) => {
+    try {
+      await chatAPI.toggleChatStatus(roomId, isActive);
+      // Status change will be reflected by Firestore listener
+    } catch (error) {
+      console.error('Error toggling chat status:', error);
+    }
   };
 
   const handleBack = () => {
