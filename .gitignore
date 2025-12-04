@@ -40,3 +40,8 @@ school_backend/node_modules
 school_admin/node_modules
 school_backend/.env
 school_backend/school-management-eabe0-firebase-adminsdk-fbsvc-c6f0a29be7.json
+school_teachers/node_modules
+school_teachers/.env
+school_student/node_modules
+school_student/.env
+

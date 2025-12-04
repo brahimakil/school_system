@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Query } from '@nestjs/common';
 import { QuizzesService } from './quizzes.service';
 import { CreateQuizDto, QuizStatus } from './dto/create-quiz.dto';
 import { UpdateQuizDto } from './dto/update-quiz.dto';
@@ -13,8 +13,8 @@ export class QuizzesController {
   }
 
   @Get()
-  findAll() {
-    return this.quizzesService.findAll();
+  findAll(@Query('grade') grade?: string, @Query('section') section?: string) {
+    return this.quizzesService.findAll(grade, section);
   }
 
   @Get(':id')

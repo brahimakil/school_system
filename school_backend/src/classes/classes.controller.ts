@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, Query } from '@nestjs/common';
 import { ClassesService, ClassData } from './classes.service';
 import { CreateClassDto, UpdateClassDto } from './dto/class.dto';
 
@@ -17,8 +17,14 @@ export class ClassesController {
   }
 
   @Get()
-  findAll(): Promise<ClassData[]> {
-    return this.classesService.findAll();
+  async findAll(@Query('grade') grade?: string, @Query('section') section?: string): Promise<{ success: boolean; data: ClassData[] }> {
+    let classes: ClassData[];
+    if (grade && section) {
+      classes = await this.classesService.findByGradeSection(grade, section);
+    } else {
+      classes = await this.classesService.findAll();
+    }
+    return { success: true, data: classes };
   }
 
   @Get(':id')
@@ -49,5 +55,10 @@ export class ClassesController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.classesService.remove(id);
+  }
+
+  @Post('initialize-chat-rooms')
+  async initializeChatRooms() {
+    return this.classesService.initializeChatRooms();
   }
 }

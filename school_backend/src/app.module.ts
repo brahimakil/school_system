@@ -10,6 +10,10 @@ import { ClassesModule } from './classes/classes.module';
 import { SubjectsModule } from './subjects/subjects.module';
 import { QuizzesModule } from './quizzes/quizzes.module';
 import { HomeworksModule } from './homeworks/homeworks.module';
+import { SubmissionsModule } from './submissions/submissions.module';
+import { UploadsModule } from './uploads/uploads.module';
+import { QuizResultsModule } from './quiz-results/quiz-results.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -24,6 +28,10 @@ import { HomeworksModule } from './homeworks/homeworks.module';
     SubjectsModule,
     QuizzesModule,
     HomeworksModule,
+    SubmissionsModule,
+    UploadsModule,
+    QuizResultsModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

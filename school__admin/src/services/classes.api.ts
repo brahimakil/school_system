@@ -47,7 +47,7 @@ export const getAllClasses = async (): Promise<Class[]> => {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.data;
+  return response.data?.data || response.data || [];
 };
 
 export const getClassById = async (id: string): Promise<Class> => {
@@ -57,7 +57,7 @@ export const getClassById = async (id: string): Promise<Class> => {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.data;
+  return response.data?.data || response.data;
 };
 
 export const getClassStudents = async (id: string): Promise<any[]> => {
@@ -67,7 +67,7 @@ export const getClassStudents = async (id: string): Promise<any[]> => {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.data;
+  return response.data?.data || response.data || [];
 };
 
 export const createClass = async (classData: CreateClassData): Promise<Class> => {

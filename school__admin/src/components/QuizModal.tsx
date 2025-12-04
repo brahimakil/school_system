@@ -5,6 +5,25 @@ import { teachersAPI } from '../services/teachers.api';
 import { subjectsAPI } from '../api/subjects.api';
 import './TeacherModal.css';
 
+interface QuizResult {
+  id: string;
+  quizId: string;
+  studentId: string;
+  studentName: string;
+  totalScore: number;
+  totalMarks: number;
+  percentage: number;
+  submittedAt: any;
+  answers: {
+    questionIndex: number;
+    selectedAnswer: string | null;
+    correctAnswer: string;
+    isCorrect: boolean;
+    marksAwarded: number;
+    maxMarks: number;
+  }[];
+}
+
 interface QuizModalProps {
   quiz: Quiz | null;
   onClose: () => void;
@@ -18,6 +37,9 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
   const [teachers, setTeachers] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<QuizResult[]>([]);
+  const [selectedResult, setSelectedResult] = useState<QuizResult | null>(null);
+  const [activeTab, setActiveTab] = useState<'details' | 'results'>('details');
 
   // Form state
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
@@ -63,8 +85,25 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
       setQuizDurationMinutes(quiz.quizDurationMinutes);
       setQuestions(quiz.questions);
       setStatus(quiz.status);
+      
+      // Fetch results if viewing/editing existing quiz
+      if (quiz.id) {
+        fetchResults(quiz.id);
+      }
     }
   }, [quiz, classes]);
+
+  const fetchResults = async (quizId: string) => {
+    try {
+      const API_URL = 'http://192.168.0.103:3000';
+      const response = await fetch(`${API_URL}/quiz-results/quiz/${quizId}`);
+      const data = await response.json();
+      const resultsData = data?.data || [];
+      setResults(resultsData);
+    } catch (error) {
+      console.error('Error fetching results:', error);
+    }
+  };
 
   const fetchClasses = async () => {
     try {
@@ -275,7 +314,45 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
-        <form onSubmit={handleSubmit} className="modal-form">
+        {/* Tabs - only show if editing/viewing existing quiz */}
+        {quiz && (
+          <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', marginBottom: '20px' }}>
+            <button
+              type="button"
+              onClick={() => setActiveTab('details')}
+              style={{
+                padding: '12px 24px',
+                border: 'none',
+                background: activeTab === 'details' ? '#3b82f6' : 'transparent',
+                color: activeTab === 'details' ? 'white' : '#64748b',
+                fontWeight: activeTab === 'details' ? 'bold' : 'normal',
+                cursor: 'pointer',
+                borderBottom: activeTab === 'details' ? '2px solid #3b82f6' : 'none'
+              }}
+            >
+              Details
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('results')}
+              style={{
+                padding: '12px 24px',
+                border: 'none',
+                background: activeTab === 'results' ? '#3b82f6' : 'transparent',
+                color: activeTab === 'results' ? 'white' : '#64748b',
+                fontWeight: activeTab === 'results' ? 'bold' : 'normal',
+                cursor: 'pointer',
+                borderBottom: activeTab === 'results' ? '2px solid #3b82f6' : 'none'
+              }}
+            >
+              Results ({results.length})
+            </button>
+          </div>
+        )}
+
+        {/* Details Tab */}
+        {activeTab === 'details' && (
+          <form onSubmit={handleSubmit} className="modal-form">
           {/* Teacher Selection */}
           <div className="form-group">
             <label className="form-label required">Select Teacher (Count: {teachers.length})</label>
@@ -603,6 +680,145 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
             )}
           </div>
         </form>
+        )}
+
+        {/* Results Tab */}
+        {activeTab === 'results' && (
+          <div className="results-container" style={{ padding: '20px' }}>
+            {results.length === 0 ? (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '40px', 
+                color: '#64748b',
+                fontSize: '16px'
+              }}>
+                No submissions yet
+              </div>
+            ) : (
+              <div className="results-list">
+                {results.map((result) => (
+                  <div 
+                    key={result.id} 
+                    className="result-item"
+                    style={{
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      padding: '16px',
+                      marginBottom: '16px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      backgroundColor: selectedResult?.id === result.id ? '#f8fafc' : 'white'
+                    }}
+                    onClick={() => setSelectedResult(selectedResult?.id === result.id ? null : result)}
+                  >
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      marginBottom: selectedResult?.id === result.id ? '16px' : '0'
+                    }}>
+                      <div>
+                        <div style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '4px', color: '#1e293b' }}>
+                          {result.studentName}
+                        </div>
+                        <div style={{ fontSize: '14px', color: '#64748b' }}>
+                          Submitted: {result.submittedAt?.toDate ? result.submittedAt.toDate().toLocaleString() : new Date(result.submittedAt).toLocaleString()}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ 
+                          fontSize: '24px', 
+                          fontWeight: 'bold',
+                          color: result.percentage >= 60 ? '#10b981' : '#ef4444'
+                        }}>
+                          {result.percentage.toFixed(1)}%
+                        </div>
+                        <div style={{ fontSize: '14px', color: '#64748b' }}>
+                          {result.totalScore}/{result.totalMarks} points
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Detailed Answer Review */}
+                    {selectedResult?.id === result.id && (
+                      <div style={{ 
+                        borderTop: '1px solid #e2e8f0', 
+                        paddingTop: '16px',
+                        marginTop: '8px'
+                      }}>
+                        <h4 style={{ 
+                          fontSize: '16px', 
+                          fontWeight: 'bold', 
+                          marginBottom: '12px',
+                          color: '#1e293b'
+                        }}>
+                          Answer Details
+                        </h4>
+                        {result.answers.map((answer: any, index: number) => {
+                          const questionText = quiz?.questions[answer.questionIndex]?.question || `Question ${answer.questionIndex + 1}`;
+                          return (
+                          <div 
+                            key={index}
+                            style={{
+                              backgroundColor: answer.isCorrect ? '#f0fdf4' : '#fef2f2',
+                              border: `1px solid ${answer.isCorrect ? '#86efac' : '#fca5a5'}`,
+                              borderRadius: '6px',
+                              padding: '12px',
+                              marginBottom: '12px'
+                            }}
+                          >
+                            <div style={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between',
+                              marginBottom: '8px'
+                            }}>
+                              <span style={{ fontWeight: 'bold', color: '#1e293b' }}>
+                                Question {answer.questionIndex + 1}
+                              </span>
+                              <span style={{
+                                fontWeight: 'bold',
+                                color: answer.isCorrect ? '#10b981' : '#ef4444'
+                              }}>
+                                {answer.isCorrect ? '✓' : '✗'} {answer.marksAwarded}/{answer.maxMarks} points
+                              </span>
+                            </div>
+                            <div style={{ 
+                              fontSize: '14px', 
+                              color: '#475569',
+                              marginBottom: '8px'
+                            }}>
+                              <strong>Question:</strong> {questionText}
+                            </div>
+                            <div style={{ 
+                              fontSize: '14px', 
+                              marginBottom: '4px'
+                            }}>
+                              <strong style={{ color: '#1e293b' }}>Student Answer:</strong>{' '}
+                              <span style={{ 
+                                color: answer.isCorrect ? '#10b981' : '#ef4444',
+                                fontWeight: 'bold'
+                              }}>
+                                {answer.selectedAnswer || 'No answer'}
+                              </span>
+                            </div>
+                            {!answer.isCorrect && (
+                              <div style={{ 
+                                fontSize: '14px',
+                                color: '#10b981'
+                              }}>
+                                <strong>Correct Answer:</strong> {answer.correctAnswer}
+                              </div>
+                            )}
+                          </div>
+                        )})}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

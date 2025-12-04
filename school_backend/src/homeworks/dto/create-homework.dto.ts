@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsArray, IsDateString, IsEnum } from 'class-validator';
+import { IsString, IsNotEmpty, IsArray, IsDateString, IsEnum, IsNumber, IsOptional } from 'class-validator';
 
 export enum HomeworkStatus {
   PENDING = 'pending',
@@ -36,4 +36,8 @@ export class CreateHomeworkDto {
 
   @IsEnum(HomeworkStatus)
   status: HomeworkStatus;
+
+  @IsNumber()
+  @IsOptional()
+  totalMarks?: number;
 }

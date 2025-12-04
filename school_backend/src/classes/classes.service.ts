@@ -31,6 +31,38 @@ export class ClassesService {
     this.teachersCollection = this.db.collection('teachers');
   }
 
+  private async createClassChatRoom(classId: string, teacherId: string, className: string): Promise<void> {
+    try {
+      // Check if chat room already exists
+      const existingRoomSnapshot = await this.db
+        .collection('chatRooms')
+        .where('type', '==', 'class')
+        .where('classId', '==', classId)
+        .limit(1)
+        .get();
+
+      if (!existingRoomSnapshot.empty) {
+        console.log(`Chat room already exists for class ${classId}`);
+        return;
+      }
+
+      // Create new chat room
+      await this.db.collection('chatRooms').add({
+        name: className,
+        type: 'class',
+        classId,
+        teacherId,
+        isActive: false, // Default to closed
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      console.log(`Created chat room for class ${className} (${classId})`);
+    } catch (error) {
+      console.error('Error creating class chat room:', error);
+    }
+  }
+
   // Helper: Check if two time ranges overlap
   private timeRangesOverlap(start1: string, end1: string, start2: string, end2: string): boolean {
     const toMinutes = (time: string) => {
@@ -153,12 +185,28 @@ export class ClassesService {
     };
 
     const docRef = await this.classesCollection.add(classData);
-    return { id: docRef.id, ...classData };
+    const classId = docRef.id;
+    
+    // Create chat room for the class
+    await this.createClassChatRoom(classId, createClassDto.teacherId, createClassDto.className);
+    
+    return { id: classId, ...classData };
   }
 
   async findAll(): Promise<ClassData[]> {
     const snapshot = await this.classesCollection.orderBy('dayOfWeek').orderBy('startTime').get();
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClassData));
+  }
+
+  async findByGradeSection(grade: string, section: string): Promise<ClassData[]> {
+    const allClasses = await this.findAll();
+    
+    // Filter classes that include this grade-section
+    return allClasses.filter(classData => 
+      classData.gradeSections.some(gs => 
+        gs.grade === grade && gs.section === section
+      )
+    );
   }
 
   async findOne(id: string): Promise<ClassData> {
@@ -236,5 +284,31 @@ export class ClassesService {
     }
 
     return students;
+  }
+
+  async initializeChatRooms(): Promise<{ success: boolean; message: string; created: number }> {
+    try {
+      const classesSnapshot = await this.classesCollection.get();
+      let created = 0;
+
+      for (const classDoc of classesSnapshot.docs) {
+        const classData = classDoc.data() as ClassData;
+        await this.createClassChatRoom(classDoc.id, classData.teacherId, classData.className);
+        created++;
+      }
+
+      return {
+        success: true,
+        message: `Initialized chat rooms for ${created} classes`,
+        created,
+      };
+    } catch (error) {
+      console.error('Error initializing chat rooms:', error);
+      return {
+        success: false,
+        message: 'Failed to initialize chat rooms',
+        created: 0,
+      };
+    }
   }
 }

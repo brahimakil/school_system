@@ -14,6 +14,7 @@ export class HomeworksService {
   async create(createHomeworkDto: CreateHomeworkDto): Promise<any> {
     const homeworkData = {
       ...createHomeworkDto,
+      totalMarks: createHomeworkDto.totalMarks || 100,
       createdAt: admin.firestore.Timestamp.now(),
       updatedAt: admin.firestore.Timestamp.now(),
     };
@@ -24,9 +25,19 @@ export class HomeworksService {
     return { id: doc.id, ...doc.data() };
   }
 
-  async findAll(): Promise<any[]> {
+  async findAll(grade?: string, section?: string): Promise<any> {
     const snapshot = await this.homeworksCollection.orderBy('createdAt', 'desc').get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    let homeworks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    // Filter by grade and section if provided
+    if (grade && section) {
+      const gradeSection = `Grade ${grade} - Section ${section}`;
+      homeworks = homeworks.filter((homework: any) => 
+        homework.gradeSections?.includes(gradeSection)
+      );
+    }
+    
+    return { success: true, data: homeworks };
   }
 
   async findOne(id: string): Promise<any> {
@@ -53,6 +64,7 @@ export class HomeworksService {
 
     const updateData: any = {
       ...updateHomeworkDto,
+      totalMarks: updateHomeworkDto.totalMarks || 100,
       updatedAt: admin.firestore.Timestamp.now(),
     };
 

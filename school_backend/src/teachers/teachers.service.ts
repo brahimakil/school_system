@@ -14,6 +14,140 @@ export class TeachersService {
     this.storage = firebaseAdmin.storage();
   }
 
+  async getTeacherClasses(teacherId: string) {
+    try {
+      const classesSnapshot = await this.db
+        .collection('classes')
+        .where('teacherId', '==', teacherId)
+        .get();
+
+      const classes = await Promise.all(
+        classesSnapshot.docs.map(async (doc) => {
+          const data = doc.data();
+          
+          // Count students matching ANY of the class's grade-sections
+          let studentCount = 0;
+          if (data.gradeSections && Array.isArray(data.gradeSections)) {
+            const studentIds = new Set<string>();
+            
+            for (const gradeSection of data.gradeSections) {
+              const studentsSnapshot = await this.db
+                .collection('students')
+                .where('currentGrade.grade', '==', gradeSection.grade)
+                .where('currentGrade.section', '==', gradeSection.section)
+                .get();
+              
+              studentsSnapshot.docs.forEach(studentDoc => {
+                studentIds.add(studentDoc.id);
+              });
+            }
+            
+            studentCount = studentIds.size;
+          }
+
+          // Format schedule and day
+          const schedule = data.startTime && data.endTime 
+            ? `${data.startTime} - ${data.endTime}` 
+            : '';
+          const day = data.dayOfWeek || '';
+
+          return {
+            id: doc.id,
+            name: data.className || data.name || 'Unnamed Class',
+            studentCount,
+            schedule,
+            day,
+          };
+        }),
+      );
+
+      return {
+        success: true,
+        data: classes,
+      };
+    } catch (error) {
+      console.error('Error fetching teacher classes:', error);
+      return {
+        success: false,
+        message: 'Failed to fetch classes',
+        data: [],
+      };
+    }
+  }
+
+  async getTeacherStats(teacherId: string) {
+    try {
+      // Get classes count
+      const classesSnapshot = await this.db
+        .collection('classes')
+        .where('teacherId', '==', teacherId)
+        .get();
+
+      // Get total students across all classes
+      const studentIds = new Set<string>();
+      
+      for (const classDoc of classesSnapshot.docs) {
+        const classData = classDoc.data();
+        
+        if (classData.gradeSections && Array.isArray(classData.gradeSections)) {
+          for (const gradeSection of classData.gradeSections) {
+            const studentsSnapshot = await this.db
+              .collection('students')
+              .where('currentGrade.grade', '==', gradeSection.grade)
+              .where('currentGrade.section', '==', gradeSection.section)
+              .get();
+            
+            for (const studentDoc of studentsSnapshot.docs) {
+              studentIds.add(studentDoc.id);
+            }
+          }
+        }
+      }
+
+      // Get active chats
+      const chatRoomsSnapshot = await this.db
+        .collection('chatRooms')
+        .where('teacherId', '==', teacherId)
+        .where('isActive', '==', true)
+        .get();
+
+      // Get pending submissions (homework submissions that need review)
+      let pendingSubmissions = 0;
+      try {
+        const submissionsSnapshot = await this.db
+          .collection('submissions')
+          .where('teacherId', '==', teacherId)
+          .where('status', '==', 'submitted')
+          .get();
+        pendingSubmissions = submissionsSnapshot.size;
+      } catch (error) {
+        console.log('Could not fetch submissions:', error);
+      }
+
+      return {
+        success: true,
+        data: {
+          totalClasses: classesSnapshot.size,
+          totalStudents: studentIds.size,
+          activeChats: chatRoomsSnapshot.size,
+          pendingSubmissions,
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching teacher stats:', error);
+      return {
+        success: false,
+        message: 'Failed to fetch stats',
+        data: {
+          totalClasses: 0,
+          totalStudents: 0,
+          activeChats: 0,
+          pendingSubmissions: 0,
+        },
+      };
+    }
+  }
+
   async create(createTeacherDto: CreateTeacherDto, file?: Express.Multer.File) {
     const { email, password, fullName, phoneNumber, subjects, status } = createTeacherDto;
 

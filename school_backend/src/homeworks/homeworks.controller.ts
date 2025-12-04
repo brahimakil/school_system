@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { HomeworksService } from './homeworks.service';
 import { CreateHomeworkDto } from './dto/create-homework.dto';
 import { UpdateHomeworkDto } from './dto/update-homework.dto';
@@ -13,8 +13,8 @@ export class HomeworksController {
   }
 
   @Get()
-  findAll() {
-    return this.homeworksService.findAll();
+  findAll(@Query('grade') grade?: string, @Query('section') section?: string) {
+    return this.homeworksService.findAll(grade, section);
   }
 
   @Get(':id')

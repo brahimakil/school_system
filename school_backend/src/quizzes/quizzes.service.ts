@@ -64,20 +64,39 @@ export class QuizzesService {
     return { id: doc.id, ...doc.data() };
   }
 
-  async findAll(): Promise<any[]> {
-    const snapshot = await this.quizzesCollection.orderBy('createdAt', 'desc').get();
-    const quizzes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  async findAll(grade?: string, section?: string): Promise<any> {
+    let query: admin.firestore.Query = this.quizzesCollection.orderBy('createdAt', 'desc');
+    
+    const snapshot = await query.get();
+    let quizzes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    // Filter by grade and section if provided
+    if (grade && section) {
+      const gradeSection = `Grade ${grade} - Section ${section}`;
+      quizzes = quizzes.filter((quiz: any) => 
+        quiz.gradeSections?.includes(gradeSection)
+      );
+    }
     
     // Auto-update expired quizzes
     const updatedCount = await this.autoUpdateExpiredQuizzes(quizzes);
     
     // Re-fetch if any were updated to get the latest data
     if (updatedCount > 0) {
-      const updatedSnapshot = await this.quizzesCollection.orderBy('createdAt', 'desc').get();
-      return updatedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const updatedSnapshot = await query.get();
+      let updatedQuizzes = updatedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      if (grade && section) {
+        const gradeSection = `Grade ${grade} - Section ${section}`;
+        updatedQuizzes = updatedQuizzes.filter((quiz: any) => 
+          quiz.gradeSections?.includes(gradeSection)
+        );
+      }
+      
+      return { success: true, data: updatedQuizzes };
     }
     
-    return quizzes;
+    return { success: true, data: quizzes };
   }
 
   async findOne(id: string): Promise<any> {

@@ -26,32 +26,32 @@ export interface Quiz {
 
 export const getAllQuizzes = async (): Promise<Quiz[]> => {
   const response = await api.get('/quizzes');
-  return response.data;
+  return response.data.data || response.data;
 };
 
 export const getQuizById = async (id: string): Promise<Quiz> => {
   const response = await api.get(`/quizzes/${id}`);
-  return response.data;
+  return response.data.data || response.data;
 };
 
 export const getQuizzesByClass = async (classId: string): Promise<Quiz[]> => {
   const response = await api.get(`/quizzes/class/${classId}`);
-  return response.data;
+  return response.data.data || response.data;
 };
 
 export const createQuiz = async (quiz: Omit<Quiz, 'id' | 'createdAt' | 'updatedAt' | 'totalMarks'>): Promise<Quiz> => {
   const response = await api.post('/quizzes', quiz);
-  return response.data;
+  return response.data.data || response.data;
 };
 
 export const updateQuiz = async (id: string, quiz: Partial<Quiz>): Promise<Quiz> => {
   const response = await api.put(`/quizzes/${id}`, quiz);
-  return response.data;
+  return response.data.data || response.data;
 };
 
 export const updateQuizStatus = async (id: string, status: Quiz['status']): Promise<Quiz> => {
   const response = await api.patch(`/quizzes/${id}/status`, { status });
-  return response.data;
+  return response.data.data || response.data;
 };
 
 export const deleteQuiz = async (id: string): Promise<void> => {
