@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
 import ChatWindow from './ChatWindow';
 import type { ChatRoom } from '../types/chat.types';
 import ChatRoomList from './ChatRoomList';
@@ -12,10 +11,8 @@ interface ChatSidebarProps {
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onClose }) => {
-  const { user } = useAuth();
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
-  const [showRoomControl, setShowRoomControl] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
