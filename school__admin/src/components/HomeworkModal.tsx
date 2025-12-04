@@ -526,7 +526,7 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
                             href={submission.fileUrl} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            onClick={(e) => {
+                            onClick={() => {
                               console.log('File URL:', submission.fileUrl);
                               // If it's a Firebase Storage URL, it should open directly
                             }}
