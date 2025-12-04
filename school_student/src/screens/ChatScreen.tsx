@@ -7,7 +7,6 @@ import {
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
-  Platform,
   Image,
   ActivityIndicator,
   Linking,
@@ -18,11 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import io, { Socket } from 'socket.io-client';
 
-// For React Native, we need to use the actual IP address, not localhost
-// Replace with your computer's IP address if testing on physical device
-const API_URL = Platform.OS === 'web' 
-  ? 'http://localhost:3000' 
-  : 'http://192.168.0.103:3000'; // Use your computer's local IP for physical devices
+// Production backend URL
+const API_URL = 'https://school-system-34gn.vercel.app';
 
 interface ChatRoom {
   id: string;
@@ -71,7 +67,8 @@ const ChatScreen: React.FC = () => {
     const token = student?.uid || 'student-token';
     const newSocket = io(API_URL, {
       auth: { token },
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
+      upgrade: false,
     });
 
     newSocket.on('connect', () => {

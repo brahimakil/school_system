@@ -1,14 +1,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// API URL configuration for different platforms
-const getApiUrl = () => {
-  // Using your local IP address to allow connection from physical devices
-  // This works for both Android Emulator and Physical Android devices on the same network
-  return 'http://192.168.0.103:3000';
-};
-
-const API_URL = getApiUrl();
+// API URL - using production backend
+const API_URL = 'https://school-system-34gn.vercel.app';
 
 const api = axios.create({
   baseURL: API_URL,
