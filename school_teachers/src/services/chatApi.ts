@@ -66,4 +66,12 @@ export const chatAPI = {
     });
     return response.data;
   },
+
+  // Initialize class chat rooms
+  initializeClassRooms: async (teacherId: string) => {
+    const response = await axios.post(`${API_URL}/classes/initialize-chat-rooms`, {
+      teacherId,
+    });
+    return response.data;
+  },
 };

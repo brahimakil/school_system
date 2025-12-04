@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
-import socketService from '../services/socket';
 
 interface Teacher {
   id: string;
@@ -46,11 +45,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Try to verify token, refresh if expired
           try {
             const response = await authAPI.verify();
-            if (response.success) {
-              socketService.connect(token);
-            } else {
+            if (!response.success) {
               console.warn('Token verification unsuccessful');
-              socketService.connect(token);
             }
           } catch (verifyError: any) {
             // If token expired, try to refresh by re-logging in
@@ -61,7 +57,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setUser(null);
             } else {
               console.warn('Token verification failed, but keeping user logged in:', verifyError);
-              socketService.connect(token);
             }
           }
         } catch (error) {
@@ -87,7 +82,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, 50 * 60 * 1000);
 
     return () => {
-      socketService.disconnect();
       clearInterval(refreshInterval);
     };
   }, []);
@@ -104,9 +98,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('teacher_token', response.data.token);
       localStorage.setItem('teacher_user', JSON.stringify(userData));
       setUser(userData);
-      
-      // Connect socket
-      socketService.connect(response.data.token);
     } else {
       throw new Error(response.message);
     }
@@ -115,7 +106,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     localStorage.removeItem('teacher_token');
     localStorage.removeItem('teacher_user');
-    socketService.disconnect();
     setUser(null);
   };
 

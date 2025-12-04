@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import ChatWindow from '../components/ChatWindow';
 import type { ChatRoom } from '../types/chat.types';
-import socketService from '../services/socket';
+import { db } from '../config/firebase';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { chatAPI } from '../services/chatApi';
 import './Chat.css';
 
 type TabType = 'all' | 'students' | 'classes';
@@ -15,126 +17,93 @@ const Chat: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [initializing, setInitializing] = useState(false);
 
-  const handleChatStatusChanged = (data: { roomId: string; isActive: boolean }) => {
-    console.log('Chat status changed event:', data);
-    setRooms(prev =>
-      prev.map(room =>
-        room.id === data.roomId ? { ...room, isActive: data.isActive } : room
-      )
-    );
-    
-    // Update selected room if it's the one that changed
-    if (selectedRoom && selectedRoom.id === data.roomId) {
-      setSelectedRoom(prev => prev ? { ...prev, isActive: data.isActive } : null);
-    }
-  };
-
-  const handleNewMessage = (data: any) => {
-    console.log('New message received in Chat page:', data);
-    setRooms(prev =>
-      prev.map(room =>
-        room.id === data.roomId
-          ? { 
-              ...room, 
-              unreadCount: room.id === selectedRoom?.id ? 0 : (room.unreadCount || 0) + 1, 
-              lastMessage: data.content, 
-              lastMessageTime: new Date(data.timestamp) 
-            }
-          : room
-      )
-    );
-  };
-
   const initializeChatRooms = async () => {
+    if (!user?.id) return;
+    
     setInitializing(true);
     try {
-      const response = await fetch('http://localhost:3000/classes/initialize-chat-rooms', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      const result = await response.json();
-      console.log('Initialize class rooms result:', result);
-      
-      // Refresh rooms
-      socketService.emit('get-teacher-rooms', { teacherId: user?.id });
+      await chatAPI.initializeClassRooms(user.id);
+      console.log('Successfully initialized class chat rooms');
     } catch (error) {
-      console.error('Failed to initialize chat rooms:', error);
+      console.error('Error initializing chat rooms:', error);
     } finally {
       setInitializing(false);
     }
   };
 
   const initializeStudentRooms = async () => {
+    if (!user?.id) return;
+    
     setInitializing(true);
     try {
-      const socket = socketService.getSocket();
-      if (socket) {
-        socket.emit('initialize-student-rooms', { teacherId: user?.id });
-        socket.once('student-rooms-initialized', (result: { created: number; existing: number }) => {
-          console.log('Student rooms initialized:', result);
-          setInitializing(false);
-        });
-      }
+      await chatAPI.initializeStudentRooms(user.id);
+      console.log('Successfully initialized student chat rooms');
     } catch (error) {
-      console.error('Failed to initialize student rooms:', error);
+      console.error('Error initializing student rooms:', error);
+    } finally {
       setInitializing(false);
     }
   };
 
   useEffect(() => {
-    const socket = socketService.getSocket();
-    
-    console.log('Current user:', user);
-    
-    const handleTeacherRooms = (data: ChatRoom[]) => {
-      console.log('Received teacher rooms:', data);
-      setRooms(data);
-      setLoading(false);
-    };
+    if (!user?.id) return;
 
-    if (socket) {
-      socket.on('teacher-rooms', handleTeacherRooms);
-      socket.on('room-list-updated', () => {
-        socketService.emit('get-teacher-rooms', { teacherId: user?.id });
-      });
-      socket.on('new-message', handleNewMessage);
-      socket.on('chat-status-changed', handleChatStatusChanged);
+    // Real-time listener for teacher's chat rooms
+    const q = query(
+      collection(db, 'chatRooms'),
+      where('teacherId', '==', user.id)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const roomsData: ChatRoom[] = [];
       
-      // Request rooms with teacher ID
-      console.log('Requesting rooms for teacher:', user?.id);
-      socketService.emit('get-teacher-rooms', { teacherId: user?.id });
-    } else {
-      console.error('Socket not connected');
-      setLoading(false);
-    }
-
-    return () => {
-      if (socket) {
-        socket.off('teacher-rooms', handleTeacherRooms);
-        socket.off('room-list-updated');
-        socket.off('new-message', handleNewMessage);
-        socket.off('chat-status-changed', handleChatStatusChanged);
+      for (const doc of snapshot.docs) {
+        const data = doc.data();
+        roomsData.push({
+          id: doc.id,
+          name: data.name || '',
+          type: data.type,
+          classId: data.classId,
+          studentId: data.studentId,
+          isActive: data.isActive ?? true,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date(),
+          lastMessage: data.lastMessage || '',
+          lastMessageTime: data.lastMessageTime?.toDate(),
+          unreadCount: data.unreadCount || 0,
+        } as ChatRoom);
       }
-    };
-  }, [user]);
+
+      // Sort by last message time
+      roomsData.sort((a, b) => {
+        const aTime = a.lastMessageTime?.getTime() || 0;
+        const bTime = b.lastMessageTime?.getTime() || 0;
+        return bTime - aTime;
+      });
+
+      setRooms(roomsData);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user?.id]);
 
   const handleRoomSelect = (room: ChatRoom) => {
     setSelectedRoom(room);
-    socketService.emit('join-room', { roomId: room.id });
+    // No need to join room with Firestore - just reset unread count
     setRooms(prev =>
       prev.map(r => (r.id === room.id ? { ...r, unreadCount: 0 } : r))
     );
   };
 
-  const handleToggleRoomStatus = (roomId: string, isActive: boolean) => {
-    socketService.emit('toggle-chat-status', { roomId, isActive });
-    setRooms(prev =>
-      prev.map(room =>
-        room.id === roomId ? { ...room, isActive } : room
-      )
-    );
+  const handleToggleRoomStatus = async (roomId: string, isActive: boolean) => {
+    try {
+      await chatAPI.toggleChatStatus(roomId, isActive);
+      console.log('Chat status toggled successfully');
+      // Firestore listener will update the UI
+    } catch (error) {
+      console.error('Error toggling chat status:', error);
+    }
   };
 
   const handleBack = () => {
