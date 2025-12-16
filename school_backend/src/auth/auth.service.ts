@@ -391,6 +391,8 @@ export class AuthService {
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
 
+      console.log(`[OTP] Generated for ${email}: ${otp}`);
+
       // Save OTP to Firestore
       await this.db.collection('otp_codes').doc(email).set({
         otp,
@@ -406,6 +408,8 @@ export class AuthService {
         text: `Your verification code is: ${otp}. It expires in 5 minutes.`,
         html: `<p>Your verification code is: <b>${otp}</b></p><p>It expires in 5 minutes.</p>`,
       });
+
+      console.log(`[OTP] Email sent successfully to ${email}`);
 
       return {
         success: true,
