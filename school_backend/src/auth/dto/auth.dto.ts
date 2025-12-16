@@ -57,3 +57,13 @@ export class StudentLoginDto {
   @IsNotEmpty()
   password: string;
 }
+
+export class VerifyOtpDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsNotEmpty()
+  @IsString()
+  otp: string;
+}

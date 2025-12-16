@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Get, Headers, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SignupDto, LoginDto, StudentSignupDto, StudentLoginDto } from './dto/auth.dto';
+import { SignupDto, LoginDto, StudentSignupDto, StudentLoginDto, VerifyOtpDto } from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -32,6 +32,18 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async studentLogin(@Body() studentLoginDto: StudentLoginDto) {
     return this.authService.studentLogin(studentLoginDto);
+  }
+
+  @Post('student/login-initiate')
+  @HttpCode(HttpStatus.OK)
+  async initiateStudentLogin(@Body() studentLoginDto: StudentLoginDto) {
+    return this.authService.initiateStudentLogin(studentLoginDto);
+  }
+
+  @Post('student/login-verify')
+  @HttpCode(HttpStatus.OK)
+  async verifyStudentLogin(@Body() verifyDto: VerifyOtpDto) {
+    return this.authService.verifyStudentLogin(verifyDto);
   }
 
   @Get('verify')
