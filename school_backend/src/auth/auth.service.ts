@@ -432,6 +432,10 @@ export class AuthService {
 
       const otpData = otpDoc.data();
 
+      if (!otpData) {
+        throw new UnauthorizedException('Invalid OTP data');
+      }
+
       if (otpData.otp !== otp) {
         throw new UnauthorizedException('Invalid OTP');
       }
@@ -447,6 +451,10 @@ export class AuthService {
       // Get student data again to return it
       const studentDoc = await this.db.collection('students').doc(uid).get();
       const studentData = studentDoc.data();
+
+      if (!studentData) {
+        throw new UnauthorizedException('Student data not found');
+      }
 
       // Create custom token
       const token = await this.auth.createCustomToken(uid);
