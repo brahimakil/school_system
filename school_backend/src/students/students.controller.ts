@@ -51,4 +51,14 @@ export class StudentsController {
   remove(@Param('id') id: string) {
     return this.studentsService.remove(id);
   }
+
+  @Post(':id/test-gemini-key')
+  async testGeminiKey(@Param('id') id: string, @Body('apiKey') apiKey: string) {
+    return this.studentsService.testGeminiApiKey(apiKey);
+  }
+
+  @Post(':id/save-gemini-key')
+  async saveGeminiKey(@Param('id') id: string, @Body('apiKey') apiKey: string) {
+    return this.studentsService.saveGeminiApiKey(id, apiKey);
+  }
 }

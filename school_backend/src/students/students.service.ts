@@ -125,4 +125,53 @@ export class StudentsService {
 
     return { success: true, photoUrl };
   }
+
+  async testGeminiApiKey(apiKey: string) {
+    try {
+      const { GoogleGenerativeAI } = require('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+      
+      const result = await model.generateContent('Hello, respond with just "OK" to confirm you are working.');
+      const response = await result.response;
+      const text = response.text();
+      
+      return { 
+        success: true, 
+        message: 'API key is valid and working!',
+        testResponse: text 
+      };
+    } catch (error) {
+      return { 
+        success: false, 
+        message: 'Invalid API key or API error',
+        error: error.message 
+      };
+    }
+  }
+
+  async saveGeminiApiKey(studentId: string, apiKey: string) {
+    try {
+      const studentDoc = await this.db.collection('students').doc(studentId).get();
+      if (!studentDoc.exists) {
+        throw new NotFoundException('Student not found');
+      }
+
+      await this.db.collection('students').doc(studentId).update({
+        geminiApiKey: apiKey,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      return { 
+        success: true, 
+        message: 'Gemini API key saved successfully!' 
+      };
+    } catch (error) {
+      return { 
+        success: false, 
+        message: 'Failed to save API key',
+        error: error.message 
+      };
+    }
+  }
 }

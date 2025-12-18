@@ -15,6 +15,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { QuizResultsModule } from './quiz-results/quiz-results.module';
 import { ChatModule } from './chat/chat.module';
 import { CoursesModule } from './courses/courses.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CoursesModule } from './courses/courses.module';
     QuizResultsModule,
     ChatModule,
     CoursesModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
