@@ -65,7 +65,8 @@ export class AiService {
         return '\n\n[Student data not available]\n\n';
       }
       const currentGrade = studentData.currentGrade;
-      const gradeStr = `${currentGrade.grade}-${currentGrade.section}`;
+      // Match the format used in courses/homeworks: "Grade Grade 9 - Section A"
+      const gradeStr = `Grade ${currentGrade.grade} - Section ${currentGrade.section}`;
 
       console.log('=== AI CONTEXT DEBUG ===');
       console.log('Student ID:', studentId);
