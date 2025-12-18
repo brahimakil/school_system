@@ -141,15 +141,28 @@ export class CoursesService {
 
     const updateData: any = {
       ...updateCourseDto,
-      attachmentUrl,
-      attachmentType,
       updatedAt: admin.firestore.Timestamp.now(),
     };
+
+    // Only include attachment fields if they have values
+    if (attachmentUrl !== undefined) {
+      updateData.attachmentUrl = attachmentUrl;
+    }
+    if (attachmentType !== undefined) {
+      updateData.attachmentType = attachmentType;
+    }
 
     // Parse gradeSections if it's a string
     if (typeof updateData.gradeSections === 'string') {
       updateData.gradeSections = JSON.parse(updateData.gradeSections as string);
     }
+
+    // Remove undefined values from updateData
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === undefined) {
+        delete updateData[key];
+      }
+    });
 
     await this.coursesCollection.doc(id).update(updateData);
     const updatedDoc = await this.coursesCollection.doc(id).get();
