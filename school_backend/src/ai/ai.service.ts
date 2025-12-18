@@ -36,11 +36,15 @@ export class AiService {
     }
     
     instruction += `\n\nYou have access to the student's courses and homework assignments. When answering questions:
-- Reference specific courses or homework when relevant
-- Help explain concepts from their curriculum
-- Assist with homework by guiding them through problems rather than giving direct answers
-- Be supportive and encouraging
-- If you see an image, analyze it and help the student understand it in the context of their studies`;
+- When the student types /courses, list ALL their available courses with numbers and ask which one they want to explore
+- When the student types /homework, list ALL their homework assignments with numbers and ask which one they need help with
+- When they mention a specific course or homework by name, provide detailed help about it
+- Reference specific courses or homework when relevant to their questions
+- Help explain concepts from their curriculum in detail
+- Assist with homework by guiding them through problems step-by-step, not giving direct answers
+- Be supportive, encouraging, and patient
+- If you see an image, analyze it thoroughly and help the student understand it in the context of their studies
+- Always acknowledge the courses and homeworks you have access to`;
     
     return instruction;
   }
@@ -63,70 +67,94 @@ export class AiService {
       const currentGrade = studentData.currentGrade;
       const gradeStr = `${currentGrade.grade}-${currentGrade.section}`;
 
+      console.log('Building context for student:', studentId, 'Grade:', gradeStr);
+
       // Get student's active courses
       const coursesSnapshot = await this.db.collection('courses')
         .where('gradeSections', 'array-contains', gradeStr)
-        .where('status', 'in', ['active', 'pending'])
-        .limit(50)
         .get();
+
+      console.log('Found courses:', coursesSnapshot.size);
 
       const courses = coursesSnapshot.docs.map(doc => {
         const data = doc.data();
         return {
+          id: doc.id,
           title: data.title,
           subject: data.subject,
           description: data.description,
           status: data.status,
+          attachmentUrl: data.attachmentUrl,
         };
       });
 
-      // Get student's active homeworks
+      // Get student's homeworks
       const homeworksSnapshot = await this.db.collection('homeworks')
         .where('gradeSections', 'array-contains', gradeStr)
-        .where('status', 'in', ['pending', 'active'])
-        .limit(50)
         .get();
+
+      console.log('Found homeworks:', homeworksSnapshot.size);
 
       const homeworks = homeworksSnapshot.docs.map(doc => {
         const data = doc.data();
         return {
+          id: doc.id,
           title: data.title,
           subject: data.subject,
           description: data.description,
           dueDate: data.dueDate,
           status: data.status,
+          attachmentUrl: data.attachmentUrl,
         };
       });
 
       // Build context string
       let context = `\n\n=== STUDENT CONTEXT ===\n`;
-      context += `Grade: ${currentGrade.grade}, Section: ${currentGrade.section}\n\n`;
+      context += `Student Grade: ${currentGrade.grade}, Section: ${currentGrade.section}\n\n`;
       
       if (courses.length > 0) {
-        context += `CURRENT COURSES (${courses.length}):\n`;
+        context += `📚 AVAILABLE COURSES (Total: ${courses.length}):\n`;
+        context += `The student can reference these courses using /courses command\n\n`;
         courses.forEach((course, idx) => {
-          context += `${idx + 1}. ${course.title} (${course.subject})\n`;
+          context += `Course ${idx + 1}: "${course.title}"\n`;
+          context += `  - Subject: ${course.subject}\n`;
+          context += `  - Status: ${course.status}\n`;
           if (course.description) {
-            context += `   Description: ${course.description}\n`;
+            context += `  - Description: ${course.description}\n`;
           }
+          if (course.attachmentUrl) {
+            context += `  - Has Attachment: Yes\n`;
+          }
+          context += `\n`;
         });
-        context += `\n`;
+      } else {
+        context += `📚 COURSES: No courses found for this student\n\n`;
       }
       
       if (homeworks.length > 0) {
-        context += `ACTIVE HOMEWORK ASSIGNMENTS (${homeworks.length}):\n`;
+        context += `📝 AVAILABLE HOMEWORK ASSIGNMENTS (Total: ${homeworks.length}):\n`;
+        context += `The student can reference these homeworks using /homework command\n\n`;
         homeworks.forEach((hw, idx) => {
-          context += `${idx + 1}. ${hw.title} (${hw.subject})\n`;
+          context += `Homework ${idx + 1}: "${hw.title}"\n`;
+          context += `  - Subject: ${hw.subject}\n`;
+          context += `  - Status: ${hw.status}\n`;
           if (hw.description) {
-            context += `   Description: ${hw.description}\n`;
+            context += `  - Description: ${hw.description}\n`;
           }
           if (hw.dueDate) {
-            context += `   Due: ${hw.dueDate}\n`;
+            context += `  - Due Date: ${hw.dueDate}\n`;
           }
+          if (hw.attachmentUrl) {
+            context += `  - Has Attachment: Yes\n`;
+          }
+          context += `\n`;
         });
+      } else {
+        context += `📝 HOMEWORK: No homework assignments found for this student\n\n`;
       }
       
-      context += `\n=== END CONTEXT ===\n\n`;
+      context += `=== END CONTEXT ===\n\n`;
+      context += `IMPORTANT: When the student uses /courses or /homework commands, provide them with the list above and help them explore specific items.\n`;
       
       return context;
     } catch (error) {
