@@ -14,6 +14,7 @@ import { SubmissionsModule } from './submissions/submissions.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { QuizResultsModule } from './quiz-results/quiz-results.module';
 import { ChatModule } from './chat/chat.module';
+import { CoursesModule } from './courses/courses.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { ChatModule } from './chat/chat.module';
     UploadsModule,
     QuizResultsModule,
     ChatModule,
+    CoursesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
