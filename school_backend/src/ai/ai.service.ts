@@ -67,14 +67,25 @@ export class AiService {
       const currentGrade = studentData.currentGrade;
       const gradeStr = `${currentGrade.grade}-${currentGrade.section}`;
 
-      console.log('Building context for student:', studentId, 'Grade:', gradeStr);
+      console.log('=== AI CONTEXT DEBUG ===');
+      console.log('Student ID:', studentId);
+      console.log('Student Grade:', currentGrade);
+      console.log('Searching for gradeStr:', gradeStr);
 
-      // Get student's active courses
+      // Get ALL courses first to debug
+      const allCoursesSnapshot = await this.db.collection('courses').limit(5).get();
+      console.log('Sample courses in DB:', allCoursesSnapshot.docs.map(doc => ({
+        id: doc.id,
+        gradeSections: doc.data().gradeSections,
+        title: doc.data().title
+      })));
+
+      // Get student's courses
       const coursesSnapshot = await this.db.collection('courses')
         .where('gradeSections', 'array-contains', gradeStr)
         .get();
 
-      console.log('Found courses:', coursesSnapshot.size);
+      console.log('Found courses for student:', coursesSnapshot.size);
 
       const courses = coursesSnapshot.docs.map(doc => {
         const data = doc.data();
@@ -88,12 +99,21 @@ export class AiService {
         };
       });
 
+      // Get ALL homeworks first to debug
+      const allHomeworksSnapshot = await this.db.collection('homeworks').limit(5).get();
+      console.log('Sample homeworks in DB:', allHomeworksSnapshot.docs.map(doc => ({
+        id: doc.id,
+        gradeSections: doc.data().gradeSections,
+        title: doc.data().title
+      })));
+
       // Get student's homeworks
       const homeworksSnapshot = await this.db.collection('homeworks')
         .where('gradeSections', 'array-contains', gradeStr)
         .get();
 
-      console.log('Found homeworks:', homeworksSnapshot.size);
+      console.log('Found homeworks for student:', homeworksSnapshot.size);
+      console.log('=== END DEBUG ===');
 
       const homeworks = homeworksSnapshot.docs.map(doc => {
         const data = doc.data();
