@@ -5,6 +5,9 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import DashboardHome from './pages/DashboardHome';
 import Chat from './pages/Chat';
+import QuizzesManagement from './pages/QuizzesManagement';
+import CoursesManagement from './pages/CoursesManagement';
+import HomeworksManagement from './pages/HomeworksManagement';
 import './App.css';
 
 function App() {
@@ -23,6 +26,9 @@ function App() {
           >
             <Route index element={<DashboardHome />} />
             <Route path="chat" element={<Chat />} />
+            <Route path="quizzes" element={<QuizzesManagement />} />
+            <Route path="courses" element={<CoursesManagement />} />
+            <Route path="homeworks" element={<HomeworksManagement />} />
           </Route>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
