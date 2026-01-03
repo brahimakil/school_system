@@ -20,21 +20,39 @@ interface LoginScreenProps {
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
+  const [isOtpSent, setIsOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { initiateLogin, verifyLogin } = useAuth();
 
   const handleLogin = async () => {
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
 
-    if (!trimmedEmail || !trimmedPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+    if (!trimmedEmail) {
+      Alert.alert('Error', 'Please enter your email');
+      return;
+    }
+
+    if (!isOtpSent && !trimmedPassword) {
+      Alert.alert('Error', 'Please enter your password');
+      return;
+    }
+
+    if (isOtpSent && !otp.trim()) {
+      Alert.alert('Error', 'Please enter the verification code');
       return;
     }
 
     setLoading(true);
     try {
-      await login({ email: trimmedEmail, password: trimmedPassword });
+      if (!isOtpSent) {
+        await initiateLogin({ email: trimmedEmail, password: trimmedPassword });
+        setIsOtpSent(true);
+        Alert.alert('Success', 'Verification code sent to your email');
+      } else {
+        await verifyLogin(trimmedEmail, otp.trim());
+      }
     } catch (error: any) {
       Alert.alert('Login Failed', error.message || 'Invalid credentials');
     } finally {
@@ -73,19 +91,47 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              editable={!isOtpSent}
             />
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
-          </View>
+          {!isOtpSent ? (
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+              />
+            </View>
+          ) : (
+            <>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Verification Code</Text>
+                <Text style={styles.helperText}>Check your email for the 6-digit code</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="123456"
+                  value={otp}
+                  onChangeText={setOtp}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  autoFocus
+                />
+              </View>
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => {
+                  setIsOtpSent(false);
+                  setOtp('');
+                }}
+              >
+                <Text style={styles.backButtonText}>← Back to Login</Text>
+              </TouchableOpacity>
+            </>
+          )}
 
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
@@ -95,16 +141,16 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Sign In</Text>
+              <Text style={styles.buttonText}>{isOtpSent ? 'Verify & Login' : 'Next'}</Text>
             )}
           </TouchableOpacity>
 
-          <View style={styles.footer}>
+          {/* <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
               <Text style={styles.link}>Sign Up</Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -187,6 +233,21 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  backButton: {
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  backButtonText: {
+    color: '#6366f1',
+    fontSize: 14,
+    fontWeight: '500',
   },
   footer: {
     flexDirection: 'row',

@@ -87,6 +87,16 @@ export const studentAuthAPI = {
     const response = await api.post('/auth/student/login', data);
     return response.data;
   },
+
+  initiateLogin: async (data: LoginData): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post('/auth/student/login-initiate', data);
+    return response.data;
+  },
+
+  verifyLogin: async (email: string, otp: string): Promise<{ success: boolean; data: StudentData; message: string }> => {
+    const response = await api.post('/auth/student/login-verify', { email, otp });
+    return response.data;
+  },
 };
 
 export interface ClassSchedule {
@@ -188,6 +198,38 @@ export interface Submission {
   updatedAt: any;
 }
 
+export interface Course {
+  id: string;
+  classId: string;
+  className: string;
+  gradeSections: string[];
+  subject: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'active' | 'completed' | 'overdue';
+  attachmentUrl?: string;
+  attachmentType?: 'video' | 'pdf' | 'image' | 'other';
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export const coursesAPI = {
+  getMyCourses: async (grade: string, section: string): Promise<{ success: boolean; data: Course[] }> => {
+    const response = await api.get(`/courses?grade=${encodeURIComponent(grade)}&section=${encodeURIComponent(section)}`);
+    return response.data;
+  },
+
+  getCourseById: async (courseId: string): Promise<Course> => {
+    const response = await api.get(`/courses/${courseId}`);
+    return response.data;
+  },
+
+  markAsCompleted: async (courseId: string): Promise<any> => {
+    const response = await api.patch(`/courses/${courseId}`, { status: 'completed' });
+    return response.data;
+  },
+};
+
 export interface CreateSubmissionData {
   homeworkId: string;
   studentId: string;
@@ -278,6 +320,49 @@ export const quizResultAPI = {
 
   getByQuiz: async (quizId: string): Promise<{ success: boolean; data: QuizResult[] }> => {
     const response = await api.get(`/quiz-results/quiz/${quizId}`);
+    return response.data;
+  },
+};
+
+export const studentsAPI = {
+  testGeminiKey: async (studentId: string, apiKey: string): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post(`/students/${studentId}/test-gemini-key`, { apiKey });
+    return response.data;
+  },
+
+  saveGeminiKey: async (studentId: string, apiKey: string): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post(`/students/${studentId}/save-gemini-key`, { apiKey });
+    return response.data;
+  },
+
+  getProfile: async (studentId: string): Promise<any> => {
+    const response = await api.get(`/students/${studentId}`);
+    return response.data;
+  },
+};
+
+export const aiAPI = {
+  chat: async (studentId: string, message: string, imageUri?: string): Promise<{ response: string }> => {
+    const formData = new FormData();
+    formData.append('message', message);
+
+    if (imageUri) {
+      const filename = imageUri.split('/').pop() || 'image.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+      formData.append('image', {
+        uri: imageUri,
+        name: filename,
+        type,
+      } as any);
+    }
+
+    const response = await api.post(`/ai/chat/${studentId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   },
 };

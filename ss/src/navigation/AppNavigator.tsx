@@ -10,15 +10,29 @@ import HomeScreen from '../screens/HomeScreen';
 import ClassesScreen from '../screens/ClassesScreen';
 import QuizzesScreen from '../screens/QuizzesScreen';
 import TasksScreen from '../screens/TasksScreen';
+import CoursesScreen from '../screens/CoursesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ChatScreen from '../screens/ChatScreen';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import AIChatScreen from '../screens/AIChatScreen';
+import { ActivityIndicator, View, StyleSheet, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+const ChatStack = createStackNavigator();
+
+const ChatStackScreen = () => {
+  return (
+    <ChatStack.Navigator screenOptions={{ headerShown: false }}>
+      <ChatStack.Screen name="ChatList" component={ChatScreen} />
+      <ChatStack.Screen name="AIChat" component={AIChatScreen} />
+    </ChatStack.Navigator>
+  );
+};
 
 const AppNavigator: React.FC = () => {
   const { student, loading } = useAuth();
+  const insets = useSafeAreaInsets();
 
   if (loading) {
     return (
@@ -46,9 +60,9 @@ const AppNavigator: React.FC = () => {
               backgroundColor: '#fff',
               borderTopWidth: 1,
               borderTopColor: '#e5e7eb',
-              paddingBottom: 20,
+              paddingBottom: insets.bottom + 8,
               paddingTop: 8,
-              height: 80,
+              height: 60 + insets.bottom,
             },
             tabBarLabelStyle: {
               fontSize: 12,
@@ -91,7 +105,7 @@ const AppNavigator: React.FC = () => {
           />
           <Tab.Screen
             name="Chat"
-            component={ChatScreen}
+            component={ChatStackScreen}
             options={{
               title: 'Messages',
               tabBarLabel: 'Chat',
@@ -108,6 +122,17 @@ const AppNavigator: React.FC = () => {
               tabBarLabel: 'Quizzes',
               tabBarIcon: ({ color, size }) => (
                 <Ionicons name="document-text" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="Courses"
+            component={CoursesScreen}
+            options={{
+              title: 'My Courses',
+              tabBarLabel: 'Courses',
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="school" size={size} color={color} />
               ),
             }}
           />

@@ -15,10 +15,16 @@ import {
 import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
-import io, { Socket } from 'socket.io-client';
+import { db } from '../config/firebase';
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import axios from 'axios';
 
 // Production backend URL
 const API_URL = 'https://school-system-34gn.vercel.app';
+
+interface ChatScreenProps {
+  navigation?: any;
+}
 
 interface ChatRoom {
   id: string;
@@ -44,9 +50,8 @@ interface Message {
   timestamp: Date;
 }
 
-const ChatScreen: React.FC = () => {
+const ChatScreen: React.FC<ChatScreenProps> = ({ navigation }) => {
   const { student } = useAuth();
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -55,106 +60,95 @@ const ChatScreen: React.FC = () => {
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
-  const currentRoomIdRef = useRef<string | null>(null);
 
-  // Update ref when room changes
+  // Real-time listener for student's chat rooms
   useEffect(() => {
-    currentRoomIdRef.current = selectedRoom?.id || null;
-  }, [selectedRoom]);
-
-  useEffect(() => {
-    console.log('ChatScreen: Current student data:', student);
-    const token = student?.uid || 'student-token';
-    const newSocket = io(API_URL, {
-      auth: { token },
-      transports: ['polling', 'websocket'],
-      upgrade: false,
-    });
-
-    newSocket.on('connect', () => {
-      console.log('Socket connected:', newSocket.id);
-      console.log('Emitting get-student-rooms with studentId:', student?.uid);
-      newSocket.emit('get-student-rooms', { studentId: student?.uid });
-    });
-
-    newSocket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
+    if (!student?.uid) {
       setLoading(false);
-    });
+      return;
+    }
 
-    newSocket.on('disconnect', (reason) => {
-      console.log('Socket disconnected:', reason);
-    });
+    console.log('Setting up Firestore listener for student:', student.uid);
+    const q = query(
+      collection(db, 'chatRooms'),
+      where('studentId', '==', student.uid)
+    );
 
-    newSocket.on('student-rooms', (data: ChatRoom[]) => {
-      console.log('Received rooms:', data);
-      // Parse date strings to Date objects and ensure proper types
-      const parsedRooms = data.map(room => ({
-        ...room,
-        lastMessage: room.lastMessage ? String(room.lastMessage) : undefined,
-        lastMessageTime: room.lastMessageTime ? new Date(room.lastMessageTime) : undefined,
-        unreadCount: room.unreadCount ? Number(room.unreadCount) : undefined,
-      }));
-      setRooms(parsedRooms);
-      setLoading(false);
-      clearTimeout(timeout); // Clear timeout once we get rooms
-    });
-
-    newSocket.on('error', (error: any) => {
-      console.error('Socket error:', error);
-      setLoading(false);
-    });
-
-    // Timeout fallback
-    const timeout = setTimeout(() => {
-      console.log('Timeout: No response from server after 10 seconds');
-      setLoading(false);
-    }, 10000);
-
-    newSocket.on('new-message', (data: any) => {
-      console.log('New message received:', data);
-      // Check if message is for current room using ref
-      if (currentRoomIdRef.current === data.roomId) {
-        setMessages((prev) => [...prev, { ...data, timestamp: new Date(data.timestamp) }]);
-      }
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const roomsData: ChatRoom[] = [];
       
-      // Update room's last message
-      setRooms((prev) =>
-        prev.map((room) =>
-          room.id === data.roomId
-            ? {
-                ...room,
-                lastMessage: String(data.content || ''),
-                lastMessageTime: new Date(data.timestamp),
-                unreadCount: currentRoomIdRef.current === data.roomId ? 0 : (room.unreadCount || 0) + 1,
-              }
-            : room
-        )
-      );
-    });
-
-    newSocket.on('message-history', (data: Message[]) => {
-      setMessages(data.map((msg) => ({ ...msg, timestamp: new Date(msg.timestamp) })));
-    });
-
-    newSocket.on('chat-status-changed', (data: { roomId: string; isActive: boolean }) => {
-      setRooms((prev) =>
-        prev.map((room) =>
-          room.id === data.roomId ? { ...room, isActive: data.isActive } : room
-        )
-      );
-      if (selectedRoom?.id === data.roomId) {
-        setSelectedRoom((prev) => prev ? { ...prev, isActive: data.isActive } : null);
+      for (const doc of snapshot.docs) {
+        const data = doc.data();
+        roomsData.push({
+          id: doc.id,
+          name: data.name || '',
+          type: data.type,
+          classId: data.classId,
+          teacherId: data.teacherId,
+          isActive: data.isActive ?? true,
+          lastMessage: data.lastMessage || '',
+          lastMessageTime: data.lastMessageTime?.toDate(),
+          unreadCount: data.unreadCount || 0,
+        });
       }
+
+      // Sort by last message time
+      roomsData.sort((a, b) => {
+        const aTime = a.lastMessageTime?.getTime() || 0;
+        const bTime = b.lastMessageTime?.getTime() || 0;
+        return bTime - aTime;
+      });
+
+      console.log('Received rooms from Firestore:', roomsData.length);
+      setRooms(roomsData);
+      setLoading(false);
+    }, (error) => {
+      console.error('Firestore listener error:', error);
+      setLoading(false);
     });
 
-    setSocket(newSocket);
-
-    return () => {
-      clearTimeout(timeout);
-      newSocket.disconnect();
-    };
+    return () => unsubscribe();
   }, [student?.uid]);
+
+  // Real-time listener for messages in selected room
+  useEffect(() => {
+    if (!selectedRoom?.id) {
+      setMessages([]);
+      return;
+    }
+
+    console.log('Setting up messages listener for room:', selectedRoom.id);
+    const q = query(
+      collection(db, 'messages'),
+      where('roomId', '==', selectedRoom.id),
+      orderBy('timestamp', 'asc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const messagesData: Message[] = [];
+      
+      for (const doc of snapshot.docs) {
+        const data = doc.data();
+        messagesData.push({
+          id: doc.id,
+          senderId: data.senderId,
+          senderName: data.senderName,
+          senderType: data.senderType,
+          content: data.content,
+          messageType: data.messageType,
+          mediaUrl: data.mediaUrl,
+          fileName: data.fileName,
+          timestamp: data.timestamp?.toDate() || new Date(),
+        });
+      }
+
+      setMessages(messagesData);
+    }, (error) => {
+      console.error('Messages listener error:', error);
+    });
+
+    return () => unsubscribe();
+  }, [selectedRoom?.id]);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -164,11 +158,7 @@ const ChatScreen: React.FC = () => {
 
   const handleRoomSelect = (room: ChatRoom) => {
     setSelectedRoom(room);
-    setMessages([]);
-    if (socket) {
-      socket.emit('join-room', { roomId: room.id });
-      socket.emit('get-messages', { roomId: room.id });
-    }
+    // Messages will be loaded by Firestore listener
     // Clear unread count
     setRooms((prev) =>
       prev.map((r) => (r.id === room.id ? { ...r, unreadCount: 0 } : r))
@@ -203,7 +193,7 @@ const ChatScreen: React.FC = () => {
         name: file.name,
       } as any);
 
-      const uploadResponse = await fetch('http://192.168.0.103:3000/chat/upload', {
+      const uploadResponse = await fetch(`${API_URL}/chat/upload`, {
         method: 'POST',
         body: formData,
         headers: {
@@ -213,9 +203,9 @@ const ChatScreen: React.FC = () => {
 
       const uploadResult = await uploadResponse.json();
 
-      if (uploadResult.url && socket) {
-        socket.emit('send-message', {
-          roomId: selectedRoom?.id,
+      if (uploadResult.url && selectedRoom) {
+        await axios.post(`${API_URL}/chat/messages`, {
+          roomId: selectedRoom.id,
           content: file.name,
           senderId: student?.uid,
           senderName: student?.fullName,
@@ -236,21 +226,27 @@ const ChatScreen: React.FC = () => {
     }
   };
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim() || !selectedRoom || !socket) return;
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedRoom || !student?.uid) return;
 
     setSending(true);
-    socket.emit('send-message', {
-      roomId: selectedRoom.id,
-      content: newMessage.trim(),
-      senderId: student?.uid,
-      senderName: student?.fullName,
-      senderType: 'student',
-      messageType: 'text',
-    });
+    try {
+      await axios.post(`${API_URL}/chat/messages`, {
+        roomId: selectedRoom.id,
+        content: newMessage.trim(),
+        senderId: student.uid,
+        senderName: student.fullName,
+        senderType: 'student',
+        messageType: 'text',
+      });
 
-    setNewMessage('');
-    setSending(false);
+      setNewMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      Alert.alert('Error', 'Failed to send message');
+    } finally {
+      setSending(false);
+    }
   };
 
   const formatTime = (date: Date) => {
@@ -342,6 +338,12 @@ const ChatScreen: React.FC = () => {
     );
   };
 
+  const handleAIHelperPress = () => {
+    // Navigate to AI Chat screen - backend will handle API key validation
+    // @ts-ignore - navigation prop exists
+    navigation?.navigate('AIChat');
+  };
+
   if (selectedRoom) {
     return (
       <View style={{ flex: 1, backgroundColor: '#f9fafb' }}>
@@ -425,19 +427,54 @@ const ChatScreen: React.FC = () => {
           <ActivityIndicator size="large" color="#6366f1" />
           <Text style={styles.loadingText}>Loading chats...</Text>
         </View>
-      ) : rooms.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="chatbubbles-outline" size={80} color="#cbd5e1" />
-          <Text style={styles.emptyTitle}>No conversations yet</Text>
-          <Text style={styles.emptySubtitle}>Your class chats will appear here</Text>
-        </View>
       ) : (
-        <FlatList
-          data={rooms}
-          renderItem={renderRoom}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.roomsList}
-        />
+        <>
+          {/* AI Helper Pinned Chat */}
+          <TouchableOpacity style={styles.aiHelperItem} onPress={handleAIHelperPress}>
+            <View style={styles.aiHelperAvatar}>
+              <Text style={styles.aiHelperAvatarText}>🤖</Text>
+            </View>
+            <View style={styles.aiHelperInfo}>
+              <View style={styles.aiHelperHeader}>
+                <Text style={styles.aiHelperName}>AI Helper</Text>
+                <View style={styles.pinnedBadge}>
+                  <Ionicons name="pin" size={12} color="#fff" />
+                  <Text style={styles.pinnedText}>Pinned</Text>
+                </View>
+              </View>
+              <Text style={styles.aiHelperDescription}>
+                Ask me about your courses, homework, or anything!
+              </Text>
+              <View style={styles.aiHelperFeatures}>
+                <Text style={styles.aiFeature}>📚 Course Help</Text>
+                <Text style={styles.aiFeature}>📝 Homework Support</Text>
+                <Text style={styles.aiFeature}>📷 Image Analysis</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>Your Chats</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {rooms.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="chatbubbles-outline" size={80} color="#cbd5e1" />
+              <Text style={styles.emptyTitle}>No conversations yet</Text>
+              <Text style={styles.emptySubtitle}>Your class chats will appear here</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={rooms}
+              renderItem={renderRoom}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.roomsList}
+            />
+          )}
+        </>
       )}
     </View>
   );
@@ -728,6 +765,99 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#94a3b8',
     marginTop: 8,
+  },
+  aiHelperItem: {
+    flexDirection: 'row',
+    padding: 16,
+    backgroundColor: '#6366f1',
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 16,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  aiHelperAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  aiHelperAvatarText: {
+    fontSize: 32,
+  },
+  aiHelperInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  aiHelperHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  aiHelperName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginRight: 8,
+  },
+  pinnedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    gap: 4,
+  },
+  pinnedText: {
+    fontSize: 10,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  aiHelperDescription: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.95)',
+    marginBottom: 8,
+  },
+  aiHelperFeatures: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  aiFeature: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginVertical: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#e5e7eb',
+  },
+  dividerText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontWeight: '600',
+    marginHorizontal: 12,
   },
 });
 

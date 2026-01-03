@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
-import { scheduleAPI, ClassSchedule, quizAPI, Quiz, homeworkAPI, Homework, HomeworkStatus } from '../services/api';
+import { scheduleAPI, ClassSchedule, quizAPI, Quiz, homeworkAPI, Homework, HomeworkStatus, coursesAPI, Course } from '../services/api';
 import { useFocusEffect } from '@react-navigation/native';
 
 interface ClassesScreenProps {
@@ -19,6 +19,7 @@ const ClassesScreen: React.FC<ClassesScreenProps> = ({ navigation, route }) => {
   const [classes, setClasses] = useState<ClassSchedule[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [homeworks, setHomeworks] = useState<Homework[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedClass, setSelectedClass] = useState<ClassSchedule | null>(null);
 
@@ -48,7 +49,7 @@ const ClassesScreen: React.FC<ClassesScreenProps> = ({ navigation, route }) => {
 
     try {
       setLoading(true);
-      const [classesResponse, quizzesResponse, homeworksResponse] = await Promise.all([
+      const [classesResponse, quizzesResponse, homeworksResponse, coursesResponse] = await Promise.all([
         scheduleAPI.getMyClasses(
           student.currentGrade.grade,
           student.currentGrade.section
@@ -58,6 +59,10 @@ const ClassesScreen: React.FC<ClassesScreenProps> = ({ navigation, route }) => {
           student.currentGrade.section
         ),
         homeworkAPI.getMyHomework(
+          student.currentGrade.grade,
+          student.currentGrade.section
+        ),
+        coursesAPI.getMyCourses(
           student.currentGrade.grade,
           student.currentGrade.section
         ),
@@ -71,6 +76,10 @@ const ClassesScreen: React.FC<ClassesScreenProps> = ({ navigation, route }) => {
       }
       if (homeworksResponse.success) {
         setHomeworks(homeworksResponse.data);
+      }
+      if (coursesResponse.success) {
+        const filteredCourses = coursesResponse.data.filter(c => c.status !== 'pending');
+        setCourses(filteredCourses);
       }
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -90,6 +99,13 @@ const ClassesScreen: React.FC<ClassesScreenProps> = ({ navigation, route }) => {
     return homeworks.filter(homework => 
       homework.classId === classId && 
       homework.status === HomeworkStatus.ACTIVE
+    ).length;
+  };
+
+  const getCoursesCountForClass = (classId: string) => {
+    return courses.filter(course => 
+      course.classId === classId && 
+      (course.status === 'active' || course.status === 'overdue')
     ).length;
   };
 
@@ -186,7 +202,7 @@ const ClassesScreen: React.FC<ClassesScreenProps> = ({ navigation, route }) => {
             </View>
             <View style={styles.resourceInfo}>
               <Text style={styles.resourceName}>Quizzes</Text>
-              <Text style={styles.resourceCount}>{getQuizCountForClass(selectedClass.id)} pending</Text>
+              <Text style={styles.resourceCount}>{getQuizCountForClass(selectedClass.id)} active</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
           </TouchableOpacity>
@@ -203,7 +219,24 @@ const ClassesScreen: React.FC<ClassesScreenProps> = ({ navigation, route }) => {
             </View>
             <View style={styles.resourceInfo}>
               <Text style={styles.resourceName}>Tasks</Text>
-              <Text style={styles.resourceCount}>{getHomeworkCountForClass(selectedClass.id)} pending</Text>
+              <Text style={styles.resourceCount}>{getHomeworkCountForClass(selectedClass.id)} active</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.resourceCard}
+            onPress={() => {
+              setSelectedClass(null);
+              navigation.navigate('Courses');
+            }}
+          >
+            <View style={styles.resourceIcon}>
+              <Ionicons name="school" size={24} color="#f59e0b" />
+            </View>
+            <View style={styles.resourceInfo}>
+              <Text style={styles.resourceName}>Courses</Text>
+              <Text style={styles.resourceCount}>{getCoursesCountForClass(selectedClass.id)} active</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
           </TouchableOpacity>

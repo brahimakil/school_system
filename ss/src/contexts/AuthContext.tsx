@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { studentAuthAPI, StudentData, SignupData, LoginData } from '../services/api';
+import { studentAuthAPI, StudentData, SignupData, LoginData, homeworkAPI, quizAPI } from '../services/api';
+import { NotificationService } from '../services/notificationService';
 
 interface Student {
   uid: string;
@@ -21,6 +22,8 @@ interface AuthContextType {
   login: (data: LoginData) => Promise<void>;
   signup: (data: SignupData) => Promise<void>;
   logout: () => Promise<void>;
+  initiateLogin: (data: LoginData) => Promise<void>;
+  verifyLogin: (email: string, otp: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,6 +35,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     checkAuth();
   }, []);
+
+  // Start notification service when student logs in
+  useEffect(() => {
+    if (student) {
+      startNotifications();
+    } else {
+      NotificationService.stopPeriodicCheck();
+    }
+
+    return () => {
+      NotificationService.stopPeriodicCheck();
+    };
+  }, [student]);
+
+  const startNotifications = async () => {
+    if (!student) return;
+
+    const fetchHomeworks = async () => {
+      try {
+        const response = await homeworkAPI.getMyHomework(
+          student.currentGrade.grade,
+          student.currentGrade.section
+        );
+        return response.success ? response.data : [];
+      } catch (error) {
+        console.error('Failed to fetch homeworks for notifications:', error);
+        return [];
+      }
+    };
+
+    const fetchQuizzes = async () => {
+      try {
+        const response = await quizAPI.getMyQuizzes(
+          student.currentGrade.grade,
+          student.currentGrade.section
+        );
+        return response.success ? response.data : [];
+      } catch (error) {
+        console.error('Failed to fetch quizzes for notifications:', error);
+        return [];
+      }
+    };
+
+    // Start periodic check - 5 seconds for debugging (change to 3600 for production = 1 hour)
+    NotificationService.startPeriodicCheck(fetchHomeworks, fetchQuizzes, 5);
+  };
 
   const checkAuth = async () => {
     try {
@@ -76,6 +125,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const initiateLogin = async (data: LoginData) => {
+    try {
+      const response = await studentAuthAPI.initiateLogin(data);
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to send OTP');
+    }
+  };
+
+  const verifyLogin = async (email: string, otp: string) => {
+    try {
+      const response = await studentAuthAPI.verifyLogin(email, otp);
+      if (response.success) {
+        const studentData: Student = {
+          uid: response.data.uid,
+          email: response.data.email,
+          fullName: response.data.fullName,
+          phoneNumber: response.data.phoneNumber,
+          currentGrade: response.data.currentGrade,
+          photoUrl: response.data.photoUrl,
+        };
+
+        await AsyncStorage.setItem('studentToken', response.data.token);
+        await AsyncStorage.setItem('studentData', JSON.stringify(studentData));
+        setStudent(studentData);
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error: any) {
+      throw new Error(error.message || 'Verification failed');
+    }
+  };
+
   const signup = async (data: SignupData) => {
     try {
       const response = await studentAuthAPI.signup(data);
@@ -111,7 +195,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ student, loading, login, signup, logout }}>
+    <AuthContext.Provider value={{ student, loading, login, signup, logout, initiateLogin, verifyLogin }}>
       {children}
     </AuthContext.Provider>
   );

@@ -102,6 +102,18 @@ const Dashboard: React.FC = () => {
       ),
       submenu: [
         {
+          id: 'courses',
+          label: 'Courses Management',
+          path: '/dashboard/tasks/courses',
+          icon: (
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 6.253V18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 6.253C12 6.253 16 2.253 20 6.253V18C16 14 12 18 12 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 6.253C12 6.253 8 2.253 4 6.253V18C8 14 12 18 12 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          ),
+        },
+        {
           id: 'quizzes',
           label: 'Quizzes Management',
           path: '/dashboard/tasks/quizzes',

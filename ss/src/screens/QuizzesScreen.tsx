@@ -139,10 +139,19 @@ const QuizzesScreen: React.FC = () => {
 
     try {
       setSubmitting(true);
-      const formattedAnswers = Object.entries(answers).map(([index, answer]) => ({
-        questionIndex: parseInt(index),
-        selectedAnswer: answer,
-      }));
+      const formattedAnswers = Object.entries(answers).map(([index, answer]) => {
+        const question = selectedQuiz.questions?.[parseInt(index)];
+        // Convert answer text to letter (A, B, C, D)
+        const answerIndex = question?.answers.indexOf(answer);
+        const answerLetter = answerIndex !== undefined && answerIndex !== -1 
+          ? String.fromCharCode(65 + answerIndex) // 65 is 'A' in ASCII
+          : answer;
+        
+        return {
+          questionIndex: parseInt(index),
+          selectedAnswer: answerLetter,
+        };
+      });
 
       const response = await quizResultAPI.submit({
         quizId: selectedQuiz.id,

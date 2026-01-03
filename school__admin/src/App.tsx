@@ -16,6 +16,7 @@ const ClassesManagement = lazy(() => import('./pages/ClassesManagement'));
 const SubjectsManagement = lazy(() => import('./pages/SubjectsManagement'));
 const QuizzesManagement = lazy(() => import('./pages/QuizzesManagement'));
 const HomeworksManagement = lazy(() => import('./pages/HomeworksManagement'));
+const CoursesManagement = lazy(() => import('./pages/CoursesManagement'));
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
               <Route path="subjects" element={<SubjectsManagement />} />
               <Route path="tasks/quizzes" element={<QuizzesManagement />} />
               <Route path="tasks/homeworks" element={<HomeworksManagement />} />
+              <Route path="tasks/courses" element={<CoursesManagement />} />
             </Route>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

@@ -1,13 +1,85 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
+import { studentsAPI } from '../services/api';
 
 const ProfileScreen: React.FC = () => {
   const { student, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [fullName, setFullName] = useState(student?.fullName || '');
   const [phoneNumber, setPhoneNumber] = useState(student?.phoneNumber || '');
+  const [geminiApiKey, setGeminiApiKey] = useState('');
+  const [isTesting, setIsTesting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [keyStatus, setKeyStatus] = useState<'none' | 'valid' | 'invalid'>('none');
+
+  useEffect(() => {
+    loadGeminiKey();
+  }, []);
+
+  const loadGeminiKey = async () => {
+    if (!student?.uid) return;
+    try {
+      const response = await studentsAPI.getProfile(student.uid);
+      if (response.geminiApiKey) {
+        setGeminiApiKey(response.geminiApiKey);
+        setKeyStatus('valid');
+      }
+    } catch (error) {
+      console.error('Error loading API key:', error);
+    }
+  };
+
+  const handleTestGeminiKey = async () => {
+    if (!geminiApiKey.trim()) {
+      Alert.alert('Error', 'Please enter an API key');
+      return;
+    }
+
+    setIsTesting(true);
+    try {
+      const response = await studentsAPI.testGeminiKey(student?.uid || '', geminiApiKey);
+      if (response.success) {
+        setKeyStatus('valid');
+        Alert.alert('Success', response.message);
+      } else {
+        setKeyStatus('invalid');
+        Alert.alert('Error', response.message);
+      }
+    } catch (error: any) {
+      setKeyStatus('invalid');
+      Alert.alert('Error', error.message || 'Failed to test API key');
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  const handleSaveGeminiKey = async () => {
+    if (!geminiApiKey.trim()) {
+      Alert.alert('Error', 'Please enter an API key');
+      return;
+    }
+
+    if (keyStatus !== 'valid') {
+      Alert.alert('Error', 'Please test the API key first');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const response = await studentsAPI.saveGeminiKey(student?.uid || '', geminiApiKey);
+      if (response.success) {
+        Alert.alert('Success', response.message);
+      } else {
+        Alert.alert('Error', response.message);
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to save API key');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleSave = () => {
     // TODO: Implement save functionality
@@ -105,6 +177,70 @@ const ProfileScreen: React.FC = () => {
             <Text style={styles.infoValue}>
               {student?.currentGrade.grade} - Section {student?.currentGrade.section}
             </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Gemini API Key Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🤖 AI Helper Configuration</Text>
+        <View style={styles.infoCard}>
+          <Text style={styles.infoLabel}>Gemini API Key</Text>
+          <Text style={styles.apiKeyHint}>
+            Get your free API key from Google AI Studio
+          </Text>
+          
+          <TextInput
+            style={[
+              styles.apiKeyInput,
+              keyStatus === 'valid' && styles.apiKeyValid,
+              keyStatus === 'invalid' && styles.apiKeyInvalid,
+            ]}
+            value={geminiApiKey}
+            onChangeText={(text) => {
+              setGeminiApiKey(text);
+              setKeyStatus('none');
+            }}
+            placeholder="Paste your Gemini API key here"
+            placeholderTextColor="#9ca3af"
+            secureTextEntry
+            autoCapitalize="none"
+          />
+
+          {keyStatus === 'valid' && (
+            <Text style={styles.statusValid}>✓ API key is valid</Text>
+          )}
+          {keyStatus === 'invalid' && (
+            <Text style={styles.statusInvalid}>✗ API key is invalid</Text>
+          )}
+
+          <View style={styles.apiKeyActions}>
+            <TouchableOpacity
+              style={[styles.testButton, isTesting && styles.buttonDisabled]}
+              onPress={handleTestGeminiKey}
+              disabled={isTesting || !geminiApiKey.trim()}
+            >
+              {isTesting ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.testButtonText}>Test Key</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.saveKeyButton,
+                (isSaving || keyStatus !== 'valid') && styles.buttonDisabled,
+              ]}
+              onPress={handleSaveGeminiKey}
+              disabled={isSaving || keyStatus !== 'valid'}
+            >
+              {isSaving ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.saveKeyButtonText}>Save Key</Text>
+              )}
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -289,6 +425,77 @@ const styles = StyleSheet.create({
   appVersion: {
     fontSize: 12,
     color: '#9ca3af',
+  },
+  apiKeyHint: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  apiKeyInput: {
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 14,
+    color: '#1f2937',
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+  },
+  apiKeyValid: {
+    borderColor: '#10b981',
+    backgroundColor: '#f0fdf4',
+  },
+  apiKeyInvalid: {
+    borderColor: '#ef4444',
+    backgroundColor: '#fef2f2',
+  },
+  statusValid: {
+    fontSize: 14,
+    color: '#10b981',
+    marginTop: 8,
+    fontWeight: '600',
+  },
+  statusInvalid: {
+    fontSize: 14,
+    color: '#ef4444',
+    marginTop: 8,
+    fontWeight: '600',
+  },
+  apiKeyActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  testButton: {
+    flex: 1,
+    backgroundColor: '#6366f1',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+  },
+  testButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  saveKeyButton: {
+    flex: 1,
+    backgroundColor: '#10b981',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+  },
+  saveKeyButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
 });
 
