@@ -4,7 +4,7 @@ import { SignupDto, LoginDto, StudentSignupDto, StudentLoginDto, VerifyOtpDto } 
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('signup')
   async signup(@Body() signupDto: SignupDto) {
@@ -46,6 +46,18 @@ export class AuthController {
     return this.authService.verifyStudentLogin(verifyDto);
   }
 
+  @Post('student/signup-initiate')
+  @HttpCode(HttpStatus.OK)
+  async initiateStudentSignup(@Body() studentSignupDto: StudentSignupDto) {
+    return this.authService.initiateStudentSignup(studentSignupDto);
+  }
+
+  @Post('student/signup-verify')
+  @HttpCode(HttpStatus.OK)
+  async verifyStudentSignup(@Body() verifyDto: VerifyOtpDto) {
+    return this.authService.verifyStudentSignup(verifyDto);
+  }
+
   @Get('verify')
   async verifyToken(@Headers('authorization') authorization: string) {
     const token = authorization?.replace('Bearer ', '');
@@ -55,3 +67,4 @@ export class AuthController {
     return this.authService.verifyToken(token);
   }
 }
+

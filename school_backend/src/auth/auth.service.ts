@@ -210,7 +210,7 @@ export class AuthService {
     try {
       // Verify Firebase ID token
       const decodedToken = await this.auth.verifyIdToken(token);
-      
+
       return {
         success: true,
         message: 'Token is valid',
@@ -451,7 +451,7 @@ export class AuthService {
 
       // OTP is valid, proceed to login
       const uid = otpData.uid;
-      
+
       // Get student data again to return it
       const studentDoc = await this.db.collection('students').doc(uid).get();
       const studentData = studentDoc.data();
@@ -483,4 +483,139 @@ export class AuthService {
       throw error;
     }
   }
+
+  async initiateStudentSignup(studentSignupDto: StudentSignupDto) {
+    const { email, password, fullName, phoneNumber, currentGrade } = studentSignupDto;
+
+    try {
+      // Check if email already exists in Firebase Auth
+      try {
+        await this.auth.getUserByEmail(email);
+        // If we reach here, user exists
+        throw new ConflictException('Email already exists');
+      } catch (error) {
+        // If error code is user-not-found, continue with signup process
+        if (error.code !== 'auth/user-not-found') {
+          throw error;
+        }
+      }
+
+      // Generate OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+      console.log(`[OTP SIGNUP] Generated for ${email}: ${otp}`);
+
+      // Save OTP and signup data to Firestore temporarily
+      await this.db.collection('signup_otp_codes').doc(email).set({
+        otp,
+        expiresAt,
+        signupData: {
+          email,
+          password,
+          fullName,
+          phoneNumber,
+          currentGrade,
+        },
+      });
+
+      // Send Email
+      await this.transporter.sendMail({
+        from: process.env.SMTP_EMAIL,
+        to: email,
+        subject: 'Your Signup Verification Code',
+        text: `Your verification code is: ${otp}. It expires in 5 minutes.`,
+        html: `<p>Welcome to Skillify Student Portal!</p><p>Your verification code is: <b>${otp}</b></p><p>It expires in 5 minutes.</p>`,
+      });
+
+      console.log(`[OTP SIGNUP] Email sent successfully to ${email}`);
+
+      return {
+        success: true,
+        message: 'OTP sent to your email',
+      };
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      console.error('Signup init error:', error);
+      throw error;
+    }
+  }
+
+  async verifyStudentSignup(verifyDto: VerifyOtpDto) {
+    const { email, otp } = verifyDto;
+
+    try {
+      const otpDoc = await this.db.collection('signup_otp_codes').doc(email).get();
+
+      if (!otpDoc.exists) {
+        throw new UnauthorizedException('Invalid or expired OTP');
+      }
+
+      const otpData = otpDoc.data();
+
+      if (!otpData) {
+        throw new UnauthorizedException('Invalid OTP data');
+      }
+
+      if (otpData.otp !== otp) {
+        throw new UnauthorizedException('Invalid OTP');
+      }
+
+      if (Date.now() > otpData.expiresAt) {
+        await this.db.collection('signup_otp_codes').doc(email).delete();
+        throw new UnauthorizedException('OTP expired');
+      }
+
+      // OTP is valid, proceed with signup
+      const { email: signupEmail, password, fullName, phoneNumber, currentGrade } = otpData.signupData;
+
+      // Create user in Firebase Auth
+      const userRecord = await this.auth.createUser({
+        email: signupEmail,
+        password,
+        displayName: fullName,
+      });
+
+      // Save student to Firestore students collection
+      const studentData = {
+        uid: userRecord.uid,
+        email: signupEmail,
+        fullName,
+        phoneNumber,
+        currentGrade,
+        passedGrades: [],
+        status: 'active',
+        photoUrl: '',
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      };
+
+      await this.db.collection('students').doc(userRecord.uid).set(studentData);
+
+      // Create custom token for login
+      const token = await this.auth.createCustomToken(userRecord.uid);
+
+      // Delete used OTP
+      await this.db.collection('signup_otp_codes').doc(email).delete();
+
+      return {
+        success: true,
+        message: 'Student registered successfully',
+        data: {
+          uid: userRecord.uid,
+          email: signupEmail,
+          fullName,
+          phoneNumber,
+          currentGrade,
+          photoUrl: '',
+          token,
+        },
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
 }
+
