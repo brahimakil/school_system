@@ -1,0 +1,21 @@
+<mxGraphModel><root><mxCell id="0"/><mxCell id="1" parent="0"/><mxCell id="2" value="Admin" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;" vertex="1" parent="1">
+        <mxGeometry x="80" y="200" width="100" height="60" as="geometry"/>
+    </mxCell><mxCell id="3" value="Teacher" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;" vertex="1" parent="1">
+        <mxGeometry x="80" y="500" width="100" height="60" as="geometry"/>
+    </mxCell><mxCell id="4" value="Student" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;" vertex="1" parent="1">
+        <mxGeometry x="700" y="350" width="100" height="60" as="geometry"/>
+    </mxCell><mxCell id="5" value="0.0\nSchool Management\nSystem" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1">
+        <mxGeometry x="350" y="300" width="160" height="160" as="geometry"/>
+    </mxCell><mxCell id="6" value="User Data,\nConfig" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="2" target="5">
+        <mxGeometry relative="1" as="geometry"/>
+    </mxCell><mxCell id="7" value="Reports,\nStatus" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="5" target="2">
+        <mxGeometry relative="1" as="geometry"/>
+    </mxCell><mxCell id="8" value="Class Data,\nAssessments" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="3" target="5">
+        <mxGeometry relative="1" as="geometry"/>
+    </mxCell><mxCell id="9" value="Schedule,\nSubmissions" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="5" target="3">
+        <mxGeometry relative="1" as="geometry"/>
+    </mxCell><mxCell id="10" value="Submissions,\nQueries" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="4" target="5">
+        <mxGeometry relative="1" as="geometry"/>
+    </mxCell><mxCell id="11" value="Courses,\nResults" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="5" target="4">
+        <mxGeometry relative="1" as="geometry"/>
+    </mxCell></root></mxGraphModel>

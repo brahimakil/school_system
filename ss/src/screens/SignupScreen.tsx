@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { Picker } from '@react-native-picker/picker';
 import { GRADES, SECTIONS } from '../constants/grades';
+import SkillifyLogo from '../components/SkillifyLogo';
 
 interface SignupScreenProps {
   navigation: any;
@@ -78,9 +79,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
       >
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoText}>📚</Text>
-            </View>
+            <SkillifyLogo size={80} />
           </View>
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Sign up as a student</Text>
@@ -215,17 +214,6 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     marginBottom: 16,
-  },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#6366f1',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoText: {
-    fontSize: 40,
   },
   title: {
     fontSize: 28,

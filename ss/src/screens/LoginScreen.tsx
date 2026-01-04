@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import SkillifyLogo from '../components/SkillifyLogo';
 
 interface LoginScreenProps {
   navigation: any;
@@ -72,9 +73,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       >
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoText}>📚</Text>
-            </View>
+            <SkillifyLogo size={80} />
           </View>
           <Text style={styles.title}>Skillify</Text>
           <Text style={styles.subtitle}>Student Portal</Text>
@@ -174,17 +173,6 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     marginBottom: 16,
-  },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#6366f1',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoText: {
-    fontSize: 40,
   },
   title: {
     fontSize: 32,
