@@ -78,6 +78,7 @@
 .sidebar-toggle {
   width: 36px;
   height: 36px;
+  padding: 0;
   background: rgba(102, 126, 234, 0.1);
   border: 1px solid rgba(102, 126, 234, 0.2);
   border-radius: 8px;
@@ -310,7 +311,7 @@
   position: relative;
 }
 
-.sidebar.closed + .main-content {
+.sidebar.closed+.main-content {
   margin-left: 80px;
 }
 
@@ -366,6 +367,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }

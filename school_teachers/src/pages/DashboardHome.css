@@ -27,6 +27,89 @@
   margin-bottom: 40px;
 }
 
+/* Hero Carousel Section */
+.hero-carousel-section {
+  margin-bottom: 40px;
+}
+
+.carousel-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  grid-template-rows: repeat(2, 180px);
+  gap: 16px;
+}
+
+.carousel-tile {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.carousel-tile:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.carousel-tile.large-tile {
+  grid-row: span 2;
+}
+
+.tile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.carousel-tile:hover .tile-image {
+  transform: scale(1.05);
+}
+
+.tile-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
+  color: white;
+}
+
+.tile-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.large-tile .tile-title {
+  font-size: 28px;
+}
+
+.tile-description {
+  font-size: 14px;
+  opacity: 0.9;
+  margin: 0;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .carousel-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  .carousel-tile.large-tile {
+    grid-row: span 1;
+    height: 250px;
+  }
+
+  .carousel-tile.small-tile {
+    height: 180px;
+  }
+}
+
 .stat-card {
   background: white;
   border-radius: 16px;
