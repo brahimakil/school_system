@@ -71,30 +71,36 @@ const DashboardHome: React.FC = () => {
 
   const parseDate = (dateInput: any): Date => {
     if (!dateInput) return new Date(0); // Return epoch if missing
-    
+
     // Handle Firestore Timestamp (seconds/nanoseconds)
     if (typeof dateInput === 'object' && (dateInput._seconds !== undefined || dateInput.seconds !== undefined)) {
       const seconds = dateInput._seconds ?? dateInput.seconds;
       return new Date(seconds * 1000);
     }
-    
+
     // Handle standard date string/number
     const date = new Date(dateInput);
     if (isNaN(date.getTime())) return new Date(0);
-    
+
     return date;
   };
 
   const fetchRecentActivities = async () => {
     try {
       setLoading(true);
-      const [studentsResponse, teachersResponse, classesResponse, homeworksResponse, quizzesResponse, subjectsResponse] = await Promise.all([
+      const [studentsResponse, teachersResponse, classesResponse, homeworksResponse, quizzesResponse, subjectsResponse, activityLogResponse] = await Promise.all([
         studentsAPI.getAll(),
         teachersAPI.getAll(),
         getAllClasses(),
         getAllHomeworks(),
         getAllQuizzes(),
         subjectsAPI.getAll(),
+        // Fetch activity logs from the new API
+        fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/activity-log?limit=50`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+        }).then(res => res.json()).catch(() => ({ data: [] })),
       ]);
 
       const students = Array.isArray(studentsResponse) ? studentsResponse : (studentsResponse as any)?.data || [];
@@ -103,18 +109,44 @@ const DashboardHome: React.FC = () => {
       const homeworks = Array.isArray(homeworksResponse) ? homeworksResponse : (homeworksResponse as any)?.data || [];
       const quizzes = Array.isArray(quizzesResponse) ? quizzesResponse : (quizzesResponse as any)?.data || [];
       const subjects = Array.isArray(subjectsResponse) ? subjectsResponse : (subjectsResponse as any)?.data || [];
+      const activityLogs = activityLogResponse?.data || [];
 
       setTeachers(teachers);
 
       const allActivities: Activity[] = [];
 
-      // Process Students
+      // Process Activity Logs (includes create, update, delete actions)
+      activityLogs.forEach((log: any) => {
+        const actionText = log.action === 'deleted'
+          ? `${log.type.charAt(0).toUpperCase() + log.type.slice(1)} deleted`
+          : log.action === 'created'
+            ? `${log.type.charAt(0).toUpperCase() + log.type.slice(1)} created`
+            : `${log.type.charAt(0).toUpperCase() + log.type.slice(1)} updated`;
+
+        allActivities.push({
+          id: log.id || `log-${Date.now()}-${Math.random()}`,
+          type: log.type,
+          action: actionText,
+          user: {
+            name: log.entityName || 'Unknown',
+            detail: log.details || '',
+            avatar: (log.entityName || 'U').charAt(0).toUpperCase(),
+          },
+          time: log.createdAt,
+          status: log.action === 'deleted' ? 'inactive' : 'active',
+        });
+      });
+
+      // Process Students (only add if not already in activity logs)
+      const loggedStudentIds = new Set(activityLogs.filter((l: any) => l.type === 'student').map((l: any) => l.entityId));
       students.forEach((student: any) => {
+        if (loggedStudentIds.has(student.id)) return; // Skip if already in logs
+
         const studentName = student.fullName || student.name || 'Unknown Student';
-        const gradeDetail = student.currentGrade 
-          ? `Grade ${student.currentGrade.grade} ${student.currentGrade.section}` 
+        const gradeDetail = student.currentGrade
+          ? `Grade ${student.currentGrade.grade} ${student.currentGrade.section}`
           : 'N/A';
-        
+
         allActivities.push({
           id: student.id || `student-${Date.now()}-${Math.random()}`,
           type: 'student',
@@ -124,16 +156,19 @@ const DashboardHome: React.FC = () => {
             detail: gradeDetail,
             avatar: studentName.charAt(0).toUpperCase(),
           },
-          time: student.createdAt, // Store raw time initially
+          time: student.createdAt,
           status: student.status || 'active',
         });
       });
 
-      // Process Teachers
+      // Process Teachers (only add if not already in activity logs)
+      const loggedTeacherIds = new Set(activityLogs.filter((l: any) => l.type === 'teacher').map((l: any) => l.entityId));
       teachers.forEach((teacher: any) => {
+        if (loggedTeacherIds.has(teacher.id || teacher.uid)) return;
+
         const teacherName = teacher.fullName || teacher.name || 'Unknown Teacher';
         const teacherDetail = teacher.subjects?.[0] || teacher.email || 'Teacher';
-        
+
         allActivities.push({
           id: teacher.id || teacher.uid || `teacher-${Date.now()}-${Math.random()}`,
           type: 'teacher',
@@ -148,11 +183,14 @@ const DashboardHome: React.FC = () => {
         });
       });
 
-      // Process Classes
+      // Process Classes (only add if not already in activity logs)
+      const loggedClassIds = new Set(activityLogs.filter((l: any) => l.type === 'class').map((l: any) => l.entityId));
       classes.forEach((cls: any) => {
+        if (loggedClassIds.has(cls.id)) return;
+
         const className = cls.className || `${cls.grade || 'Grade'} ${cls.section || ''}`.trim();
         const teacherName = cls.teacherName || cls.teacher?.fullName || cls.teacher?.name || 'No teacher assigned';
-        
+
         allActivities.push({
           id: cls.id || `class-${Date.now()}-${Math.random()}`,
           type: 'class',
@@ -167,11 +205,14 @@ const DashboardHome: React.FC = () => {
         });
       });
 
-      // Process Homeworks
+      // Process Homeworks (only add if not already in activity logs)
+      const loggedHomeworkIds = new Set(activityLogs.filter((l: any) => l.type === 'homework').map((l: any) => l.entityId));
       homeworks.forEach((homework: any) => {
+        if (loggedHomeworkIds.has(homework.id)) return;
+
         const homeworkTitle = homework.title || 'Homework';
         const homeworkDetail = `${homework.className || 'Class'} - ${homework.subject || 'Subject'}`;
-        
+
         allActivities.push({
           id: homework.id || `homework-${Date.now()}-${Math.random()}`,
           type: 'homework',
@@ -186,11 +227,14 @@ const DashboardHome: React.FC = () => {
         });
       });
 
-      // Process Quizzes
+      // Process Quizzes (only add if not already in activity logs)
+      const loggedQuizIds = new Set(activityLogs.filter((l: any) => l.type === 'quiz').map((l: any) => l.entityId));
       quizzes.forEach((quiz: any) => {
+        if (loggedQuizIds.has(quiz.id)) return;
+
         const quizTitle = quiz.title || 'Quiz';
         const quizDetail = `${quiz.className || 'Class'} - ${quiz.totalMarks || 0} marks`;
-        
+
         allActivities.push({
           id: quiz.id || `quiz-${Date.now()}-${Math.random()}`,
           type: 'quiz',
@@ -205,11 +249,14 @@ const DashboardHome: React.FC = () => {
         });
       });
 
-      // Process Subjects
+      // Process Subjects (only add if not already in activity logs)
+      const loggedSubjectIds = new Set(activityLogs.filter((l: any) => l.type === 'subject').map((l: any) => l.entityId));
       subjects.forEach((subject: any) => {
+        if (loggedSubjectIds.has(subject.id)) return;
+
         const subjectName = subject.name || 'Subject';
         const subjectDetail = subject.code || 'No code';
-        
+
         allActivities.push({
           id: subject.id || `subject-${Date.now()}-${Math.random()}`,
           type: 'subject',
@@ -249,7 +296,7 @@ const DashboardHome: React.FC = () => {
   const formatTime = (dateInput: any) => {
     const date = parseDate(dateInput);
     const now = new Date();
-    
+
     // If date is invalid or epoch (from parseDate fallback), show generic
     if (date.getTime() === 0) return 'Just now';
 
@@ -289,7 +336,7 @@ const DashboardHome: React.FC = () => {
     try {
       const classesResponse = await getAllClasses();
       const classes = Array.isArray(classesResponse) ? classesResponse : (classesResponse as any)?.data || [];
-      
+
       const scheduleData: ClassSchedule[] = classes.map((cls: any) => ({
         id: cls.id,
         className: cls.className,
@@ -326,7 +373,7 @@ const DashboardHome: React.FC = () => {
     const start = new Date(currentWeekStart);
     const end = new Date(currentWeekStart);
     end.setDate(end.getDate() + 6);
-    
+
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
     return `${start.toLocaleDateString('en-US', options)} - ${end.toLocaleDateString('en-US', options)}`;
   };
@@ -337,9 +384,9 @@ const DashboardHome: React.FC = () => {
       description: 'Enroll a new student',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M20 8V14M17 11H23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M20 8V14M17 11H23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
       action: () => navigate('/dashboard/students'),
@@ -350,9 +397,9 @@ const DashboardHome: React.FC = () => {
       description: 'Register a new teacher',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M20 8V14M17 11H23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M20 8V14M17 11H23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
       action: () => navigate('/dashboard/teachers'),
@@ -363,8 +410,8 @@ const DashboardHome: React.FC = () => {
       description: 'Set up a new class',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M2 3H8C9.06087 3 10.0783 3.42143 10.8284 4.17157C11.5786 4.92172 12 5.93913 12 7V21C12 20.2044 11.6839 19.4413 11.1213 18.8787C10.5587 18.3161 9.79565 18 9 18H2V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M22 3H16C14.9391 3 13.9217 3.42143 13.1716 4.17157C12.4214 4.92172 12 5.93913 12 7V21C12 20.2044 12.3161 19.4413 12.8787 18.8787C13.4413 18.3161 14.2044 18 15 18H22V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M2 3H8C9.06087 3 10.0783 3.42143 10.8284 4.17157C11.5786 4.92172 12 5.93913 12 7V21C12 20.2044 11.6839 19.4413 11.1213 18.8787C10.5587 18.3161 9.79565 18 9 18H2V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M22 3H16C14.9391 3 13.9217 3.42143 13.1716 4.17157C12.4214 4.92172 12 5.93913 12 7V21C12 20.2044 12.3161 19.4413 12.8787 18.8787C13.4413 18.3161 14.2044 18 15 18H22V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
       action: () => navigate('/dashboard/classes'),
@@ -375,9 +422,9 @@ const DashboardHome: React.FC = () => {
       description: 'Add a new quiz or test',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-          <path d="M9.09 9C9.3251 8.33167 9.78915 7.76811 10.4 7.40913C11.0108 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15848 13.7588 7.52152 14.2151 8.06353C14.6713 8.60553 14.9211 9.29152 14.92 10C14.92 12 11.92 13 11.92 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M12 17H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+          <path d="M9.09 9C9.3251 8.33167 9.78915 7.76811 10.4 7.40913C11.0108 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15848 13.7588 7.52152 14.2151 8.06353C14.6713 8.60553 14.9211 9.29152 14.92 10C14.92 12 11.92 13 11.92 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M12 17H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
       action: () => navigate('/dashboard/tasks/quizzes'),
@@ -388,9 +435,9 @@ const DashboardHome: React.FC = () => {
       description: 'Create new homework task',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M16 13H8M16 17H8M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M16 13H8M16 17H8M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
       action: () => navigate('/dashboard/tasks/homeworks'),
@@ -401,7 +448,7 @@ const DashboardHome: React.FC = () => {
       description: 'Check all metrics',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M18 20V10M12 20V4M6 20V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M18 20V10M12 20V4M6 20V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
       action: () => navigate('/dashboard/statistics'),
@@ -424,9 +471,9 @@ const DashboardHome: React.FC = () => {
       <div className="hero-carousel-section">
         <div className="carousel-grid">
           <div className="carousel-tile large-tile">
-            <img 
-              src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1200&h=800&fit=crop" 
-              alt="Students in classroom" 
+            <img
+              src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1200&h=800&fit=crop"
+              alt="Students in classroom"
               className="tile-image"
             />
             <div className="tile-overlay">
@@ -435,15 +482,15 @@ const DashboardHome: React.FC = () => {
               <button className="tile-button" onClick={() => navigate('/dashboard/statistics')}>
                 View Analytics
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
             </div>
           </div>
           <div className="carousel-tile small-tile">
-            <img 
-              src="https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=600&h=400&fit=crop" 
-              alt="Student success" 
+            <img
+              src="https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=600&h=400&fit=crop"
+              alt="Student success"
               className="tile-image"
             />
             <div className="tile-overlay">
@@ -452,9 +499,9 @@ const DashboardHome: React.FC = () => {
             </div>
           </div>
           <div className="carousel-tile small-tile">
-            <img 
-              src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600&h=400&fit=crop" 
-              alt="Smart scheduling" 
+            <img
+              src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600&h=400&fit=crop"
+              alt="Smart scheduling"
               className="tile-image"
             />
             <div className="tile-overlay">
@@ -477,9 +524,9 @@ const DashboardHome: React.FC = () => {
         <div className="calendar-filters">
           <div className="filter-group">
             <label>Grade</label>
-            <select 
-              className="calendar-filter-select" 
-              value={selectedGrade} 
+            <select
+              className="calendar-filter-select"
+              value={selectedGrade}
               onChange={(e) => setSelectedGrade(e.target.value)}
             >
               <option value="all">All Grades</option>
@@ -491,9 +538,9 @@ const DashboardHome: React.FC = () => {
 
           <div className="filter-group">
             <label>Section</label>
-            <select 
-              className="calendar-filter-select" 
-              value={selectedSection} 
+            <select
+              className="calendar-filter-select"
+              value={selectedSection}
               onChange={(e) => setSelectedSection(e.target.value)}
             >
               <option value="all">All Sections</option>
@@ -505,9 +552,9 @@ const DashboardHome: React.FC = () => {
 
           <div className="filter-group">
             <label>Teacher</label>
-            <select 
-              className="calendar-filter-select" 
-              value={selectedTeacher} 
+            <select
+              className="calendar-filter-select"
+              value={selectedTeacher}
               onChange={(e) => setSelectedTeacher(e.target.value)}
             >
               <option value="all">All Teachers</option>
@@ -522,7 +569,7 @@ const DashboardHome: React.FC = () => {
           {DAYS.map((day) => {
             const daySchedules = getScheduleForDay(day);
             const isToday = day === new Date().toLocaleDateString('en-US', { weekday: 'long' });
-            
+
             return (
               <div key={day} className={`calendar-day ${isToday ? 'today' : ''}`}>
                 <div className="calendar-day-header">
@@ -570,7 +617,7 @@ const DashboardHome: React.FC = () => {
               </div>
               <div className="quick-action-arrow">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
             </button>
