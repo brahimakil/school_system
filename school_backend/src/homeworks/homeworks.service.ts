@@ -2,12 +2,16 @@ import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { CreateHomeworkDto, HomeworkStatus } from './dto/create-homework.dto';
 import { UpdateHomeworkDto } from './dto/update-homework.dto';
+import { ActivityLogService } from '../activity-log/activity-log.service';
 
 @Injectable()
 export class HomeworksService {
   private homeworksCollection: admin.firestore.CollectionReference;
 
-  constructor(@Inject('FIREBASE_ADMIN') private firebaseAdmin: typeof admin) {
+  constructor(
+    @Inject('FIREBASE_ADMIN') private firebaseAdmin: typeof admin,
+    private activityLogService: ActivityLogService,
+  ) {
     this.homeworksCollection = this.firebaseAdmin.firestore().collection('homeworks');
   }
 
@@ -21,22 +25,31 @@ export class HomeworksService {
 
     const docRef = await this.homeworksCollection.add(homeworkData);
     const doc = await docRef.get();
-    
+
+    // Log activity
+    await this.activityLogService.logActivity({
+      type: 'homework',
+      action: 'created',
+      entityId: doc.id,
+      entityName: createHomeworkDto.title,
+      details: `Homework assigned for ${createHomeworkDto.className}`,
+    });
+
     return { id: doc.id, ...doc.data() };
   }
 
   async findAll(grade?: string, section?: string): Promise<any> {
     const snapshot = await this.homeworksCollection.orderBy('createdAt', 'desc').get();
     let homeworks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
+
     // Filter by grade and section if provided
     if (grade && section) {
       const gradeSection = `Grade ${grade} - Section ${section}`;
-      homeworks = homeworks.filter((homework: any) => 
+      homeworks = homeworks.filter((homework: any) =>
         homework.gradeSections?.includes(gradeSection)
       );
     }
-    
+
     return { success: true, data: homeworks };
   }
 
@@ -78,6 +91,20 @@ export class HomeworksService {
     if (!doc.exists) {
       throw new NotFoundException('Homework not found');
     }
+
+    const homeworkData = doc.data();
+    const homeworkTitle = homeworkData?.title || 'Unknown Homework';
+
+    // Log activity before deletion
+    await this.activityLogService.logActivity({
+      type: 'homework',
+      action: 'deleted',
+      entityId: id,
+      entityName: homeworkTitle,
+      details: `Homework removed from the system`,
+    });
+
     await this.homeworksCollection.doc(id).delete();
   }
 }
+

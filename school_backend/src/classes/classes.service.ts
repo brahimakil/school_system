@@ -1,6 +1,7 @@
 import { Injectable, ConflictException, NotFoundException, Inject } from '@nestjs/common';
 import { CreateClassDto, UpdateClassDto, GradeSection } from './dto/class.dto';
 import * as admin from 'firebase-admin';
+import { ActivityLogService } from '../activity-log/activity-log.service';
 
 export interface ClassData {
   id?: string;
@@ -24,7 +25,10 @@ export class ClassesService {
   private studentsCollection: admin.firestore.CollectionReference;
   private teachersCollection: admin.firestore.CollectionReference;
 
-  constructor(@Inject('FIREBASE_ADMIN') private firebaseAdmin: typeof admin) {
+  constructor(
+    @Inject('FIREBASE_ADMIN') private firebaseAdmin: typeof admin,
+    private activityLogService: ActivityLogService,
+  ) {
     this.db = firebaseAdmin.firestore();
     this.classesCollection = this.db.collection('classes');
     this.studentsCollection = this.db.collection('students');
@@ -81,14 +85,14 @@ export class ClassesService {
 
   // Helper: Check if grade-section exists in array
   private hasGradeSectionMatch(gradeSections1: GradeSection[], gradeSections2: GradeSection[]): boolean {
-    return gradeSections1.some(gs1 => 
+    return gradeSections1.some(gs1 =>
       gradeSections2.some(gs2 => gs1.grade === gs2.grade && gs1.section === gs2.section)
     );
   }
 
   // Validate no conflicts before creating/updating
   private async validateNoConflicts(
-    classData: CreateClassDto | UpdateClassDto, 
+    classData: CreateClassDto | UpdateClassDto,
     excludeClassId?: string
   ): Promise<void> {
     const { teacherId, gradeSections, dayOfWeek, startTime, endTime } = classData as any;
@@ -119,7 +123,7 @@ export class ClassesService {
 
       // Times overlap - check for grade-section conflict
       if (this.hasGradeSectionMatch(gradeSections, existingClass.gradeSections)) {
-        const conflictGS = gradeSections.find(gs1 => 
+        const conflictGS = gradeSections.find(gs1 =>
           existingClass.gradeSections.some(gs2 => gs1.grade === gs2.grade && gs1.section === gs2.section)
         );
         throw new ConflictException(
@@ -186,10 +190,19 @@ export class ClassesService {
 
     const docRef = await this.classesCollection.add(classData);
     const classId = docRef.id;
-    
+
+    // Log activity
+    await this.activityLogService.logActivity({
+      type: 'class',
+      action: 'created',
+      entityId: classId,
+      entityName: createClassDto.className,
+      details: `Class created on ${createClassDto.dayOfWeek} from ${createClassDto.startTime} to ${createClassDto.endTime}`,
+    });
+
     // Create chat room for the class
     await this.createClassChatRoom(classId, createClassDto.teacherId, createClassDto.className);
-    
+
     return { id: classId, ...classData };
   }
 
@@ -200,10 +213,10 @@ export class ClassesService {
 
   async findByGradeSection(grade: string, section: string): Promise<ClassData[]> {
     const allClasses = await this.findAll();
-    
+
     // Filter classes that include this grade-section
-    return allClasses.filter(classData => 
-      classData.gradeSections.some(gs => 
+    return allClasses.filter(classData =>
+      classData.gradeSections.some(gs =>
         gs.grade === grade && gs.section === section
       )
     );
@@ -259,6 +272,19 @@ export class ClassesService {
     if (!doc.exists) {
       throw new NotFoundException('Class not found');
     }
+
+    const classData = doc.data() as ClassData;
+    const className = classData?.className || 'Unknown Class';
+
+    // Log activity before deletion
+    await this.activityLogService.logActivity({
+      type: 'class',
+      action: 'deleted',
+      entityId: id,
+      entityName: className,
+      details: `Class removed from the system`,
+    });
+
     await this.classesCollection.doc(id).delete();
   }
 

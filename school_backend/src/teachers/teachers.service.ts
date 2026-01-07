@@ -1,6 +1,7 @@
 import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { CreateTeacherDto, UpdateTeacherDto } from './dto/teacher.dto';
+import { ActivityLogService } from '../activity-log/activity-log.service';
 
 @Injectable()
 export class TeachersService {
@@ -8,7 +9,10 @@ export class TeachersService {
   private auth: admin.auth.Auth;
   private storage: admin.storage.Storage;
 
-  constructor(@Inject('FIREBASE_ADMIN') private firebaseAdmin: typeof admin) {
+  constructor(
+    @Inject('FIREBASE_ADMIN') private firebaseAdmin: typeof admin,
+    private activityLogService: ActivityLogService,
+  ) {
     this.db = firebaseAdmin.firestore();
     this.auth = firebaseAdmin.auth();
     this.storage = firebaseAdmin.storage();
@@ -24,30 +28,30 @@ export class TeachersService {
       const classes = await Promise.all(
         classesSnapshot.docs.map(async (doc) => {
           const data = doc.data();
-          
+
           // Count students matching ANY of the class's grade-sections
           let studentCount = 0;
           if (data.gradeSections && Array.isArray(data.gradeSections)) {
             const studentIds = new Set<string>();
-            
+
             for (const gradeSection of data.gradeSections) {
               const studentsSnapshot = await this.db
                 .collection('students')
                 .where('currentGrade.grade', '==', gradeSection.grade)
                 .where('currentGrade.section', '==', gradeSection.section)
                 .get();
-              
+
               studentsSnapshot.docs.forEach(studentDoc => {
                 studentIds.add(studentDoc.id);
               });
             }
-            
+
             studentCount = studentIds.size;
           }
 
           // Format schedule and day
-          const schedule = data.startTime && data.endTime 
-            ? `${data.startTime} - ${data.endTime}` 
+          const schedule = data.startTime && data.endTime
+            ? `${data.startTime} - ${data.endTime}`
             : '';
           const day = data.dayOfWeek || '';
 
@@ -85,10 +89,10 @@ export class TeachersService {
 
       // Get total students across all classes
       const studentIds = new Set<string>();
-      
+
       for (const classDoc of classesSnapshot.docs) {
         const classData = classDoc.data();
-        
+
         if (classData.gradeSections && Array.isArray(classData.gradeSections)) {
           for (const gradeSection of classData.gradeSections) {
             const studentsSnapshot = await this.db
@@ -96,7 +100,7 @@ export class TeachersService {
               .where('currentGrade.grade', '==', gradeSection.grade)
               .where('currentGrade.section', '==', gradeSection.section)
               .get();
-            
+
             for (const studentDoc of studentsSnapshot.docs) {
               studentIds.add(studentDoc.id);
             }
@@ -177,6 +181,15 @@ export class TeachersService {
 
       await this.db.collection('teachers').doc(userRecord.uid).set(teacherData);
 
+      // Log activity
+      await this.activityLogService.logActivity({
+        type: 'teacher',
+        action: 'created',
+        entityId: userRecord.uid,
+        entityName: fullName,
+        details: `Teacher registered with subjects: ${subjects?.join(', ') || 'N/A'}`,
+      });
+
       return { success: true, message: 'Teacher created successfully', data: teacherData };
     } catch (error) {
       // Handle Firebase Auth errors with user-friendly messages
@@ -219,11 +232,11 @@ export class TeachersService {
     if (updateTeacherDto.email !== undefined) updateData.email = updateTeacherDto.email;
     if (updateTeacherDto.phoneNumber !== undefined) updateData.phoneNumber = updateTeacherDto.phoneNumber;
     if (updateTeacherDto.status !== undefined) updateData.status = updateTeacherDto.status;
-    
+
     if (updateTeacherDto.subjects !== undefined) {
       updateData.subjects = updateTeacherDto.subjects;
     }
-    
+
     updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
     if (file) {
@@ -251,6 +264,18 @@ export class TeachersService {
     if (!doc.exists) {
       throw new NotFoundException('Teacher not found');
     }
+
+    const teacherData = doc.data();
+    const teacherName = teacherData?.fullName || 'Unknown Teacher';
+
+    // Log activity before deletion
+    await this.activityLogService.logActivity({
+      type: 'teacher',
+      action: 'deleted',
+      entityId: id,
+      entityName: teacherName,
+      details: `Teacher removed from the system`,
+    });
 
     await this.auth.deleteUser(id);
     await docRef.delete();

@@ -16,6 +16,7 @@ import { QuizResultsModule } from './quiz-results/quiz-results.module';
 import { ChatModule } from './chat/chat.module';
 import { CoursesModule } from './courses/courses.module';
 import { AiModule } from './ai/ai.module';
+import { ActivityLogModule } from './activity-log/activity-log.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AiModule } from './ai/ai.module';
       isGlobal: true,
     }),
     FirebaseModule,
+    ActivityLogModule,
     AuthModule,
     TeachersModule,
     StudentsModule,
@@ -40,4 +42,4 @@ import { AiModule } from './ai/ai.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

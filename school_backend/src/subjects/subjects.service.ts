@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ConflictException, Inject } from '@nestjs/common';
 import { CreateSubjectDto, UpdateSubjectDto } from './dto/subject.dto';
 import * as admin from 'firebase-admin';
+import { ActivityLogService } from '../activity-log/activity-log.service';
 
 export interface SubjectData {
   id?: string;
@@ -16,7 +17,10 @@ export class SubjectsService {
   private db: admin.firestore.Firestore;
   private subjectsCollection: admin.firestore.CollectionReference;
 
-  constructor(@Inject('FIREBASE_ADMIN') private firebaseAdmin: typeof admin) {
+  constructor(
+    @Inject('FIREBASE_ADMIN') private firebaseAdmin: typeof admin,
+    private activityLogService: ActivityLogService,
+  ) {
     this.db = firebaseAdmin.firestore();
     this.subjectsCollection = this.db.collection('subjects');
   }
@@ -26,7 +30,7 @@ export class SubjectsService {
     const codeSnapshot = await this.subjectsCollection
       .where('code', '==', createSubjectDto.code)
       .get();
-    
+
     if (!codeSnapshot.empty) {
       throw new ConflictException('Subject code already exists');
     }
@@ -38,6 +42,16 @@ export class SubjectsService {
     };
 
     const docRef = await this.subjectsCollection.add(subjectData);
+
+    // Log activity
+    await this.activityLogService.logActivity({
+      type: 'subject',
+      action: 'created',
+      entityId: docRef.id,
+      entityName: createSubjectDto.name,
+      details: `Subject added with code: ${createSubjectDto.code}`,
+    });
+
     return { id: docRef.id, ...subjectData };
   }
 
@@ -65,7 +79,7 @@ export class SubjectsService {
       const codeSnapshot = await this.subjectsCollection
         .where('code', '==', updateSubjectDto.code)
         .get();
-      
+
       const duplicate = codeSnapshot.docs.find(d => d.id !== id);
       if (duplicate) {
         throw new ConflictException('Subject code already exists');
@@ -87,6 +101,20 @@ export class SubjectsService {
     if (!doc.exists) {
       throw new NotFoundException('Subject not found');
     }
+
+    const subjectData = doc.data() as SubjectData;
+    const subjectName = subjectData?.name || 'Unknown Subject';
+
+    // Log activity before deletion
+    await this.activityLogService.logActivity({
+      type: 'subject',
+      action: 'deleted',
+      entityId: id,
+      entityName: subjectName,
+      details: `Subject removed from the system`,
+    });
+
     await this.subjectsCollection.doc(id).delete();
   }
 }
+

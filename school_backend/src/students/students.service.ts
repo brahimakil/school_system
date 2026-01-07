@@ -2,6 +2,7 @@ import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import * as nodemailer from 'nodemailer';
 import { CreateStudentDto, UpdateStudentDto } from './dto/student.dto';
+import { ActivityLogService } from '../activity-log/activity-log.service';
 
 @Injectable()
 export class StudentsService {
@@ -10,7 +11,10 @@ export class StudentsService {
   private storage: admin.storage.Storage;
   private transporter: nodemailer.Transporter;
 
-  constructor(@Inject('FIREBASE_ADMIN') private firebaseAdmin: typeof admin) {
+  constructor(
+    @Inject('FIREBASE_ADMIN') private firebaseAdmin: typeof admin,
+    private activityLogService: ActivityLogService,
+  ) {
     this.db = firebaseAdmin.firestore();
     this.auth = firebaseAdmin.auth();
     this.storage = firebaseAdmin.storage();
@@ -107,6 +111,15 @@ export class StudentsService {
 
     await this.db.collection('students').doc(userRecord.uid).set(studentData);
 
+    // Log activity
+    await this.activityLogService.logActivity({
+      type: 'student',
+      action: 'created',
+      entityId: userRecord.uid,
+      entityName: fullName,
+      details: `Student enrolled in ${currentGrade?.grade || 'N/A'} ${currentGrade?.section || ''}`,
+    });
+
     // Send credentials email to the new student
     await this.sendCredentialsEmail(email, fullName, password, true);
 
@@ -172,6 +185,18 @@ export class StudentsService {
     if (!doc.exists) {
       throw new NotFoundException('Student not found');
     }
+
+    const studentData = doc.data();
+    const studentName = studentData?.fullName || 'Unknown Student';
+
+    // Log activity before deletion
+    await this.activityLogService.logActivity({
+      type: 'student',
+      action: 'deleted',
+      entityId: id,
+      entityName: studentName,
+      details: `Student removed from the system`,
+    });
 
     await this.auth.deleteUser(id);
     await docRef.delete();

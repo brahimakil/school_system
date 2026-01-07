@@ -2,12 +2,16 @@ import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { CreateCourseDto, AttachmentType } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { ActivityLogService } from '../activity-log/activity-log.service';
 
 @Injectable()
 export class CoursesService {
   private coursesCollection: admin.firestore.CollectionReference;
 
-  constructor(@Inject('FIREBASE_ADMIN') private firebaseAdmin: typeof admin) {
+  constructor(
+    @Inject('FIREBASE_ADMIN') private firebaseAdmin: typeof admin,
+    private activityLogService: ActivityLogService,
+  ) {
     this.coursesCollection = this.firebaseAdmin.firestore().collection('courses');
   }
 
@@ -16,7 +20,7 @@ export class CoursesService {
     console.log('Received file:', file ? 'YES' : 'NO');
     console.log('File details:', file);
     console.log('DTO:', createCourseDto);
-    
+
     let attachmentUrl = createCourseDto.attachmentUrl;
     let attachmentType = createCourseDto.attachmentType;
 
@@ -62,22 +66,31 @@ export class CoursesService {
 
     const docRef = await this.coursesCollection.add(courseData);
     const doc = await docRef.get();
-    
+
+    // Log activity
+    await this.activityLogService.logActivity({
+      type: 'course',
+      action: 'created',
+      entityId: doc.id,
+      entityName: createCourseDto.title,
+      details: `Course added for ${createCourseDto.className}`,
+    });
+
     return { id: doc.id, ...doc.data() };
   }
 
   async findAll(grade?: string, section?: string): Promise<any> {
     const snapshot = await this.coursesCollection.orderBy('createdAt', 'desc').get();
     let courses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
+
     // Filter by grade and section if provided
     if (grade && section) {
       const gradeSection = `Grade ${grade} - Section ${section}`;
-      courses = courses.filter((course: any) => 
+      courses = courses.filter((course: any) =>
         course.gradeSections?.includes(gradeSection)
       );
     }
-    
+
     return { success: true, data: courses };
   }
 
@@ -103,7 +116,7 @@ export class CoursesService {
     console.log('Received file:', file ? 'YES' : 'NO');
     console.log('File details:', file);
     console.log('DTO:', updateCourseDto);
-    
+
     const doc = await this.coursesCollection.doc(id).get();
     if (!doc.exists) {
       throw new NotFoundException('Course not found');
@@ -174,6 +187,20 @@ export class CoursesService {
     if (!doc.exists) {
       throw new NotFoundException('Course not found');
     }
+
+    const courseData = doc.data();
+    const courseTitle = courseData?.title || 'Unknown Course';
+
+    // Log activity before deletion
+    await this.activityLogService.logActivity({
+      type: 'course',
+      action: 'deleted',
+      entityId: id,
+      entityName: courseTitle,
+      details: `Course removed from the system`,
+    });
+
     await this.coursesCollection.doc(id).delete();
   }
 }
+
