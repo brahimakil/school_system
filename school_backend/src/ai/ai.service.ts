@@ -18,23 +18,19 @@ export class AiService {
    */
   private getSystemInstruction(grade: string): string {
     const gradeLevel = grade.toLowerCase();
-    
+
     let instruction = `You are an AI educational assistant helping a student in grade ${grade}. `;
-    
-    if (gradeLevel.includes('kg') || gradeLevel.includes('kindergarten')) {
-      instruction += `Use very simple language, short sentences, and be encouraging. Focus on basic concepts with examples from everyday life.`;
-    } else if (['1', '2', '3'].some(g => gradeLevel.includes(g))) {
+
+    if (['1', '2', '3'].some(g => gradeLevel.includes(g))) {
       instruction += `Use simple, clear language appropriate for elementary school. Be patient and encouraging. Use examples and analogies that young students can relate to.`;
     } else if (['4', '5', '6'].some(g => gradeLevel.includes(g))) {
       instruction += `Use clear language appropriate for upper elementary students. Explain concepts step-by-step and provide relevant examples.`;
     } else if (['7', '8', '9'].some(g => gradeLevel.includes(g))) {
       instruction += `Use language appropriate for middle school students. Provide detailed explanations with examples and encourage critical thinking.`;
-    } else if (['10', '11', '12'].some(g => gradeLevel.includes(g))) {
-      instruction += `Use advanced language appropriate for high school students. Provide comprehensive explanations, encourage analytical thinking, and relate concepts to real-world applications.`;
     } else {
       instruction += `Adjust your language to be clear and educational. Provide detailed explanations with relevant examples.`;
     }
-    
+
     instruction += `\n\nYou have access to the student's courses and homework assignments. When answering questions:
 - When the student types /courses, list ALL their available courses with numbers and ask which one they want to explore
 - When the student types /homework, list ALL their homework assignments with numbers and ask which one they need help with
@@ -45,7 +41,7 @@ export class AiService {
 - Be supportive, encouraging, and patient
 - If you see an image, analyze it thoroughly and help the student understand it in the context of their studies
 - Always acknowledge the courses and homeworks you have access to`;
-    
+
     return instruction;
   }
 
@@ -59,7 +55,7 @@ export class AiService {
       if (!studentDoc.exists) {
         throw new NotFoundException('Student not found');
       }
-      
+
       const studentData = studentDoc.data();
       if (!studentData) {
         return '\n\n[Student data not available]\n\n';
@@ -132,7 +128,7 @@ export class AiService {
       // Build context string
       let context = `\n\n=== STUDENT CONTEXT ===\n`;
       context += `Student Grade: ${currentGrade.grade}, Section: ${currentGrade.section}\n\n`;
-      
+
       if (courses.length > 0) {
         context += `📚 AVAILABLE COURSES (Total: ${courses.length}):\n`;
         context += `The student can reference these courses using /courses command\n\n`;
@@ -151,7 +147,7 @@ export class AiService {
       } else {
         context += `📚 COURSES: No courses found for this student\n\n`;
       }
-      
+
       if (homeworks.length > 0) {
         context += `📝 AVAILABLE HOMEWORK ASSIGNMENTS (Total: ${homeworks.length}):\n`;
         context += `The student can reference these homeworks using /homework command\n\n`;
@@ -173,10 +169,10 @@ export class AiService {
       } else {
         context += `📝 HOMEWORK: No homework assignments found for this student\n\n`;
       }
-      
+
       context += `=== END CONTEXT ===\n\n`;
       context += `IMPORTANT: When the student uses /courses or /homework commands, provide them with the list above and help them explore specific items.\n`;
-      
+
       return context;
     } catch (error) {
       console.error('Error building student context:', error);
@@ -188,8 +184,8 @@ export class AiService {
    * Chat with AI using student's context
    */
   async chat(
-    studentId: string, 
-    message: string, 
+    studentId: string,
+    message: string,
     image?: { mimeType: string; data: string }
   ): Promise<{ response: string }> {
     try {
@@ -203,7 +199,7 @@ export class AiService {
       if (!studentData) {
         throw new NotFoundException('Student data not found');
       }
-      
+
       const apiKey = studentData.geminiApiKey;
 
       if (!apiKey) {
@@ -212,20 +208,20 @@ export class AiService {
 
       // Initialize Gemini
       const genAI = new GoogleGenerativeAI(apiKey);
-      
+
       // Build context
       const context = await this.buildStudentContext(studentId);
       const systemInstruction = this.getSystemInstruction(studentData.currentGrade.grade);
-      
+
       // Get model with system instruction
-      const model = genAI.getGenerativeModel({ 
+      const model = genAI.getGenerativeModel({
         model: GEMINI_MODEL_NAME,
         systemInstruction: systemInstruction + context,
       });
 
       // Prepare content parts
       const parts: any[] = [];
-      
+
       // Add image if provided
       if (image) {
         parts.push({
@@ -235,7 +231,7 @@ export class AiService {
           },
         });
       }
-      
+
       // Add text message
       parts.push({ text: message });
 
@@ -247,11 +243,11 @@ export class AiService {
       return { response: text };
     } catch (error) {
       console.error('AI Chat Error:', error);
-      
+
       if (error.message?.includes('API_KEY_INVALID') || error.message?.includes('API key')) {
         throw new BadRequestException('Your Gemini API key is invalid. Please update it in your profile.');
       }
-      
+
       throw new BadRequestException(`AI service error: ${error.message || 'Unknown error'}`);
     }
   }

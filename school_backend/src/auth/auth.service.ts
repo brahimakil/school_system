@@ -169,6 +169,17 @@ export class AuthService {
         throw new UnauthorizedException('Your account is not active. Please contact administration.');
       }
 
+      // Look up the subject name from the subjects collection
+      let subjectName = '';
+      const subjectId = teacherData.subjects?.[0];
+      if (subjectId) {
+        const subjectDoc = await this.db.collection('subjects').doc(subjectId).get();
+        if (subjectDoc.exists) {
+          const subjectData = subjectDoc.data();
+          subjectName = subjectData?.name || '';
+        }
+      }
+
       return {
         success: true,
         message: 'Login successful',
@@ -176,7 +187,7 @@ export class AuthService {
           id: uid,
           email: email,
           name: teacherData.fullName,
-          subject: teacherData.subjects?.[0] || '',
+          subject: subjectName,
           token: idToken, // Return the ID token from Firebase
         },
       };

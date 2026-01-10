@@ -1,15 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { HomeworksService } from './homeworks.service';
 import { CreateHomeworkDto } from './dto/create-homework.dto';
 import { UpdateHomeworkDto } from './dto/update-homework.dto';
 
 @Controller('homeworks')
 export class HomeworksController {
-  constructor(private readonly homeworksService: HomeworksService) {}
+  constructor(private readonly homeworksService: HomeworksService) { }
 
   @Post()
-  create(@Body() createHomeworkDto: CreateHomeworkDto) {
-    return this.homeworksService.create(createHomeworkDto);
+  @UseInterceptors(FileInterceptor('attachment'))
+  create(
+    @Body() createHomeworkDto: CreateHomeworkDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.homeworksService.create(createHomeworkDto, file);
   }
 
   @Get()
@@ -28,8 +33,13 @@ export class HomeworksController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateHomeworkDto: UpdateHomeworkDto) {
-    return this.homeworksService.update(id, updateHomeworkDto);
+  @UseInterceptors(FileInterceptor('attachment'))
+  update(
+    @Param('id') id: string,
+    @Body() updateHomeworkDto: UpdateHomeworkDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.homeworksService.update(id, updateHomeworkDto, file);
   }
 
   @Delete(':id')
