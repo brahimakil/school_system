@@ -11,6 +11,8 @@ export interface Homework {
   dueDate: string;
   status: 'pending' | 'active' | 'completed' | 'past_due';
   totalMarks?: number;
+  attachmentUrl?: string;
+  attachmentType?: 'video' | 'pdf' | 'image' | 'other';
   createdAt?: any;
   updatedAt?: any;
 }
@@ -25,9 +27,11 @@ export interface CreateHomeworkDto {
   dueDate: string;
   status: 'pending' | 'active' | 'completed' | 'past_due';
   totalMarks?: number;
+  attachmentUrl?: string;
+  attachmentType?: 'video' | 'pdf' | 'image' | 'other';
 }
 
-export interface UpdateHomeworkDto extends Partial<CreateHomeworkDto> {}
+export interface UpdateHomeworkDto extends Partial<CreateHomeworkDto> { }
 
 export const getAllHomeworks = async (): Promise<Homework[]> => {
   const response = await api.get('/homeworks');
@@ -44,13 +48,17 @@ export const getHomeworksByClass = async (classId: string): Promise<Homework[]> 
   return response.data?.data || response.data || [];
 };
 
-export const createHomework = async (data: CreateHomeworkDto): Promise<Homework> => {
-  const response = await api.post('/homeworks', data);
+export const createHomework = async (data: CreateHomeworkDto | FormData): Promise<Homework> => {
+  const response = await api.post('/homeworks', data, {
+    headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined
+  });
   return response.data?.data || response.data;
 };
 
-export const updateHomework = async (id: string, data: UpdateHomeworkDto): Promise<Homework> => {
-  const response = await api.patch(`/homeworks/${id}`, data);
+export const updateHomework = async (id: string, data: UpdateHomeworkDto | FormData): Promise<Homework> => {
+  const response = await api.patch(`/homeworks/${id}`, data, {
+    headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined
+  });
   return response.data?.data || response.data;
 };
 

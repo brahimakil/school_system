@@ -47,6 +47,10 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
   const [dueDate, setDueDate] = useState('');
   const [status, setStatus] = useState<'pending' | 'active' | 'completed' | 'past_due'>('pending');
   const [totalMarks, setTotalMarks] = useState<number>(100);
+  const [attachmentUrl, setAttachmentUrl] = useState('');
+  const [attachmentType, setAttachmentType] = useState<'video' | 'pdf' | 'image' | 'other'>('other');
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [attachmentFileName, setAttachmentFileName] = useState<string>('');
 
   useEffect(() => {
     fetchClasses();
@@ -71,7 +75,13 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
       setDueDate(homework.dueDate || '');
       setStatus(homework.status || 'pending');
       setTotalMarks(homework.totalMarks || 100);
-      
+      setAttachmentUrl(homework.attachmentUrl || '');
+      setAttachmentType(homework.attachmentType || 'other');
+      if (homework.attachmentUrl) {
+        const urlParts = homework.attachmentUrl.split('/');
+        setAttachmentFileName(decodeURIComponent(urlParts[urlParts.length - 1].split('?')[0]));
+      }
+
       // Fetch submissions if viewing/editing existing homework
       fetchSubmissions(homework.id);
     } else {
@@ -140,7 +150,7 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
   }, [selectedTeacherId, teachers, subjects]);
 
   // Filter classes by selected teacher
-  const teacherClasses = selectedTeacherId 
+  const teacherClasses = selectedTeacherId
     ? classes.filter(c => c.teacherId === selectedTeacherId)
     : [];
 
@@ -153,7 +163,7 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
   );
 
   // Get grade/sections for selected class
-  const availableGradeSections = selectedClassId 
+  const availableGradeSections = selectedClassId
     ? classes.find(c => c.id === selectedClassId)?.gradeSections || []
     : [];
 
@@ -168,9 +178,28 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
     });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAttachmentFile(file);
+      setAttachmentFileName(file.name);
+
+      const fileType = file.type;
+      if (fileType.startsWith('video/')) {
+        setAttachmentType('video');
+      } else if (fileType === 'application/pdf') {
+        setAttachmentType('pdf');
+      } else if (fileType.startsWith('image/')) {
+        setAttachmentType('image');
+      } else {
+        setAttachmentType('other');
+      }
+    }
+  };
+
   const handleGradeSubmission = async () => {
     if (!selectedSubmission) return;
-    
+
     if (gradingGrade < 0 || gradingGrade > (homework?.totalMarks || 100)) {
       alert(`Grade must be between 0 and ${homework?.totalMarks || 100}`);
       return;
@@ -187,7 +216,7 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
           gradedBy: 'teacher' // In real app, use actual teacher ID
         })
       });
-      
+
       if (response.ok) {
         alert('Submission graded successfully');
         // Refresh submissions
@@ -232,24 +261,31 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
 
     const selectedClassName = classes.find(c => c.id === selectedClassId)?.className || '';
 
-    const homeworkData = {
-      classId: selectedClassId,
-      className: selectedClassName,
-      gradeSections: selectedGradeSections,
-      subject: subjectName,
-      title,
-      description,
-      dueDate,
-      status,
-      totalMarks
-    };
-
     try {
       setLoading(true);
+
+      const formData = new FormData();
+      formData.append('classId', selectedClassId);
+      formData.append('className', selectedClassName);
+      formData.append('gradeSections', JSON.stringify(selectedGradeSections));
+      formData.append('subject', subjectName);
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('dueDate', dueDate);
+      formData.append('status', status);
+      formData.append('totalMarks', totalMarks.toString());
+      formData.append('attachmentType', attachmentType);
+
+      if (attachmentFile) {
+        formData.append('attachment', attachmentFile);
+      } else if (attachmentUrl) {
+        formData.append('attachmentUrl', attachmentUrl);
+      }
+
       if (homework) {
-        await updateHomework(homework.id, homeworkData);
+        await updateHomework(homework.id, formData);
       } else {
-        await createHomework(homeworkData);
+        await createHomework(formData);
       }
       onClose();
     } catch (error) {
@@ -305,168 +341,216 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
         {/* Details Tab */}
         {activeTab === 'details' && (
           <form onSubmit={handleSubmit} className="modal-form">
-          {/* Teacher Selection */}
-          <div className="form-group">
-            <label className="form-label required">Select Teacher</label>
-            <select
-              value={selectedTeacherId}
-              onChange={(e) => {
-                setSelectedTeacherId(e.target.value);
-                setSelectedClassId('');
-                setSelectedGradeSections([]);
-              }}
-              required
-              disabled={viewMode || !!homework} // Disable if editing existing homework (to simplify)
-            >
-              <option value="">Choose a teacher</option>
-              {teachers.map(teacher => (
-                <option key={teacher.id} value={teacher.id}>
-                  {teacher.fullName || teacher.name || 'Unnamed Teacher'}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Subject Display */}
-          {selectedTeacherId && subjectName && (
+            {/* Teacher Selection */}
             <div className="form-group">
-              <label className="form-label">Subject</label>
-              <input
-                type="text"
-                value={subjectName}
-                disabled
-                style={{ 
-                  backgroundColor: '#f1f5f9', 
-                  color: '#64748b',
-                  cursor: 'not-allowed'
-                }}
-              />
-            </div>
-          )}
-
-          {/* Class Selection */}
-          {selectedTeacherId && uniqueTeacherClasses.length > 0 && (
-            <div className="form-group">
-              <label className="form-label required">Select Class</label>
+              <label className="form-label required">Select Teacher</label>
               <select
-                value={selectedClassId}
+                value={selectedTeacherId}
                 onChange={(e) => {
-                  setSelectedClassId(e.target.value);
+                  setSelectedTeacherId(e.target.value);
+                  setSelectedClassId('');
                   setSelectedGradeSections([]);
                 }}
                 required
-                disabled={viewMode}
+                disabled={viewMode || !!homework} // Disable if editing existing homework (to simplify)
               >
-                <option value="">Choose a class</option>
-                {uniqueTeacherClasses.map(cls => (
-                  <option key={cls.id} value={cls.id}>
-                    {cls.className}
+                <option value="">Choose a teacher</option>
+                {teachers.map(teacher => (
+                  <option key={teacher.id} value={teacher.id}>
+                    {teacher.fullName || teacher.name || 'Unnamed Teacher'}
                   </option>
                 ))}
               </select>
             </div>
-          )}
 
-          {/* Grade/Section Selection */}
-          {selectedClassId && availableGradeSections.length > 0 && (
-            <div className="form-group">
-              <label className="form-label required">Select Grades/Sections</label>
-              <div className="grade-section-checkboxes">
-                {availableGradeSections.map((gs, idx) => {
-                  const gsString = `Grade ${gs.grade} - Section ${gs.section}`;
-                  return (
-                    <label key={idx} className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={selectedGradeSections.includes(gsString)}
-                        onChange={() => handleGradeSectionToggle(gsString)}
-                        disabled={viewMode}
-                      />
-                      <span>{gsString}</span>
-                    </label>
-                  );
-                })}
+            {/* Subject Display */}
+            {selectedTeacherId && subjectName && (
+              <div className="form-group">
+                <label className="form-label">Subject</label>
+                <input
+                  type="text"
+                  value={subjectName}
+                  disabled
+                  style={{
+                    backgroundColor: '#f1f5f9',
+                    color: '#64748b',
+                    cursor: 'not-allowed'
+                  }}
+                />
               </div>
-            </div>
-          )}
-
-          {/* Homework Title */}
-          <div className="form-group">
-            <label className="form-label required">Homework Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Chapter 5 Exercises"
-              required
-              readOnly={viewMode}
-            />
-          </div>
-
-          {/* Description */}
-          <div className="form-group">
-            <label className="form-label">Description / Instructions</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter detailed instructions..."
-              rows={4}
-              readOnly={viewMode}
-            />
-          </div>
-
-          {/* Due Date */}
-          <div className="form-group">
-            <label className="form-label required">Due Date</label>
-            <input
-              type="datetime-local"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              required
-              readOnly={viewMode}
-            />
-          </div>
-
-          {/* Total Marks */}
-          <div className="form-group">
-            <label className="form-label required">Total Marks</label>
-            <input
-              type="number"
-              min="1"
-              value={totalMarks}
-              onChange={(e) => setTotalMarks(Number(e.target.value))}
-              required
-              readOnly={viewMode}
-            />
-          </div>
-
-          {/* Status */}
-          <div className="form-group">
-            <label className="form-label required">Status</label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as any)}
-              required
-              disabled={viewMode}
-            >
-              <option value="pending">Pending</option>
-              <option value="active">Active</option>
-              <option value="completed">Completed</option>
-              <option value="past_due">Past Due</option>
-            </select>
-          </div>
-
-          <div className="modal-actions">
-            <button type="button" className="btn-cancel" onClick={onClose}>
-              {viewMode ? 'Close' : 'Cancel'}
-            </button>
-            {!viewMode && (
-              <button type="submit" className="btn-submit" disabled={loading}>
-                {loading ? 'Saving...' : (homework ? 'Update Homework' : 'Create Homework')}
-              </button>
             )}
-          </div>
-        </form>
+
+            {/* Class Selection */}
+            {selectedTeacherId && uniqueTeacherClasses.length > 0 && (
+              <div className="form-group">
+                <label className="form-label required">Select Class</label>
+                <select
+                  value={selectedClassId}
+                  onChange={(e) => {
+                    setSelectedClassId(e.target.value);
+                    setSelectedGradeSections([]);
+                  }}
+                  required
+                  disabled={viewMode}
+                >
+                  <option value="">Choose a class</option>
+                  {uniqueTeacherClasses.map(cls => (
+                    <option key={cls.id} value={cls.id}>
+                      {cls.className}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Grade/Section Selection */}
+            {selectedClassId && availableGradeSections.length > 0 && (
+              <div className="form-group">
+                <label className="form-label required">Select Grades/Sections</label>
+                <div className="grade-section-checkboxes">
+                  {availableGradeSections.map((gs, idx) => {
+                    const gsString = `Grade ${gs.grade} - Section ${gs.section}`;
+                    return (
+                      <label key={idx} className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={selectedGradeSections.includes(gsString)}
+                          onChange={() => handleGradeSectionToggle(gsString)}
+                          disabled={viewMode}
+                        />
+                        <span>{gsString}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Homework Title */}
+            <div className="form-group">
+              <label className="form-label required">Homework Title</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g., Chapter 5 Exercises"
+                required
+                readOnly={viewMode}
+              />
+            </div>
+
+            {/* Description */}
+            <div className="form-group">
+              <label className="form-label">Description / Instructions</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Enter detailed instructions..."
+                rows={4}
+                readOnly={viewMode}
+              />
+            </div>
+
+            {/* Due Date */}
+            <div className="form-group">
+              <label className="form-label required">Due Date</label>
+              <input
+                type="datetime-local"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                required
+                readOnly={viewMode}
+              />
+            </div>
+
+            {/* Total Marks */}
+            <div className="form-group">
+              <label className="form-label required">Total Marks</label>
+              <input
+                type="number"
+                min="1"
+                value={totalMarks}
+                onChange={(e) => setTotalMarks(Number(e.target.value))}
+                required
+                readOnly={viewMode}
+              />
+            </div>
+
+            {/* Status */}
+            <div className="form-group">
+              <label className="form-label required">Status</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as any)}
+                required
+                disabled={viewMode}
+              >
+                <option value="pending">Pending</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+                <option value="past_due">Past Due</option>
+              </select>
+            </div>
+
+            {/* Attachment */}
+            <div className="form-group">
+              <label className="form-label">Attachment</label>
+              {!viewMode && (
+                <div style={{ marginBottom: '8px' }}>
+                  <input
+                    type="file"
+                    accept="video/*,image/*,application/pdf,.doc,.docx,.ppt,.pptx"
+                    onChange={handleFileChange}
+                    style={{ display: 'none' }}
+                    id="attachment-upload-admin"
+                  />
+                  <label htmlFor="attachment-upload-admin" style={{
+                    display: 'inline-block',
+                    padding: '10px 16px',
+                    background: 'rgba(59, 130, 246, 0.1)',
+                    border: '1px solid rgba(59, 130, 246, 0.3)',
+                    borderRadius: '8px',
+                    color: '#3b82f6',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}>
+                    Choose File
+                  </label>
+                </div>
+              )}
+              {(attachmentFileName || attachmentUrl) && (
+                <div style={{
+                  padding: '12px',
+                  background: '#f8fafc',
+                  borderRadius: '8px',
+                  marginTop: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <span style={{ color: '#475569', fontSize: '14px' }}>
+                    {attachmentFileName || 'Current attachment'}
+                  </span>
+                  {attachmentUrl && (
+                    <a href={attachmentUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', fontSize: '14px' }}>
+                      View
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-actions">
+              <button type="button" className="btn-cancel" onClick={onClose}>
+                {viewMode ? 'Close' : 'Cancel'}
+              </button>
+              {!viewMode && (
+                <button type="submit" className="btn-submit" disabled={loading}>
+                  {loading ? 'Saving...' : (homework ? 'Update Homework' : 'Create Homework')}
+                </button>
+              )}
+            </div>
+          </form>
         )}
 
         {/* Submissions Tab */}
@@ -522,15 +606,15 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
                       <div style={{ marginBottom: '12px' }}>
                         <strong style={{ color: '#1e293b' }}>Attached File:</strong>
                         <div style={{ margin: '8px 0', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                          <a 
-                            href={submission.fileUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
+                          <a
+                            href={submission.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             onClick={() => {
                               console.log('File URL:', submission.fileUrl);
                               // If it's a Firebase Storage URL, it should open directly
                             }}
-                            style={{ 
+                            style={{
                               color: '#3b82f6',
                               textDecoration: 'none',
                               display: 'inline-flex',
@@ -591,10 +675,10 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
                               max={homework?.totalMarks || 100}
                               value={gradingGrade}
                               onChange={(e) => setGradingGrade(Number(e.target.value))}
-                              style={{ 
-                                width: '100%', 
-                                padding: '8px', 
-                                border: '1px solid #e2e8f0', 
+                              style={{
+                                width: '100%',
+                                padding: '8px',
+                                border: '1px solid #e2e8f0',
                                 borderRadius: '4px',
                                 color: '#1e293b',
                                 fontSize: '16px'
@@ -609,10 +693,10 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
                               value={gradingFeedback}
                               onChange={(e) => setGradingFeedback(e.target.value)}
                               rows={3}
-                              style={{ 
-                                width: '100%', 
-                                padding: '8px', 
-                                border: '1px solid #e2e8f0', 
+                              style={{
+                                width: '100%',
+                                padding: '8px',
+                                border: '1px solid #e2e8f0',
                                 borderRadius: '4px',
                                 color: '#1e293b',
                                 fontSize: '14px'

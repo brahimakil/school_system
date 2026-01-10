@@ -12,8 +12,8 @@ interface Teacher {
   subjects: string[];
 }
 
-const GRADES = ['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'];
-const SECTIONS = ['A', 'B', 'C', 'D', 'E', 'F'];
+const GRADES = ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9'];
+const SECTIONS = ['A', 'B', 'C'];
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 interface ClassModalProps {
@@ -64,8 +64,8 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
     setGradeSectionSchedules(prev => {
       const existing = prev.find(gss => gss.grade === grade && gss.section === section);
       if (existing) {
-        return prev.map(gss => 
-          gss.grade === grade && gss.section === section 
+        return prev.map(gss =>
+          gss.grade === grade && gss.section === section
             ? { ...gss, teacherId }
             : gss
         );
@@ -87,14 +87,14 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
     setGradeSectionSchedules(prev => prev.map(gss =>
       gss.grade === grade && gss.section === section
         ? {
-            ...gss,
-            schedules: [...gss.schedules, {
-              id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-              dayOfWeek: day,
-              startTime: '08:00',
-              endTime: '09:00'
-            }]
-          }
+          ...gss,
+          schedules: [...gss.schedules, {
+            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            dayOfWeek: day,
+            startTime: '08:00',
+            endTime: '09:00'
+          }]
+        }
         : gss
     ));
   };
@@ -117,11 +117,11 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
     setGradeSectionSchedules(prev => prev.map(gss =>
       gss.grade === grade && gss.section === section
         ? {
-            ...gss,
-            schedules: gss.schedules.map(s =>
-              s.id === scheduleId ? { ...s, [field]: value } : s
-            )
-          }
+          ...gss,
+          schedules: gss.schedules.map(s =>
+            s.id === scheduleId ? { ...s, [field]: value } : s
+          )
+        }
         : gss
     ));
   };
@@ -140,7 +140,7 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
           startTime: classData.startTime,
           endTime: classData.endTime,
         });
-        
+
         // Group related classes by grade/section
         const grouped = new Map<string, GradeSectionSchedule>();
         for (const cls of relatedClasses) {
@@ -237,7 +237,7 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
   const checkConflicts = async (gss: GradeSectionSchedule, schedule: Schedule, excludeClassIds: Set<string> = new Set()): Promise<string | null> => {
     try {
       const allClasses = await getAllClasses();
-      
+
       for (const existingClass of allClasses) {
         // Skip if it's one of the classes we're currently editing
         if (excludeClassIds.has(existingClass.id || '')) continue;
@@ -252,7 +252,7 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
         if (existingClass.teacherId === gss.teacherId) {
           const existingGS = existingClass.gradeSections[0];
           const isSameSection = existingGS.grade === gss.grade && existingGS.section === gss.section;
-          
+
           if (!isSameSection || existingClass.className !== formData.className) {
             const teacher = teachers.find(t => t.id === gss.teacherId);
             return `Teacher ${teacher?.fullName || 'selected'} is already teaching "${existingClass.className}" to ${existingGS.grade} ${existingGS.section} on ${schedule.dayOfWeek} from ${existingClass.startTime} to ${existingClass.endTime}`;
@@ -268,7 +268,7 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
           }
         }
       }
-      
+
       return null; // No conflicts
     } catch (error) {
       console.error('Error checking conflicts:', error);
@@ -278,7 +278,7 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.gradeSections.length === 0) {
       alert('Please select at least one grade and section');
       return;
@@ -316,7 +316,7 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
     const excludeIds = relatedClasses ? new Set(relatedClasses.map(c => c.id || '')) : new Set<string>();
     for (const gss of gradeSectionSchedules) {
       if (!gss.teacherId) continue;
-      
+
       for (const schedule of gss.schedules) {
         const conflict = await checkConflicts(gss, schedule, excludeIds);
         if (conflict) {
@@ -339,7 +339,7 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
 
           for (const schedule of schedules) {
             // Find matching existing class
-            const matchingClass = relatedClasses.find(c => 
+            const matchingClass = relatedClasses.find(c =>
               c.dayOfWeek === schedule.dayOfWeek &&
               c.startTime === schedule.startTime &&
               c.endTime === schedule.endTime &&
@@ -402,7 +402,7 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
             await createClass(submitData);
           }
         }
-        
+
         onSubmit({});
       }
       onClose();
@@ -424,10 +424,10 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
 
         <form onSubmit={handleSubmit} className="modal-form">
           {classData && (
-            <div style={{ 
-              marginBottom: '16px', 
-              padding: '10px 16px', 
-              backgroundColor: '#f0f9ff', 
+            <div style={{
+              marginBottom: '16px',
+              padding: '10px 16px',
+              backgroundColor: '#f0f9ff',
               border: '2px solid #3b82f6',
               borderRadius: '8px',
               fontSize: '15px',
@@ -438,13 +438,13 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
               Editing: {classData.className}
             </div>
           )}
-          
+
           <div className="form-group">
             <label>Class Name *</label>
             <input
               type="text"
               value={formData.className}
-              onChange={e => setFormData({...formData, className: e.target.value})}
+              onChange={e => setFormData({ ...formData, className: e.target.value })}
               placeholder="e.g., Chemistry 101, Math Advanced"
               required
             />
@@ -467,8 +467,8 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
           <div className="form-group">
             <label>Grade & Section * (Select one or more)</label>
             <div className="grade-sections-toggle">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setShowGradeSections(!showGradeSections)}
                 className="toggle-btn"
               >
@@ -520,20 +520,20 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
                 {gradeSectionSchedules.map((gss, index) => {
                   const availableTeachers = getTeachersForSubject(selectedSubjectId);
                   const teacher = teachers.find(t => t.id === gss.teacherId);
-                  
+
                   return (
-                    <div key={index} style={{ 
-                      border: '1px solid #e5e7eb', 
-                      borderRadius: '8px', 
+                    <div key={index} style={{
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
                       overflow: 'hidden'
                     }}>
                       {/* Header */}
-                      <div 
-                        style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
                           justifyContent: 'space-between',
-                          padding: '12px 16px', 
+                          padding: '12px 16px',
                           backgroundColor: '#f9fafb',
                           cursor: 'pointer'
                         }}
@@ -556,8 +556,8 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
                       {gss.expanded && (
                         <div style={{ padding: '16px', backgroundColor: '#ffffff' }}>
                           {/* Grade Header */}
-                          <div style={{ 
-                            marginBottom: '20px', 
+                          <div style={{
+                            marginBottom: '20px',
                             padding: '12px 16px',
                             backgroundColor: '#eff6ff',
                             borderLeft: '4px solid #3b82f6',
@@ -579,7 +579,7 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
                             <select
                               value={gss.teacherId || ''}
                               onChange={(e) => setTeacherForGradeSection(gss.grade, gss.section, e.target.value)}
-                              style={{ 
+                              style={{
                                 width: '100%',
                                 padding: '10px 12px',
                                 border: '2px solid #e5e7eb',
@@ -608,7 +608,7 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
                               {DAYS_OF_WEEK.map(day => {
                                 const daySchedules = gss.schedules.filter(s => s.dayOfWeek === day);
                                 return (
-                                  <div key={day} style={{ 
+                                  <div key={day} style={{
                                     padding: '12px',
                                     backgroundColor: '#f9fafb',
                                     borderRadius: '8px',
@@ -639,9 +639,9 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
                                     {daySchedules.length > 0 && (
                                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                         {daySchedules.map(schedule => (
-                                          <div key={schedule.id} style={{ 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
+                                          <div key={schedule.id} style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
                                             gap: '10px',
                                             padding: '8px 12px',
                                             backgroundColor: '#ffffff',
@@ -653,9 +653,9 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
                                               value={schedule.startTime}
                                               onChange={e => updateGradeSectionScheduleTime(gss.grade, gss.section, schedule.id, 'startTime', e.target.value)}
                                               required
-                                              style={{ 
-                                                padding: '8px 12px', 
-                                                border: '2px solid #e5e7eb', 
+                                              style={{
+                                                padding: '8px 12px',
+                                                border: '2px solid #e5e7eb',
                                                 borderRadius: '6px',
                                                 fontSize: '14px',
                                                 outline: 'none'
@@ -667,9 +667,9 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
                                               value={schedule.endTime}
                                               onChange={e => updateGradeSectionScheduleTime(gss.grade, gss.section, schedule.id, 'endTime', e.target.value)}
                                               required
-                                              style={{ 
-                                                padding: '8px 12px', 
-                                                border: '2px solid #e5e7eb', 
+                                              style={{
+                                                padding: '8px 12px',
+                                                border: '2px solid #e5e7eb',
                                                 borderRadius: '6px',
                                                 fontSize: '14px',
                                                 outline: 'none'
