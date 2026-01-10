@@ -22,6 +22,10 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
     const [dueDate, setDueDate] = useState('');
     const [status, setStatus] = useState<'pending' | 'active' | 'completed' | 'past_due'>('pending');
     const [totalMarks, setTotalMarks] = useState<number>(100);
+    const [attachmentUrl, setAttachmentUrl] = useState('');
+    const [attachmentType, setAttachmentType] = useState<'video' | 'pdf' | 'image' | 'other'>('other');
+    const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+    const [attachmentFileName, setAttachmentFileName] = useState<string>('');
 
     useEffect(() => {
         if (homework && myClasses.length > 0) {
@@ -32,10 +36,16 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
             setDueDate(homework.dueDate || '');
             setStatus(homework.status || 'pending');
             setTotalMarks(homework.totalMarks || 100);
+            setAttachmentUrl(homework.attachmentUrl || '');
+            setAttachmentType(homework.attachmentType || 'other');
+            if (homework.attachmentUrl) {
+                const urlParts = homework.attachmentUrl.split('/');
+                setAttachmentFileName(decodeURIComponent(urlParts[urlParts.length - 1].split('?')[0]));
+            }
         } else if (!homework) {
             // Set default due date for new homework (7 days from now)
             const now = new Date();
-            const dueDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+            const dueDateDefault = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
             const formatDateTime = (date: Date) => {
                 const year = date.getFullYear();
@@ -46,7 +56,7 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
                 return `${year}-${month}-${day}T${hours}:${minutes}`;
             };
 
-            setDueDate(formatDateTime(dueDate));
+            setDueDate(formatDateTime(dueDateDefault));
         }
     }, [homework, myClasses]);
 
@@ -67,6 +77,25 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
                 return [...prev, gsString];
             }
         });
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setAttachmentFile(file);
+            setAttachmentFileName(file.name);
+
+            const fileType = file.type;
+            if (fileType.startsWith('video/')) {
+                setAttachmentType('video');
+            } else if (fileType === 'application/pdf') {
+                setAttachmentType('pdf');
+            } else if (fileType.startsWith('image/')) {
+                setAttachmentType('image');
+            } else {
+                setAttachmentType('other');
+            }
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -94,25 +123,32 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
 
         const selectedClassName = myClasses.find(c => c.id === selectedClassId)?.className || '';
 
-        const homeworkData = {
-            classId: selectedClassId,
-            className: selectedClassName,
-            gradeSections: selectedGradeSections,
-            subject: subjectName,
-            title,
-            description,
-            dueDate,
-            status,
-            totalMarks
-        };
-
         try {
             setLoading(true);
+
+            const formData = new FormData();
+            formData.append('classId', selectedClassId);
+            formData.append('className', selectedClassName);
+            formData.append('gradeSections', JSON.stringify(selectedGradeSections));
+            formData.append('subject', subjectName);
+            formData.append('title', title);
+            formData.append('description', description);
+            formData.append('dueDate', dueDate);
+            formData.append('status', status);
+            formData.append('totalMarks', totalMarks.toString());
+            formData.append('attachmentType', attachmentType);
+
+            if (attachmentFile) {
+                formData.append('attachment', attachmentFile);
+            } else if (attachmentUrl) {
+                formData.append('attachmentUrl', attachmentUrl);
+            }
+
             if (homework) {
-                await updateHomework(homework.id, homeworkData);
+                await updateHomework(homework.id, formData);
                 alert('Homework updated successfully!');
             } else {
-                await createHomework(homeworkData);
+                await createHomework(formData);
                 alert('Homework created successfully!');
             }
             onClose();
@@ -260,6 +296,54 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
                             <option value="completed">Completed</option>
                             <option value="past_due">Past Due</option>
                         </select>
+                    </div>
+
+                    {/* Attachment */}
+                    <div className="form-group">
+                        <label className="form-label">Attachment</label>
+                        {!viewMode && (
+                            <div style={{ marginBottom: '8px' }}>
+                                <input
+                                    type="file"
+                                    accept="video/*,image/*,application/pdf,.doc,.docx,.ppt,.pptx"
+                                    onChange={handleFileChange}
+                                    style={{ display: 'none' }}
+                                    id="attachment-upload"
+                                />
+                                <label htmlFor="attachment-upload" style={{
+                                    display: 'inline-block',
+                                    padding: '10px 16px',
+                                    background: 'rgba(102, 126, 234, 0.1)',
+                                    border: '1px solid rgba(102, 126, 234, 0.3)',
+                                    borderRadius: '8px',
+                                    color: '#667eea',
+                                    cursor: 'pointer',
+                                    fontSize: '14px'
+                                }}>
+                                    Choose File
+                                </label>
+                            </div>
+                        )}
+                        {(attachmentFileName || attachmentUrl) && (
+                            <div style={{
+                                padding: '12px',
+                                background: '#f8fafc',
+                                borderRadius: '8px',
+                                marginTop: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}>
+                                <span style={{ color: '#475569', fontSize: '14px' }}>
+                                    {attachmentFileName || 'Current attachment'}
+                                </span>
+                                {attachmentUrl && (
+                                    <a href={attachmentUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', fontSize: '14px' }}>
+                                        View
+                                    </a>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <div className="modal-actions">

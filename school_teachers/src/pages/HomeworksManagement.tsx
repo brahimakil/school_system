@@ -209,6 +209,7 @@ const HomeworksManagement: React.FC = () => {
                                 <th>Class</th>
                                 <th>Due Date</th>
                                 <th>Status</th>
+                                <th>Attachment</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -226,6 +227,15 @@ const HomeworksManagement: React.FC = () => {
                                         <span className={getStatusBadgeClass(homework.status)}>
                                             {formatStatus(homework.status)}
                                         </span>
+                                    </td>
+                                    <td>
+                                        {homework.attachmentUrl ? (
+                                            <a href={homework.attachmentUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#667eea' }}>
+                                                {homework.attachmentType || 'View'}
+                                            </a>
+                                        ) : (
+                                            '-'
+                                        )}
                                     </td>
                                     <td>
                                         <div className="action-buttons">
