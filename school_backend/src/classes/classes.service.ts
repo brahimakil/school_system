@@ -37,31 +37,33 @@ export class ClassesService {
 
   private async createClassChatRoom(classId: string, teacherId: string, className: string): Promise<void> {
     try {
-      // Check if chat room already exists
+      // Check if chat room already exists for this class NAME and teacher
+      // (NOT by classId, because each schedule period has a different classId)
       const existingRoomSnapshot = await this.db
         .collection('chatRooms')
         .where('type', '==', 'class')
-        .where('classId', '==', classId)
+        .where('name', '==', className)
+        .where('teacherId', '==', teacherId)
         .limit(1)
         .get();
 
       if (!existingRoomSnapshot.empty) {
-        console.log(`Chat room already exists for class ${classId}`);
+        console.log(`Chat room already exists for class "${className}" (teacher: ${teacherId})`);
         return;
       }
 
-      // Create new chat room
+      // Create new chat room (only one per class name per teacher)
       await this.db.collection('chatRooms').add({
         name: className,
         type: 'class',
-        classId,
+        classId, // Keep first classId for reference
         teacherId,
         isActive: false, // Default to closed
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      console.log(`Created chat room for class ${className} (${classId})`);
+      console.log(`Created chat room for class "${className}" (teacher: ${teacherId})`);
     } catch (error) {
       console.error('Error creating class chat room:', error);
     }
