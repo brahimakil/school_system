@@ -151,6 +151,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 0;
+  color: #1f2937;
 }
 
 .info-row:not(:last-child) {
@@ -161,6 +162,10 @@
   color: #6b7280;
   font-size: 0.875rem;
   min-width: 120px;
+}
+
+.info-row > span:not(.info-label) {
+  color: #1f2937;
 }
 
 .api-key-preview {
@@ -455,6 +460,7 @@
   padding: 0.75rem 1rem;
   border-radius: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: #1f2937;
 }
 
 .chat-message.user .message-content {
@@ -467,6 +473,7 @@
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
+  color: inherit;
 }
 
 .message-time {
