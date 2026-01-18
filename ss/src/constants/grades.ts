@@ -8,9 +8,6 @@ export const GRADES = [
   'Grade 7',
   'Grade 8',
   'Grade 9',
-  'Grade 10',
-  'Grade 11',
-  'Grade 12',
 ];
 
-export const SECTIONS = ['A', 'B', 'C', 'D', 'E', 'F'];
+export const SECTIONS = ['A', 'B', 'C'];

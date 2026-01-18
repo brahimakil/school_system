@@ -161,6 +161,8 @@ export interface Homework {
   dueDate: string;
   status: HomeworkStatus;
   gradeSections: string[];
+  attachmentUrl?: string;
+  attachmentType?: 'video' | 'pdf' | 'image' | 'other';
 }
 
 export enum HomeworkStatus {
@@ -325,16 +327,6 @@ export const quizResultAPI = {
 };
 
 export const studentsAPI = {
-  testGeminiKey: async (studentId: string, apiKey: string): Promise<{ success: boolean; message: string }> => {
-    const response = await api.post(`/students/${studentId}/test-gemini-key`, { apiKey });
-    return response.data;
-  },
-
-  saveGeminiKey: async (studentId: string, apiKey: string): Promise<{ success: boolean; message: string }> => {
-    const response = await api.post(`/students/${studentId}/save-gemini-key`, { apiKey });
-    return response.data;
-  },
-
   getProfile: async (studentId: string): Promise<any> => {
     const response = await api.get(`/students/${studentId}`);
     return response.data;

@@ -151,13 +151,13 @@ const AIChatScreen: React.FC<AIChatScreenProps> = ({ navigation }) => {
     } catch (error: any) {
       Alert.alert(
         'Error',
-        error.message || 'Failed to send message. Please check your API key in Profile settings.'
+        error.message || 'Failed to send message. Please try again later.'
       );
       
       // Show error message
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        content: '❌ Sorry, I couldn\'t process your message. Please make sure you\'ve configured your Gemini API key in your Profile.',
+        content: '❌ Sorry, I couldn\'t process your message. ' + (error.message || 'Please try again later.'),
         isUser: false,
         timestamp: new Date(),
       };

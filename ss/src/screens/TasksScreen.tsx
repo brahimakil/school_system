@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert, KeyboardAvoidingView, Platform, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { homeworkAPI, Homework, HomeworkStatus, submissionAPI, Submission } from '../services/api';
@@ -35,10 +35,10 @@ const TasksScreen: React.FC = () => {
         student.currentGrade.grade,
         student.currentGrade.section
       );
-      
+
       if (response.success) {
         setHomeworks(response.data);
-        
+
         // Fetch submissions for each homework
         const submissionsMap: { [homeworkId: string]: Submission } = {};
         await Promise.all(
@@ -82,11 +82,11 @@ const TasksScreen: React.FC = () => {
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const file = result.assets[0];
         setFileName(file.name);
-        
+
         // Upload file to backend
         Alert.alert('Uploading', 'Please wait while the file is being uploaded...');
         const uploadedUrl = await uploadFile(file);
-        
+
         if (uploadedUrl) {
           setFileUrl(uploadedUrl);
           Alert.alert('Success', 'File uploaded successfully');
@@ -103,11 +103,11 @@ const TasksScreen: React.FC = () => {
   const uploadFile = async (file: any): Promise<string | null> => {
     try {
       const formData = new FormData();
-      
+
       // For React Native, we need to create a file blob
       const response = await fetch(file.uri);
       const blob = await response.blob();
-      
+
       formData.append('file', {
         uri: file.uri,
         type: file.mimeType || 'application/octet-stream',
@@ -123,11 +123,11 @@ const TasksScreen: React.FC = () => {
       });
 
       const data = await uploadResponse.json();
-      
+
       if (data.success && data.data.fileUrl) {
         return data.data.fileUrl;
       }
-      
+
       return null;
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -226,29 +226,29 @@ const TasksScreen: React.FC = () => {
     if (homework.status !== HomeworkStatus.ACTIVE) {
       return false;
     }
-    
+
     // Cannot edit if already graded
     if (submission && submission.grade !== null && submission.grade !== undefined) {
       return false;
     }
-    
+
     // Cannot submit/edit if past due date
     const dueDate = new Date(homework.dueDate);
     if (new Date() > dueDate) {
       return false;
     }
-    
+
     return true;
   };
 
   const canEditSubmission = (homework: Homework, submission?: Submission) => {
     if (!submission) return false;
-    
+
     // Cannot edit if graded
     if (submission.grade !== null && submission.grade !== undefined) {
       return false;
     }
-    
+
     // Can edit if homework is active and not past due
     return isSubmissionAllowed(homework, submission);
   };
@@ -308,14 +308,14 @@ const TasksScreen: React.FC = () => {
     const isPastDue = new Date(selectedHomework.dueDate) < new Date();
 
     return (
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={100}
       >
         <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
           <View style={styles.detailsHeader}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.backButton}
               onPress={() => setSelectedHomework(null)}
             >
@@ -328,145 +328,159 @@ const TasksScreen: React.FC = () => {
           </View>
 
           <View style={styles.detailsCard}>
-          <View style={styles.detailsSection}>
-            <Text style={styles.detailsLabel}>Class</Text>
-            <Text style={styles.detailsValue}>{selectedHomework.className}</Text>
-          </View>
-
-          <View style={styles.detailsSection}>
-            <Text style={styles.detailsLabel}>Subject</Text>
-            <Text style={styles.detailsValue}>{selectedHomework.subject}</Text>
-          </View>
-
-          <View style={styles.detailsSection}>
-            <Text style={styles.detailsLabel}>Description</Text>
-            <Text style={styles.detailsValue}>{selectedHomework.description}</Text>
-          </View>
-
-          <View style={styles.detailsSection}>
-            <Text style={styles.detailsLabel}>Due Date</Text>
-            <View style={styles.dueDateRow}>
-              <Ionicons name="calendar" size={18} color="#6366f1" />
-              <Text style={styles.dueDate}>
-                {new Date(selectedHomework.dueDate).toLocaleString()}
-              </Text>
+            <View style={styles.detailsSection}>
+              <Text style={styles.detailsLabel}>Class</Text>
+              <Text style={styles.detailsValue}>{selectedHomework.className}</Text>
             </View>
-          </View>
 
-          {!canSubmit && selectedHomework.status === HomeworkStatus.PENDING && (
-            <View style={styles.infoBox}>
-              <Ionicons name="hourglass-outline" size={18} color="#92400e" />
-              <Text style={styles.infoText}>This task is pending and not yet accepting submissions</Text>
+            <View style={styles.detailsSection}>
+              <Text style={styles.detailsLabel}>Subject</Text>
+              <Text style={styles.detailsValue}>{selectedHomework.subject}</Text>
             </View>
-          )}
 
-          {isPastDue && !submission && (
-            <View style={[styles.infoBox, { backgroundColor: '#fee2e2' }]}>
-              <Ionicons name="alarm" size={18} color="#991b1b" />
-              <Text style={[styles.infoText, { color: '#991b1b' }]}>Submission deadline has passed</Text>
+            <View style={styles.detailsSection}>
+              <Text style={styles.detailsLabel}>Description</Text>
+              <Text style={styles.detailsValue}>{selectedHomework.description}</Text>
             </View>
-          )}
 
-          {isGraded && (
-            <View style={styles.gradeCard}>
-              <View style={styles.gradeHeader}>
-                <Ionicons name="bar-chart" size={20} color="#065f46" />
-                <Text style={styles.gradeTitle}>Teacher's Feedback</Text>
+            <View style={styles.detailsSection}>
+              <Text style={styles.detailsLabel}>Due Date</Text>
+              <View style={styles.dueDateRow}>
+                <Ionicons name="calendar" size={18} color="#6366f1" />
+                <Text style={styles.dueDate}>
+                  {new Date(selectedHomework.dueDate).toLocaleString()}
+                </Text>
               </View>
-              <View style={styles.gradeRow}>
-                <Text style={styles.gradeLabel}>Grade:</Text>
-                <Text style={styles.gradeValue}>{submission?.grade}/100</Text>
+            </View>
+
+            {selectedHomework.attachmentUrl && (
+              <TouchableOpacity
+                style={styles.attachmentButton}
+                onPress={() => {
+                  Linking.openURL(selectedHomework.attachmentUrl!).catch(() => {
+                    Alert.alert('Error', 'Unable to open attachment');
+                  });
+                }}
+              >
+                <Ionicons name="document-attach" size={24} color="#fff" />
+                <Text style={styles.attachmentButtonText}>VIEW ATTACHED MEDIA</Text>
+              </TouchableOpacity>
+            )}
+
+            {!canSubmit && selectedHomework.status === HomeworkStatus.PENDING && (
+              <View style={styles.infoBox}>
+                <Ionicons name="hourglass-outline" size={18} color="#92400e" />
+                <Text style={styles.infoText}>This task is pending and not yet accepting submissions</Text>
               </View>
-              {submission?.teacherFeedback && (
-                <View style={styles.feedbackSection}>
-                  <Text style={styles.feedbackLabel}>Feedback:</Text>
-                  <Text style={styles.feedbackText}>{submission.teacherFeedback}</Text>
+            )}
+
+            {isPastDue && !submission && (
+              <View style={[styles.infoBox, { backgroundColor: '#fee2e2' }]}>
+                <Ionicons name="alarm" size={18} color="#991b1b" />
+                <Text style={[styles.infoText, { color: '#991b1b' }]}>Submission deadline has passed</Text>
+              </View>
+            )}
+
+            {isGraded && (
+              <View style={styles.gradeCard}>
+                <View style={styles.gradeHeader}>
+                  <Ionicons name="bar-chart" size={20} color="#065f46" />
+                  <Text style={styles.gradeTitle}>Teacher's Feedback</Text>
                 </View>
-              )}
-              {submission?.gradedAt && (
-                <Text style={styles.gradedTime}>
-                  Graded on: {new Date(submission.gradedAt._seconds * 1000).toLocaleString()}
-                </Text>
-              )}
-            </View>
-          )}
-        </View>
-
-        <View style={styles.submissionSection}>
-          <View style={styles.submissionTitleRow}>
-            <Ionicons name={submission ? "checkmark-circle" : "create"} size={22} color={submission ? "#10b981" : "#6366f1"} />
-            <Text style={styles.submissionTitle}>
-              {submission ? 'Your Submission' : 'Submit Your Work'}
-            </Text>
+                <View style={styles.gradeRow}>
+                  <Text style={styles.gradeLabel}>Grade:</Text>
+                  <Text style={styles.gradeValue}>{submission?.grade}/100</Text>
+                </View>
+                {submission?.teacherFeedback && (
+                  <View style={styles.feedbackSection}>
+                    <Text style={styles.feedbackLabel}>Feedback:</Text>
+                    <Text style={styles.feedbackText}>{submission.teacherFeedback}</Text>
+                  </View>
+                )}
+                {submission?.gradedAt && (
+                  <Text style={styles.gradedTime}>
+                    Graded on: {new Date(submission.gradedAt._seconds * 1000).toLocaleString()}
+                  </Text>
+                )}
+              </View>
+            )}
           </View>
 
-          {isGraded && (
-            <View style={styles.warningBox}>
-              <Ionicons name="lock-closed" size={16} color="#92400e" />
-              <Text style={styles.warningText}>This submission has been graded and can no longer be edited</Text>
-            </View>
-          )}
-
-          {!isGraded && isPastDue && (
-            <View style={styles.warningBox}>
-              <Ionicons name="lock-closed" size={16} color="#92400e" />
-              <Text style={styles.warningText}>Deadline has passed - no more edits allowed</Text>
-            </View>
-          )}
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Text Answer</Text>
-            <TextInput
-              style={[styles.textArea, (!canSubmit && !canEdit) && styles.disabledInput]}
-              placeholder="Type your answer here..."
-              value={textContent}
-              onChangeText={setTextContent}
-              multiline
-              numberOfLines={6}
-              textAlignVertical="top"
-              editable={canSubmit || canEdit}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Upload Document (Optional)</Text>
-            <TouchableOpacity 
-              style={[styles.uploadButton, (!canSubmit && !canEdit) && styles.disabledButton]}
-              onPress={handlePickDocument}
-              disabled={!canSubmit && !canEdit}
-            >
-              <Ionicons name={fileName ? "document-attach" : "cloud-upload"} size={20} color={(!canSubmit && !canEdit) ? "#9ca3af" : "#6366f1"} />
-              <Text style={styles.uploadButtonText}>
-                {fileName ? fileName : 'Choose File'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {(canSubmit || canEdit) && (
-            <TouchableOpacity 
-              style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
-              onPress={handleSubmit}
-              disabled={submitting}
-            >
-              {submitting ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.submitButtonText}>
-                  {submission ? 'Update Submission' : 'Submit Homework'}
-                </Text>
-              )}
-            </TouchableOpacity>
-          )}
-
-          {submission && (
-            <View style={styles.submissionInfo}>
-              <Text style={styles.submissionInfoText}>
-                Last updated: {new Date(submission.updatedAt._seconds * 1000).toLocaleString()}
+          <View style={styles.submissionSection}>
+            <View style={styles.submissionTitleRow}>
+              <Ionicons name={submission ? "checkmark-circle" : "create"} size={22} color={submission ? "#10b981" : "#6366f1"} />
+              <Text style={styles.submissionTitle}>
+                {submission ? 'Your Submission' : 'Submit Your Work'}
               </Text>
             </View>
-          )}
-        </View>
-      </ScrollView>
+
+            {isGraded && (
+              <View style={styles.warningBox}>
+                <Ionicons name="lock-closed" size={16} color="#92400e" />
+                <Text style={styles.warningText}>This submission has been graded and can no longer be edited</Text>
+              </View>
+            )}
+
+            {!isGraded && isPastDue && (
+              <View style={styles.warningBox}>
+                <Ionicons name="lock-closed" size={16} color="#92400e" />
+                <Text style={styles.warningText}>Deadline has passed - no more edits allowed</Text>
+              </View>
+            )}
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Text Answer</Text>
+              <TextInput
+                style={[styles.textArea, (!canSubmit && !canEdit) && styles.disabledInput]}
+                placeholder="Type your answer here..."
+                value={textContent}
+                onChangeText={setTextContent}
+                multiline
+                numberOfLines={6}
+                textAlignVertical="top"
+                editable={canSubmit || canEdit}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Upload Document (Optional)</Text>
+              <TouchableOpacity
+                style={[styles.uploadButton, (!canSubmit && !canEdit) && styles.disabledButton]}
+                onPress={handlePickDocument}
+                disabled={!canSubmit && !canEdit}
+              >
+                <Ionicons name={fileName ? "document-attach" : "cloud-upload"} size={20} color={(!canSubmit && !canEdit) ? "#9ca3af" : "#6366f1"} />
+                <Text style={styles.uploadButtonText}>
+                  {fileName ? fileName : 'Choose File'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {(canSubmit || canEdit) && (
+              <TouchableOpacity
+                style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
+                onPress={handleSubmit}
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.submitButtonText}>
+                    {submission ? 'Update Submission' : 'Submit Homework'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            )}
+
+            {submission && (
+              <View style={styles.submissionInfo}>
+                <Text style={styles.submissionInfoText}>
+                  Last updated: {new Date(submission.updatedAt._seconds * 1000).toLocaleString()}
+                </Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     );
   }
@@ -520,8 +534,8 @@ const TasksScreen: React.FC = () => {
           {/* Filters */}
           <View style={styles.filtersWrapper}>
             <Text style={styles.filtersTitle}>Filter by:</Text>
-            <ScrollView 
-              horizontal 
+            <ScrollView
+              horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.filterContent}
             >
@@ -538,7 +552,7 @@ const TasksScreen: React.FC = () => {
                   </Text>
                 </View>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.filterChip, filter === 'needsSubmission' && styles.filterChipActive]}
                 onPress={() => setFilter('needsSubmission')}
@@ -607,7 +621,7 @@ const TasksScreen: React.FC = () => {
               const submission = submissions[homework.id];
               const isGraded = submission && submission.grade !== null && submission.grade !== undefined;
               const isPastDue = new Date(homework.dueDate) < new Date();
-              
+
               return (
                 <TouchableOpacity
                   key={homework.id}
@@ -652,8 +666,8 @@ const TasksScreen: React.FC = () => {
                     <View style={styles.dueDateContainer}>
                       <Text style={styles.dueDateLabel}>Due Date:</Text>
                       <Text style={[styles.dueDateValue, isPastDue && !submission && styles.overdueDateValue]}>
-                        {new Date(homework.dueDate).toLocaleDateString('en-US', { 
-                          month: 'short', 
+                        {new Date(homework.dueDate).toLocaleDateString('en-US', {
+                          month: 'short',
                           day: 'numeric',
                           year: 'numeric',
                           hour: '2-digit',
@@ -1162,6 +1176,22 @@ const styles = StyleSheet.create({
   disabledButton: {
     backgroundColor: '#f3f4f6',
     opacity: 0.6,
+  },
+  attachmentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#6366f1',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 12,
+    marginBottom: 12,
+    gap: 8,
+  },
+  attachmentButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });
 
