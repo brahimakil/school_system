@@ -37,10 +37,6 @@ export class CreateStudentDto {
   @IsOptional()
   @IsString()
   photoUrl?: string;
-
-  @IsOptional()
-  @IsString()
-  geminiApiKey?: string;
 }
 
 export class UpdateStudentDto {
@@ -75,8 +71,4 @@ export class UpdateStudentDto {
   @IsOptional()
   @IsString()
   photoUrl?: string;
-
-  @IsOptional()
-  @IsString()
-  geminiApiKey?: string;
 }

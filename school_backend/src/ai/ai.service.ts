@@ -5,12 +5,124 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 // Global model name for easy configuration
 export const GEMINI_MODEL_NAME = 'gemini-2.0-flash-exp';
 
+// AI Settings document ID in Firestore
+const AI_SETTINGS_DOC = 'ai_settings';
+const SETTINGS_COLLECTION = 'settings';
+
+export interface AiSettings {
+  apiKey: string;
+  enabled: boolean;
+  lastUpdated: admin.firestore.Timestamp;
+  lastTestedAt?: admin.firestore.Timestamp;
+  lastTestResult?: string;
+}
+
 @Injectable()
 export class AiService {
   private db: admin.firestore.Firestore;
 
   constructor(@Inject('FIREBASE_ADMIN') private firebaseAdmin: typeof admin) {
     this.db = firebaseAdmin.firestore();
+  }
+
+  /**
+   * Get AI settings from Firestore
+   */
+  async getAiSettings(): Promise<AiSettings | null> {
+    const doc = await this.db.collection(SETTINGS_COLLECTION).doc(AI_SETTINGS_DOC).get();
+    if (!doc.exists) {
+      return null;
+    }
+    return doc.data() as AiSettings;
+  }
+
+  /**
+   * Save AI settings to Firestore
+   */
+  async saveAiSettings(apiKey: string, enabled: boolean = true): Promise<{ success: boolean; message: string }> {
+    try {
+      await this.db.collection(SETTINGS_COLLECTION).doc(AI_SETTINGS_DOC).set({
+        apiKey,
+        enabled,
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+
+      return { success: true, message: 'AI settings saved successfully' };
+    } catch (error) {
+      console.error('Error saving AI settings:', error);
+      return { success: false, message: 'Failed to save AI settings' };
+    }
+  }
+
+  /**
+   * Test an API key for validity
+   */
+  async testApiKey(apiKey: string): Promise<{ success: boolean; message: string; response?: string }> {
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: GEMINI_MODEL_NAME });
+
+      const result = await model.generateContent('Hello! Respond with just "OK" to confirm you are working.');
+      const response = await result.response;
+      const text = response.text();
+
+      // Update last test result in settings if this is the saved key
+      const settings = await this.getAiSettings();
+      if (settings && settings.apiKey === apiKey) {
+        await this.db.collection(SETTINGS_COLLECTION).doc(AI_SETTINGS_DOC).update({
+          lastTestedAt: admin.firestore.FieldValue.serverTimestamp(),
+          lastTestResult: 'success',
+        });
+      }
+
+      return {
+        success: true,
+        message: 'API key is valid and working!',
+        response: text,
+      };
+    } catch (error) {
+      console.error('API key test failed:', error);
+      return {
+        success: false,
+        message: error.message?.includes('API_KEY_INVALID') 
+          ? 'Invalid API key' 
+          : `API test failed: ${error.message || 'Unknown error'}`,
+      };
+    }
+  }
+
+  /**
+   * Toggle AI enabled/disabled status
+   */
+  async toggleAiEnabled(enabled: boolean): Promise<{ success: boolean; message: string }> {
+    try {
+      await this.db.collection(SETTINGS_COLLECTION).doc(AI_SETTINGS_DOC).update({
+        enabled,
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      return { success: true, message: `AI ${enabled ? 'enabled' : 'disabled'} successfully` };
+    } catch (error) {
+      console.error('Error toggling AI:', error);
+      return { success: false, message: 'Failed to update AI status' };
+    }
+  }
+
+  /**
+   * Get the global API key (throws if not configured)
+   */
+  private async getGlobalApiKey(): Promise<string> {
+    const settings = await this.getAiSettings();
+    
+    if (!settings || !settings.apiKey) {
+      throw new BadRequestException('AI is not configured. Please contact the administrator.');
+    }
+
+    if (!settings.enabled) {
+      throw new BadRequestException('AI assistant is currently disabled. Please contact the administrator.');
+    }
+
+    return settings.apiKey;
   }
 
   /**
@@ -189,7 +301,10 @@ export class AiService {
     image?: { mimeType: string; data: string }
   ): Promise<{ response: string }> {
     try {
-      // Get student data and API key
+      // Get the global API key (configured by admin)
+      const apiKey = await this.getGlobalApiKey();
+
+      // Get student data for context
       const studentDoc = await this.db.collection('students').doc(studentId).get();
       if (!studentDoc.exists) {
         throw new NotFoundException('Student not found');
@@ -200,13 +315,7 @@ export class AiService {
         throw new NotFoundException('Student data not found');
       }
 
-      const apiKey = studentData.geminiApiKey;
-
-      if (!apiKey) {
-        throw new BadRequestException('Please configure your Gemini API key in your profile first');
-      }
-
-      // Initialize Gemini
+      // Initialize Gemini with global API key
       const genAI = new GoogleGenerativeAI(apiKey);
 
       // Build context
@@ -245,7 +354,12 @@ export class AiService {
       console.error('AI Chat Error:', error);
 
       if (error.message?.includes('API_KEY_INVALID') || error.message?.includes('API key')) {
-        throw new BadRequestException('Your Gemini API key is invalid. Please update it in your profile.');
+        throw new BadRequestException('AI service configuration error. Please contact the administrator.');
+      }
+
+      // Re-throw BadRequestException and NotFoundException as-is
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
       }
 
       throw new BadRequestException(`AI service error: ${error.message || 'Unknown error'}`);
