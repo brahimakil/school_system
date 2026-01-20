@@ -6,6 +6,8 @@ interface Teacher {
   email: string;
   name: string;
   subject?: string;
+  subjects?: string[];
+  subjectIds?: string[];
 }
 
 interface AuthContextType {
@@ -94,6 +96,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: response.data.email,
         name: response.data.name,
         subject: response.data.subject,
+        subjects: response.data.subjects || [response.data.subject],
+        subjectIds: response.data.subjectIds || [],
       };
       localStorage.setItem('teacher_token', response.data.token);
       localStorage.setItem('teacher_user', JSON.stringify(userData));

@@ -16,7 +16,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, doc, updateDoc } from 'firebase/firestore';
 import axios from 'axios';
 
 // Production backend URL
@@ -61,53 +61,145 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ navigation }) => {
   const [uploading, setUploading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
-  // Real-time listener for student's chat rooms
+  // Fetch chat rooms from API and set up real-time listeners
   useEffect(() => {
     if (!student?.uid) {
       setLoading(false);
       return;
     }
 
-    console.log('Setting up Firestore listener for student:', student.uid);
-    const q = query(
-      collection(db, 'chatRooms'),
-      where('studentId', '==', student.uid)
-    );
+    let privateUnsubscribe: (() => void) | null = null;
+    let classUnsubscribes: (() => void)[] = [];
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const roomsData: ChatRoom[] = [];
-      
-      for (const doc of snapshot.docs) {
-        const data = doc.data();
-        roomsData.push({
-          id: doc.id,
-          name: data.name || '',
-          type: data.type,
-          classId: data.classId,
-          teacherId: data.teacherId,
-          isActive: data.isActive ?? true,
-          lastMessage: data.lastMessage || '',
-          lastMessageTime: data.lastMessageTime?.toDate(),
-          unreadCount: data.unreadCount || 0,
+    const fetchAndSetupRooms = async () => {
+      try {
+        console.log('Fetching chat rooms from API for student:', student.uid);
+        
+        // Fetch rooms from API (this handles the complex class room logic)
+        const response = await axios.get(`${API_URL}/chat/rooms/student/${student.uid}`);
+        const apiRooms = response.data?.data || [];
+        
+        console.log('API returned rooms:', apiRooms.length);
+        
+        // Set initial rooms from API
+        const initialRooms: ChatRoom[] = apiRooms.map((room: any) => ({
+          id: room.id,
+          name: room.type === 'private' ? (room.teacherName || room.name || 'Teacher') : (room.name || ''),
+          type: room.type,
+          classId: room.classId,
+          teacherId: room.teacherId,
+          isActive: room.isActive ?? true,
+          lastMessage: room.lastMessage || '',
+          lastMessageTime: room.lastMessageTime ? new Date(room.lastMessageTime) : undefined,
+          unreadCount: room.studentUnreadCount || 0,
+        }));
+        
+        setRooms(initialRooms);
+        setLoading(false);
+
+        // Set up real-time listener for private rooms (by studentId)
+        const privateQuery = query(
+          collection(db, 'chatRooms'),
+          where('studentId', '==', student.uid)
+        );
+
+        privateUnsubscribe = onSnapshot(privateQuery, (snapshot) => {
+          setRooms(prevRooms => {
+            const updatedRooms = [...prevRooms];
+            
+            for (const doc of snapshot.docs) {
+              const data = doc.data();
+              const existingIndex = updatedRooms.findIndex(r => r.id === doc.id);
+              const roomData: ChatRoom = {
+                id: doc.id,
+                name: data.teacherName || data.name || 'Teacher',
+                type: data.type,
+                classId: data.classId,
+                teacherId: data.teacherId,
+                isActive: data.isActive ?? true,
+                lastMessage: data.lastMessage || '',
+                lastMessageTime: data.lastMessageTime?.toDate(),
+                unreadCount: data.studentUnreadCount || 0,
+              };
+              
+              if (existingIndex >= 0) {
+                updatedRooms[existingIndex] = roomData;
+              } else {
+                updatedRooms.push(roomData);
+              }
+            }
+            
+            // Sort by last message time
+            updatedRooms.sort((a, b) => {
+              const aTime = a.lastMessageTime?.getTime() || 0;
+              const bTime = b.lastMessageTime?.getTime() || 0;
+              return bTime - aTime;
+            });
+            
+            return updatedRooms;
+          });
         });
+
+        // Set up real-time listeners for each class room (by room ID)
+        const classRoomIds = apiRooms
+          .filter((r: any) => r.type === 'class')
+          .map((r: any) => r.id);
+        
+        for (const roomId of classRoomIds) {
+          const roomRef = collection(db, 'chatRooms');
+          // We can't use doc() with onSnapshot directly, so we use where with __name__
+          const classQuery = query(roomRef, where('__name__', '==', roomId));
+          
+          const unsub = onSnapshot(classQuery, (snapshot) => {
+            setRooms(prevRooms => {
+              const updatedRooms = [...prevRooms];
+              
+              for (const doc of snapshot.docs) {
+                const data = doc.data();
+                const existingIndex = updatedRooms.findIndex(r => r.id === doc.id);
+                const roomData: ChatRoom = {
+                  id: doc.id,
+                  name: data.name || '',
+                  type: data.type,
+                  classId: data.classId,
+                  teacherId: data.teacherId,
+                  isActive: data.isActive ?? true,
+                  lastMessage: data.lastMessage || '',
+                  lastMessageTime: data.lastMessageTime?.toDate(),
+                  unreadCount: data.studentUnreadCount || 0,
+                };
+                
+                if (existingIndex >= 0) {
+                  updatedRooms[existingIndex] = roomData;
+                }
+              }
+              
+              // Sort by last message time
+              updatedRooms.sort((a, b) => {
+                const aTime = a.lastMessageTime?.getTime() || 0;
+                const bTime = b.lastMessageTime?.getTime() || 0;
+                return bTime - aTime;
+              });
+              
+              return updatedRooms;
+            });
+          });
+          
+          classUnsubscribes.push(unsub);
+        }
+        
+      } catch (error) {
+        console.error('Error fetching chat rooms:', error);
+        setLoading(false);
       }
+    };
 
-      // Sort by last message time
-      roomsData.sort((a, b) => {
-        const aTime = a.lastMessageTime?.getTime() || 0;
-        const bTime = b.lastMessageTime?.getTime() || 0;
-        return bTime - aTime;
-      });
+    fetchAndSetupRooms();
 
-      console.log('Received rooms from Firestore:', roomsData.length);
-      setRooms(roomsData);
-      setLoading(false);
-    }, (error) => {
-      console.error('Firestore listener error:', error);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    return () => {
+      if (privateUnsubscribe) privateUnsubscribe();
+      classUnsubscribes.forEach(unsub => unsub());
+    };
   }, [student?.uid]);
 
   // Real-time listener for messages in selected room
@@ -156,13 +248,29 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ navigation }) => {
     }
   }, [messages]);
 
-  const handleRoomSelect = (room: ChatRoom) => {
+  const handleRoomSelect = async (room: ChatRoom) => {
     setSelectedRoom(room);
     // Messages will be loaded by Firestore listener
-    // Clear unread count
+    // Clear unread count in UI
     setRooms((prev) =>
       prev.map((r) => (r.id === room.id ? { ...r, unreadCount: 0 } : r))
     );
+    // Mark room as read in Firestore
+    try {
+      await axios.patch(`${API_URL}/chat/rooms/${room.id}/read`, {
+        userType: 'student'
+      });
+    } catch (error) {
+      // If API fails, update Firestore directly as fallback
+      console.log('API mark as read failed, updating Firestore directly');
+      try {
+        await updateDoc(doc(db, 'chatRooms', room.id), {
+          studentUnreadCount: 0
+        });
+      } catch (firestoreError) {
+        console.error('Error updating Firestore directly:', firestoreError);
+      }
+    }
   };
 
   const handleFileSelect = async () => {

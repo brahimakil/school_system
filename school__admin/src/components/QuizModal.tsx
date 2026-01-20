@@ -45,6 +45,7 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [selectedGradeSections, setSelectedGradeSections] = useState<string[]>([]);
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
   const [subjectName, setSubjectName] = useState<string>('');
   const [subjectCode, setSubjectCode] = useState<string>('');
   const [title, setTitle] = useState('');
@@ -95,8 +96,14 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
 
   const fetchResults = async (quizId: string) => {
     try {
-      const API_URL = 'http://192.168.0.103:3000';
-      const response = await fetch(`${API_URL}/quiz-results/quiz/${quizId}`);
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/quiz-results/quiz/${quizId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       const data = await response.json();
       const resultsData = data?.data || [];
       setResults(resultsData);
@@ -145,13 +152,21 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
     ? classes.filter(c => c.teacherId === selectedTeacherId)
     : [];
 
-  // Group teacher's classes by className to avoid duplicates
-  const uniqueTeacherClasses = Array.from(
-    new Map(teacherClasses.map(cls => [
-      cls.className,
-      cls
-    ])).values()
-  );
+  // Group classes by className and collect all schedules
+  const classesWithSchedules = teacherClasses.reduce((acc, cls) => {
+    const existing = acc.find(c => c.className === cls.className);
+    const schedule = { id: cls.id, day: cls.dayOfWeek, start: cls.startTime, end: cls.endTime };
+    if (existing) {
+      existing.schedules.push(schedule);
+    } else {
+      acc.push({
+        className: cls.className,
+        gradeSections: cls.gradeSections,
+        schedules: [schedule]
+      });
+    }
+    return acc;
+  }, [] as { className: string; gradeSections: any[]; schedules: { id: string; day: string; start: string; end: string }[] }[]);
 
   const selectedClass = classes.find(c => c.id === selectedClassId);
   const availableGradeSections = selectedClass?.gradeSections || [];
@@ -159,29 +174,56 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
   // Get selected teacher
   const selectedTeacher = teachers.find(t => t.id === selectedTeacherId);
   
-  // Update subject when teacher is selected
+  // Get teacher's available subjects (filtered from all subjects)
+  const teacherSubjectIds = selectedTeacher?.subjects || [];
+  const teacherAvailableSubjects = subjects.filter(s => 
+    teacherSubjectIds.includes(s.id) || teacherSubjectIds.includes(s.name)
+  );
+  
+  // Update subject when teacher is selected or subject selection changes
   useEffect(() => {
     if (selectedTeacher && subjects.length > 0) {
-      // Find the subject based on the teacher's subjects array
-      // Teacher has subjects array with subject IDs or names
       const teacherSubjects = selectedTeacher.subjects || [];
       
       if (teacherSubjects.length > 0) {
-        // Get the first subject (or you can let admin choose if multiple)
-        const subjectId = teacherSubjects[0];
-        const subject = subjects.find(s => s.id === subjectId || s.name === subjectId);
-        
-        if (subject) {
-          setSubjectName(subject.name);
-          setSubjectCode(subject.code);
+        // If teacher has only one subject, auto-select it
+        if (teacherSubjects.length === 1) {
+          const subjectId = teacherSubjects[0];
+          const subject = subjects.find(s => s.id === subjectId || s.name === subjectId);
+          
+          if (subject) {
+            setSelectedSubjectId(subject.id);
+            setSubjectName(subject.name);
+            setSubjectCode(subject.code || '');
+          }
+        } else if (!selectedSubjectId) {
+          // Multiple subjects but none selected - clear fields
+          setSubjectName('');
+          setSubjectCode('');
         }
       }
     } else {
       // Clear subject when no teacher selected
+      setSelectedSubjectId('');
       setSubjectName('');
       setSubjectCode('');
     }
   }, [selectedTeacher, subjects]);
+
+  // Handle subject selection change
+  const handleSubjectChange = (subjectId: string) => {
+    setSelectedSubjectId(subjectId);
+    setSelectedClassId(''); // Reset class when subject changes
+    setSelectedGradeSections([]); // Reset grade sections
+    const subject = subjects.find(s => s.id === subjectId);
+    if (subject) {
+      setSubjectName(subject.name);
+      setSubjectCode(subject.code || '');
+    } else {
+      setSubjectName('');
+      setSubjectCode('');
+    }
+  };
 
   const handleGradeSectionToggle = (gradeSection: string) => {
     if (selectedGradeSections.includes(gradeSection)) {
@@ -363,6 +405,9 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
                 setSelectedTeacherId(e.target.value);
                 setSelectedClassId('');
                 setSelectedGradeSections([]);
+                setSelectedSubjectId('');
+                setSubjectName('');
+                setSubjectCode('');
               }}
               required
               disabled={viewMode}
@@ -380,20 +425,36 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
           </div>
 
           {/* Subject Display (greyed out, auto-populated after teacher selection) */}
-          {selectedTeacherId && subjectName && (
+          {selectedTeacherId && teacherAvailableSubjects.length > 0 && (
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Subject Name</label>
-                <input
-                  type="text"
-                  value={subjectName}
-                  disabled
-                  style={{ 
-                    backgroundColor: '#f1f5f9', 
-                    color: '#64748b',
-                    cursor: 'not-allowed'
-                  }}
-                />
+                <label className="form-label required">Subject</label>
+                {teacherAvailableSubjects.length === 1 ? (
+                  <input
+                    type="text"
+                    value={subjectName}
+                    disabled
+                    style={{ 
+                      backgroundColor: '#f1f5f9', 
+                      color: '#64748b',
+                      cursor: 'not-allowed'
+                    }}
+                  />
+                ) : (
+                  <select
+                    value={selectedSubjectId}
+                    onChange={(e) => handleSubjectChange(e.target.value)}
+                    required
+                    disabled={viewMode}
+                  >
+                    <option value="">Select a subject</option>
+                    {teacherAvailableSubjects.map(subject => (
+                      <option key={subject.id} value={subject.id}>
+                        {subject.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
               {subjectCode && (
                 <div className="form-group">
@@ -414,7 +475,7 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
           )}
 
           {/* Class Selection (only for selected teacher) */}
-          {selectedTeacherId && uniqueTeacherClasses.length > 0 && (
+          {selectedTeacherId && classesWithSchedules.length > 0 && (
             <div className="form-group">
               <label className="form-label required">Select Class</label>
               <select
@@ -427,10 +488,14 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
                 disabled={viewMode}
               >
                 <option value="">Choose a class</option>
-                {uniqueTeacherClasses.map(cls => (
-                  <option key={cls.id} value={cls.id}>
-                    {cls.className}
-                  </option>
+                {classesWithSchedules.map(cls => (
+                  <optgroup key={cls.className} label={cls.className}>
+                    {cls.schedules.map(schedule => (
+                      <option key={schedule.id} value={schedule.id}>
+                        {schedule.day} {schedule.start} - {schedule.end}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>

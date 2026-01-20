@@ -9,10 +9,12 @@ interface CourseModalProps {
     viewMode?: boolean;
     myClasses: Class[];
     subjectName: string;
+    subjects?: string[]; // Array of subject names when teacher has multiple subjects
 }
 
-const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = false, myClasses, subjectName }) => {
+const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = false, myClasses, subjectName, subjects }) => {
     const [loading, setLoading] = useState(false);
+    const [selectedSubject, setSelectedSubject] = useState<string>(subjectName);
 
     // Form state
     const [selectedClassId, setSelectedClassId] = useState<string>('');
@@ -41,10 +43,22 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
         }
     }, [course, myClasses]);
 
-    // Get unique classes for dropdown
-    const uniqueClasses = Array.from(
-        new Map(myClasses.map(cls => [cls.className, cls])).values()
-    );
+
+    // Group classes by className and collect all schedules
+    const classesWithSchedules = subjectFilteredClasses.reduce((acc, cls) => {
+        const existing = acc.find(c => c.className === cls.className);
+        const schedule = { id: cls.id, day: cls.dayOfWeek, start: cls.startTime, end: cls.endTime };
+        if (existing) {
+            existing.schedules.push(schedule);
+        } else {
+            acc.push({
+                className: cls.className,
+                gradeSections: cls.gradeSections,
+                schedules: [schedule]
+            });
+        }
+        return acc;
+    }, [] as { className: string; gradeSections: any[]; schedules: { id: string; day: string; start: string; end: string }[] }[]);
 
     const selectedClass = myClasses.find(c => c.id === selectedClassId);
     const availableGradeSections = selectedClass?.gradeSections || [];
@@ -78,7 +92,15 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedClassId || selectedGradeSections.length === 0 || !title || !subjectName) {
+        
+        // Validate subject selection when multiple subjects exist
+        const subjectToUse = selectedSubject || subjectName;
+        if (subjects && subjects.length > 1 && !selectedSubject) {
+            alert('Please select a subject');
+            return;
+        }
+        
+        if (!selectedClassId || selectedGradeSections.length === 0 || !title || !subjectToUse) {
             alert('Please fill in all required fields');
             return;
         }
@@ -89,7 +111,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
             formData.append('classId', selectedClassId);
             formData.append('className', selectedClass?.className || '');
             formData.append('gradeSections', JSON.stringify(selectedGradeSections));
-            formData.append('subject', subjectName);
+            formData.append('subject', subjectToUse);
             formData.append('title', title);
             formData.append('description', description);
             formData.append('status', status);
@@ -127,8 +149,29 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
                 </div>
 
                 <form onSubmit={handleSubmit} className="modal-form">
-                    {/* Subject Display (auto from teacher) */}
-                    {subjectName && (
+                    {/* Subject Selection/Display */}
+                    {subjects && subjects.length > 1 ? (
+                        <div className="form-group">
+                            <label className="form-label required">Subject</label>
+                            <select
+                                value={selectedSubject}
+                                onChange={(e) => {
+                                    setSelectedSubject(e.target.value);
+                                    setSelectedClassId('');
+                                    setSelectedGradeSections([]);
+                                }}
+                                required
+                                disabled={viewMode}
+                            >
+                                <option value="">Choose a subject</option>
+                                {subjects.map((subject, idx) => (
+                                    <option key={idx} value={subject}>
+                                        {subject}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    ) : subjectName && (
                         <div className="form-group">
                             <label className="form-label">Subject</label>
                             <input
@@ -153,10 +196,14 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
                             disabled={viewMode}
                         >
                             <option value="">Choose a class</option>
-                            {uniqueClasses.map(cls => (
-                                <option key={cls.id} value={cls.id}>
-                                    {cls.className}
-                                </option>
+                            {classesWithSchedules.map(cls => (
+                                <optgroup key={cls.className} label={cls.className}>
+                                    {cls.schedules.map(schedule => (
+                                        <option key={schedule.id} value={schedule.id}>
+                                            {schedule.day} {schedule.start} - {schedule.end}
+                                        </option>
+                                    ))}
+                                </optgroup>
                             ))}
                         </select>
                     </div>

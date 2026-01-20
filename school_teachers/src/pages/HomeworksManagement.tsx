@@ -22,6 +22,7 @@ const HomeworksManagement: React.FC = () => {
 
     // Teacher's subject (from user context)
     const subjectName = user?.subject || 'General';
+    const teacherSubjects = user?.subjects || [subjectName];
 
     useEffect(() => {
         fetchData();
@@ -290,6 +291,7 @@ const HomeworksManagement: React.FC = () => {
                     viewMode={viewMode}
                     myClasses={myClasses}
                     subjectName={subjectName}
+                    subjects={teacherSubjects}
                 />
             )}
         </div>

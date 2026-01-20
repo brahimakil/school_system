@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { studentAuthAPI, StudentData, SignupData, LoginData, homeworkAPI, quizAPI } from '../services/api';
+import { studentAuthAPI, StudentData, SignupData, LoginData, homeworkAPI, quizAPI, coursesAPI } from '../services/api';
 import { NotificationService } from '../services/notificationService';
 
 interface Student {
@@ -78,8 +78,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    // Start periodic check - 5 seconds for debugging (change to 3600 for production = 1 hour)
-    NotificationService.startPeriodicCheck(fetchHomeworks, fetchQuizzes, 5);
+    const fetchCourses = async () => {
+      try {
+        const response = await coursesAPI.getMyCourses(
+          student.currentGrade.grade,
+          student.currentGrade.section
+        );
+        return response.success ? response.data : [];
+      } catch (error) {
+        console.error('Failed to fetch courses for notifications:', error);
+        return [];
+      }
+    };
+
+    // Start periodic check every 30 seconds for new content and quiz reminders
+    NotificationService.startPeriodicCheck(fetchHomeworks, fetchQuizzes, fetchCourses, 30);
   };
 
   const checkAuth = async () => {
@@ -186,6 +199,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
+      // Clear notification tracking data
+      await NotificationService.clearNotificationData();
+      NotificationService.stopPeriodicCheck();
+      
       await AsyncStorage.removeItem('studentToken');
       await AsyncStorage.removeItem('studentData');
       setStudent(null);

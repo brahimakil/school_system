@@ -47,6 +47,14 @@ export const chatAPI = {
     return response.data;
   },
 
+  // Mark room as read (reset unread count)
+  markRoomAsRead: async (roomId: string, userType: 'teacher' | 'student') => {
+    const response = await axios.patch(`${API_URL}/chat/rooms/${roomId}/read`, {
+      userType,
+    });
+    return response.data;
+  },
+
   // Upload file
   uploadFile: async (file: File) => {
     const formData = new FormData();

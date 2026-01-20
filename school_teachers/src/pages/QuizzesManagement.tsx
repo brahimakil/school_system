@@ -20,6 +20,10 @@ const QuizzesManagement: React.FC = () => {
     const [selectedStatus, setSelectedStatus] = useState<string>('All');
     const [selectedClass, setSelectedClass] = useState<string>('All');
 
+    // Teacher's subjects (from user context)
+    const subjectName = user?.subject || 'General';
+    const teacherSubjects = user?.subjects || [subjectName];
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -289,6 +293,8 @@ const QuizzesManagement: React.FC = () => {
                     onClose={handleModalClose}
                     viewMode={viewMode}
                     myClasses={myClasses}
+                    subjectName={subjectName}
+                    subjects={teacherSubjects}
                 />
             )}
         </div>

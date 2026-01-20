@@ -22,6 +22,7 @@ const CoursesManagement: React.FC = () => {
 
     // Teacher's subject (from user context)
     const subjectName = user?.subject || 'General';
+    const teacherSubjects = user?.subjects || [subjectName];
 
     useEffect(() => {
         fetchData();
@@ -281,6 +282,7 @@ const CoursesManagement: React.FC = () => {
                     viewMode={viewMode}
                     myClasses={myClasses}
                     subjectName={subjectName}
+                    subjects={teacherSubjects}
                 />
             )}
         </div>

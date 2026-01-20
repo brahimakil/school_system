@@ -5,6 +5,8 @@ import { teachersAPI } from '../services/teachers.api';
 import { subjectsAPI } from '../api/subjects.api';
 import './TeacherModal.css';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 interface Submission {
   id: string;
   studentId: string;
@@ -41,6 +43,7 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [selectedGradeSections, setSelectedGradeSections] = useState<string[]>([]);
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
   const [subjectName, setSubjectName] = useState<string>('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -91,8 +94,12 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
 
   const fetchSubmissions = async (homeworkId: string) => {
     try {
-      const API_URL = 'http://192.168.0.103:3000';
-      const response = await fetch(`${API_URL}/submissions/homework/${homeworkId}`);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/submissions/homework/${homeworkId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const data = await response.json();
       const submissionsData = data?.data || [];
       setSubmissions(submissionsData);
@@ -134,33 +141,68 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
     if (selectedTeacherId && teachers.length > 0 && subjects.length > 0) {
       const teacher = teachers.find(t => t.id === selectedTeacherId);
       if (teacher && teacher.subjects && teacher.subjects.length > 0) {
-        // Assuming teacher has one main subject or we pick the first one
-        // In a real app, we might need a dropdown if teacher has multiple subjects
-        const subjectId = teacher.subjects[0];
-        const subject = subjects.find(s => s.id === subjectId);
-        if (subject) {
-          setSubjectName(subject.name);
+        // If teacher has only one subject, auto-select it
+        if (teacher.subjects.length === 1) {
+          const subjectId = teacher.subjects[0];
+          const subject = subjects.find(s => s.id === subjectId);
+          if (subject) {
+            setSelectedSubjectId(subject.id);
+            setSubjectName(subject.name);
+          }
+        } else if (!selectedSubjectId) {
+          // Multiple subjects but none selected - clear fields
+          setSubjectName('');
         }
       } else {
+        setSelectedSubjectId('');
         setSubjectName('');
       }
     } else if (!selectedTeacherId) {
+      setSelectedSubjectId('');
       setSubjectName('');
     }
   }, [selectedTeacherId, teachers, subjects]);
+
+  // Get teacher's available subjects
+  const selectedTeacher = teachers.find(t => t.id === selectedTeacherId);
+  const teacherSubjectIds = selectedTeacher?.subjects || [];
+  const teacherAvailableSubjects = subjects.filter(s => 
+    teacherSubjectIds.includes(s.id) || teacherSubjectIds.includes(s.name)
+  );
+
+  // Handle subject selection change
+  const handleSubjectChange = (subjectId: string) => {
+    setSelectedSubjectId(subjectId);
+    setSelectedClassId(''); // Reset class when subject changes
+    setSelectedGradeSections([]); // Reset grade sections
+    const subject = subjects.find(s => s.id === subjectId);
+    if (subject) {
+      setSubjectName(subject.name);
+    } else {
+      setSubjectName('');
+    }
+  };
 
   // Filter classes by selected teacher
   const teacherClasses = selectedTeacherId
     ? classes.filter(c => c.teacherId === selectedTeacherId)
     : [];
 
-  // Group teacher's classes by className to avoid duplicates
-  const uniqueTeacherClasses = Array.from(
-    new Map(teacherClasses.map(cls => [
-      cls.className,
-      cls
-    ])).values()
-  );
+  // Group classes by className and collect all schedules
+  const classesWithSchedules = teacherClasses.reduce((acc, cls) => {
+    const existing = acc.find(c => c.className === cls.className);
+    const schedule = { id: cls.id, day: cls.dayOfWeek, start: cls.startTime, end: cls.endTime };
+    if (existing) {
+      existing.schedules.push(schedule);
+    } else {
+      acc.push({
+        className: cls.className,
+        gradeSections: cls.gradeSections,
+        schedules: [schedule]
+      });
+    }
+    return acc;
+  }, [] as { className: string; gradeSections: any[]; schedules: { id: string; day: string; start: string; end: string }[] }[]);
 
   // Get grade/sections for selected class
   const availableGradeSections = selectedClassId
@@ -206,14 +248,17 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
     }
 
     try {
-      const API_URL = 'http://192.168.0.103:3000';
+      const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}/submissions/${selectedSubmission.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           grade: gradingGrade,
           teacherFeedback: gradingFeedback,
-          gradedBy: 'teacher' // In real app, use actual teacher ID
+          gradedBy: 'Admin'
         })
       });
 
@@ -350,6 +395,8 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
                   setSelectedTeacherId(e.target.value);
                   setSelectedClassId('');
                   setSelectedGradeSections([]);
+                  setSelectedSubjectId('');
+                  setSubjectName('');
                 }}
                 required
                 disabled={viewMode || !!homework} // Disable if editing existing homework (to simplify)
@@ -363,25 +410,41 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
               </select>
             </div>
 
-            {/* Subject Display */}
-            {selectedTeacherId && subjectName && (
+            {/* Subject Selection/Display */}
+            {selectedTeacherId && teacherAvailableSubjects.length > 0 && (
               <div className="form-group">
-                <label className="form-label">Subject</label>
-                <input
-                  type="text"
-                  value={subjectName}
-                  disabled
-                  style={{
-                    backgroundColor: '#f1f5f9',
-                    color: '#64748b',
-                    cursor: 'not-allowed'
-                  }}
-                />
+                <label className="form-label required">Subject</label>
+                {teacherAvailableSubjects.length === 1 ? (
+                  <input
+                    type="text"
+                    value={subjectName}
+                    disabled
+                    style={{
+                      backgroundColor: '#f1f5f9',
+                      color: '#64748b',
+                      cursor: 'not-allowed'
+                    }}
+                  />
+                ) : (
+                  <select
+                    value={selectedSubjectId}
+                    onChange={(e) => handleSubjectChange(e.target.value)}
+                    required
+                    disabled={viewMode}
+                  >
+                    <option value="">Choose a subject</option>
+                    {teacherAvailableSubjects.map(subject => (
+                      <option key={subject.id} value={subject.id}>
+                        {subject.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
             )}
 
             {/* Class Selection */}
-            {selectedTeacherId && uniqueTeacherClasses.length > 0 && (
+            {selectedTeacherId && classesWithSchedules.length > 0 && (
               <div className="form-group">
                 <label className="form-label required">Select Class</label>
                 <select
@@ -394,10 +457,14 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
                   disabled={viewMode}
                 >
                   <option value="">Choose a class</option>
-                  {uniqueTeacherClasses.map(cls => (
-                    <option key={cls.id} value={cls.id}>
-                      {cls.className}
-                    </option>
+                  {classesWithSchedules.map(cls => (
+                    <optgroup key={cls.className} label={cls.className}>
+                      {cls.schedules.map(schedule => (
+                        <option key={schedule.id} value={schedule.id}>
+                          {schedule.day} {schedule.start} - {schedule.end}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>
@@ -681,6 +748,7 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
                                 border: '1px solid #e2e8f0',
                                 borderRadius: '4px',
                                 color: '#1e293b',
+                                backgroundColor: '#ffffff',
                                 fontSize: '16px'
                               }}
                             />
@@ -699,6 +767,7 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
                                 border: '1px solid #e2e8f0',
                                 borderRadius: '4px',
                                 color: '#1e293b',
+                                backgroundColor: '#ffffff',
                                 fontSize: '14px'
                               }}
                               placeholder="Enter feedback for the student..."

@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import ChatWindow from '../components/ChatWindow';
 import type { ChatRoom } from '../types/chat.types';
 import { db } from '../config/firebase';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { chatAPI } from '../services/chatApi';
 import './Chat.css';
 
@@ -59,6 +59,8 @@ const Chat: React.FC = () => {
       
       for (const doc of snapshot.docs) {
         const data = doc.data();
+        const teacherUnread = data.teacherUnreadCount || 0;
+        console.log(`Room ${doc.id}: teacherUnreadCount = ${data.teacherUnreadCount}, using: ${teacherUnread}`);
         roomsData.push({
           id: doc.id,
           name: data.name || '',
@@ -70,7 +72,7 @@ const Chat: React.FC = () => {
           updatedAt: data.updatedAt?.toDate() || new Date(),
           lastMessage: data.lastMessage || '',
           lastMessageTime: data.lastMessageTime?.toDate(),
-          unreadCount: data.unreadCount || 0,
+          unreadCount: teacherUnread,
         } as ChatRoom);
       }
 
@@ -88,12 +90,26 @@ const Chat: React.FC = () => {
     return () => unsubscribe();
   }, [user?.id]);
 
-  const handleRoomSelect = (room: ChatRoom) => {
+  const handleRoomSelect = async (room: ChatRoom) => {
     setSelectedRoom(room);
-    // No need to join room with Firestore - just reset unread count
+    // Reset unread count in UI immediately
     setRooms(prev =>
       prev.map(r => (r.id === room.id ? { ...r, unreadCount: 0 } : r))
     );
+    // Mark room as read in Firestore
+    try {
+      await chatAPI.markRoomAsRead(room.id, 'teacher');
+    } catch (error) {
+      // If API fails, update Firestore directly as fallback
+      console.log('API mark as read failed, updating Firestore directly');
+      try {
+        await updateDoc(doc(db, 'chatRooms', room.id), {
+          teacherUnreadCount: 0
+        });
+      } catch (firestoreError) {
+        console.error('Error updating Firestore directly:', firestoreError);
+      }
+    }
   };
 
   const handleToggleRoomStatus = async (roomId: string, isActive: boolean) => {
@@ -291,7 +307,7 @@ const Chat: React.FC = () => {
                     <p className="chat-item-message">
                       {room.lastMessage || 'No messages yet'}
                     </p>
-                    {room.unreadCount && room.unreadCount > 0 && (
+                    {(room.unreadCount ?? 0) > 0 && (
                       <span className="chat-item-badge">{room.unreadCount}</span>
                     )}
                   </div>

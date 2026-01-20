@@ -22,6 +22,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [selectedGradeSections, setSelectedGradeSections] = useState<string[]>([]);
   const [subjectName, setSubjectName] = useState<string>('');
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<'pending' | 'active' | 'completed' | 'overdue'>('pending');
@@ -85,7 +86,23 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
   };
 
   // Filter classes based on selected teacher
-  const uniqueTeacherClasses = classes.filter(cls => cls.teacherId === selectedTeacherId);
+  const teacherClasses = classes.filter(cls => cls.teacherId === selectedTeacherId);
+
+  // Group classes by className and collect all schedules
+  const classesWithSchedules = teacherClasses.reduce((acc, cls) => {
+    const existing = acc.find(c => c.className === cls.className);
+    const schedule = { id: cls.id, day: cls.dayOfWeek, start: cls.startTime, end: cls.endTime };
+    if (existing) {
+      existing.schedules.push(schedule);
+    } else {
+      acc.push({
+        className: cls.className,
+        gradeSections: cls.gradeSections,
+        schedules: [schedule]
+      });
+    }
+    return acc;
+  }, [] as { className: string; gradeSections: any[]; schedules: { id: string; day: string; start: string; end: string }[] }[]);
 
   // Get available grade/sections from selected class
   const selectedClass = classes.find(c => c.id === selectedClassId);
@@ -96,18 +113,48 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
     if (selectedTeacherId && teachers.length > 0 && subjects.length > 0) {
       const teacher = teachers.find(t => t.id === selectedTeacherId);
       if (teacher && teacher.subjects && teacher.subjects.length > 0) {
-        const subjectId = teacher.subjects[0];
-        const subject = subjects.find(s => s.id === subjectId);
-        if (subject) {
-          setSubjectName(subject.name);
+        // If teacher has only one subject, auto-select it
+        if (teacher.subjects.length === 1) {
+          const subjectId = teacher.subjects[0];
+          const subject = subjects.find(s => s.id === subjectId || s.name === subjectId);
+          if (subject) {
+            setSelectedSubjectId(subject.id);
+            setSubjectName(subject.name);
+          }
+        } else {
+          // Multiple subjects - require user to select (unless editing)
+          if (!course) {
+            setSelectedSubjectId('');
+            setSubjectName('');
+          }
         }
       } else {
+        setSelectedSubjectId('');
         setSubjectName('');
       }
     } else if (!selectedTeacherId) {
+      setSelectedSubjectId('');
       setSubjectName('');
     }
   }, [selectedTeacherId, teachers, subjects]);
+
+  // Get teacher's available subjects
+  const selectedTeacher = teachers.find(t => t.id === selectedTeacherId);
+  const teacherSubjectIds = selectedTeacher?.subjects || [];
+  const teacherAvailableSubjects = subjects.filter(s => 
+    teacherSubjectIds.includes(s.id) || teacherSubjectIds.includes(s.name)
+  );
+
+  // Handle subject selection change
+  const handleSubjectChange = (subjectId: string) => {
+    setSelectedSubjectId(subjectId);
+    setSelectedClassId(''); // Reset class when subject changes
+    setSelectedGradeSections([]); // Reset grade sections
+    const subject = subjects.find(s => s.id === subjectId);
+    if (subject) {
+      setSubjectName(subject.name);
+    }
+  };
 
   const handleGradeSectionToggle = (gs: string) => {
     if (selectedGradeSections.includes(gs)) {
@@ -197,6 +244,8 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
                 setSelectedTeacherId(e.target.value);
                 setSelectedClassId('');
                 setSelectedGradeSections([]);
+                setSelectedSubjectId('');
+                setSubjectName('');
               }}
               required
               disabled={viewMode || !!course}
@@ -210,21 +259,37 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
             </select>
           </div>
 
-          {/* Subject Display */}
-          {selectedTeacherId && subjectName && (
+          {/* Subject Selection/Display */}
+          {selectedTeacherId && teacherAvailableSubjects.length > 0 && (
             <div className="form-group">
-              <label className="form-label">Subject</label>
-              <input
-                type="text"
-                value={subjectName}
-                disabled
-                style={{ backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'not-allowed' }}
-              />
+              <label className="form-label required">Subject</label>
+              {teacherAvailableSubjects.length === 1 ? (
+                <input
+                  type="text"
+                  value={subjectName}
+                  disabled
+                  style={{ backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'not-allowed' }}
+                />
+              ) : (
+                <select
+                  value={selectedSubjectId}
+                  onChange={(e) => handleSubjectChange(e.target.value)}
+                  required
+                  disabled={viewMode}
+                >
+                  <option value="">Choose a subject</option>
+                  {teacherAvailableSubjects.map(subject => (
+                    <option key={subject.id} value={subject.id}>
+                      {subject.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           )}
 
           {/* Class Selection */}
-          {selectedTeacherId && uniqueTeacherClasses.length > 0 && (
+          {selectedTeacherId && classesWithSchedules.length > 0 && (
             <div className="form-group">
               <label className="form-label required">Select Class</label>
               <select
@@ -237,10 +302,14 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
                 disabled={viewMode}
               >
                 <option value="">Choose a class</option>
-                {uniqueTeacherClasses.map(cls => (
-                  <option key={cls.id} value={cls.id}>
-                    {cls.className}
-                  </option>
+                {classesWithSchedules.map(cls => (
+                  <optgroup key={cls.className} label={cls.className}>
+                    {cls.schedules.map(schedule => (
+                      <option key={schedule.id} value={schedule.id}>
+                        {schedule.day} {schedule.start} - {schedule.end}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>

@@ -3,15 +3,40 @@ import { createQuiz, updateQuiz, type Quiz, type QuizQuestion } from '../service
 import { type Class } from '../services/classes.api';
 import './Modal.css';
 
+interface QuizResult {
+    id: string;
+    quizId: string;
+    studentId: string;
+    studentName: string;
+    totalScore: number;
+    totalMarks: number;
+    percentage: number;
+    submittedAt: any;
+    answers: {
+        questionIndex: number;
+        selectedAnswer: string | null;
+        correctAnswer: string;
+        isCorrect: boolean;
+        marksAwarded: number;
+        maxMarks: number;
+    }[];
+}
+
 interface QuizModalProps {
     quiz: Quiz | null;
     onClose: () => void;
     viewMode?: boolean;
     myClasses: Class[];
+    subjectName?: string; // Teacher's subject for filtering classes
+    subjects?: string[]; // Array of subject names when teacher has multiple subjects
 }
 
-const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false, myClasses }) => {
+const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false, myClasses, subjectName, subjects }) => {
     const [loading, setLoading] = useState(false);
+    const [selectedSubject, setSelectedSubject] = useState<string>(subjectName || '');
+    const [results, setResults] = useState<QuizResult[]>([]);
+    const [selectedResult, setSelectedResult] = useState<QuizResult | null>(null);
+    const [activeTab, setActiveTab] = useState<'details' | 'results'>('details');
 
     // Form state
     const [selectedClassId, setSelectedClassId] = useState<string>('');
@@ -31,6 +56,24 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false, 
     ]);
     const [status, setStatus] = useState<'pending' | 'available' | 'completed' | 'cancelled'>('pending');
 
+    const fetchResults = async (quizId: string) => {
+        try {
+            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+            const token = localStorage.getItem('teacher_token');
+            const response = await fetch(`${API_URL}/quiz-results/quiz/${quizId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            const resultsData = data?.data || [];
+            setResults(resultsData);
+        } catch (error) {
+            console.error('Error fetching results:', error);
+        }
+    };
+
     useEffect(() => {
         if (quiz && myClasses.length > 0) {
             setSelectedClassId(quiz.classId);
@@ -42,6 +85,11 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false, 
             setQuizDurationMinutes(quiz.quizDurationMinutes);
             setQuestions(quiz.questions);
             setStatus(quiz.status);
+            
+            // Fetch results if viewing/editing existing quiz
+            if (quiz.id) {
+                fetchResults(quiz.id);
+            }
         } else if (!quiz) {
             // Set default date/time values for new quiz
             const now = new Date();
@@ -62,10 +110,21 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false, 
         }
     }, [quiz, myClasses]);
 
-    // Get unique classes for dropdown
-    const uniqueClasses = Array.from(
-        new Map(myClasses.map(cls => [cls.className, cls])).values()
-    );
+    // Group classes by className and collect all schedules
+    const classesWithSchedules = myClasses.reduce((acc, cls) => {
+        const existing = acc.find(c => c.className === cls.className);
+        const schedule = { id: cls.id, day: cls.dayOfWeek, start: cls.startTime, end: cls.endTime };
+        if (existing) {
+            existing.schedules.push(schedule);
+        } else {
+            acc.push({
+                className: cls.className,
+                gradeSections: cls.gradeSections,
+                schedules: [schedule]
+            });
+        }
+        return acc;
+    }, [] as { className: string; gradeSections: any[]; schedules: { id: string; day: string; start: string; end: string }[] }[]);
 
     const selectedClass = myClasses.find(c => c.id === selectedClassId);
     const availableGradeSections = selectedClass?.gradeSections || [];
@@ -199,7 +258,90 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false, 
                     <button className="modal-close" onClick={onClose}>×</button>
                 </div>
 
+                {/* Tabs - only show for existing quizzes */}
+                {quiz && (
+                    <div style={{ 
+                        display: 'flex', 
+                        borderBottom: '1px solid #e2e8f0',
+                        marginBottom: '20px',
+                        padding: '0 20px'
+                    }}>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('details')}
+                            style={{
+                                padding: '12px 24px',
+                                border: 'none',
+                                background: activeTab === 'details' ? '#3b82f6' : 'transparent',
+                                color: activeTab === 'details' ? 'white' : '#64748b',
+                                fontWeight: activeTab === 'details' ? 'bold' : 'normal',
+                                cursor: 'pointer',
+                                borderBottom: activeTab === 'details' ? '2px solid #3b82f6' : 'none',
+                                borderRadius: activeTab === 'details' ? '8px 8px 0 0' : '0'
+                            }}
+                        >
+                            Quiz Details
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('results')}
+                            style={{
+                                padding: '12px 24px',
+                                border: 'none',
+                                background: activeTab === 'results' ? '#3b82f6' : 'transparent',
+                                color: activeTab === 'results' ? 'white' : '#64748b',
+                                fontWeight: activeTab === 'results' ? 'bold' : 'normal',
+                                cursor: 'pointer',
+                                borderBottom: activeTab === 'results' ? '2px solid #3b82f6' : 'none',
+                                borderRadius: activeTab === 'results' ? '8px 8px 0 0' : '0'
+                            }}
+                        >
+                            Results ({results.length})
+                        </button>
+                    </div>
+                )}
+
+                {/* Details Tab */}
+                {activeTab === 'details' && (
                 <form onSubmit={handleSubmit} className="modal-form">
+                    {/* Subject Selection/Display (for filtering classes) */}
+                    {subjects && subjects.length > 1 ? (
+                        <div className="form-group">
+                            <label className="form-label required">Subject</label>
+                            <select
+                                value={selectedSubject}
+                                onChange={(e) => {
+                                    setSelectedSubject(e.target.value);
+                                    setSelectedClassId('');
+                                    setSelectedGradeSections([]);
+                                }}
+                                required
+                                disabled={viewMode}
+                            >
+                                <option value="">Choose a subject</option>
+                                {subjects.map((subject, idx) => (
+                                    <option key={idx} value={subject}>
+                                        {subject}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    ) : subjectName && (
+                        <div className="form-group">
+                            <label className="form-label">Subject</label>
+                            <input
+                                type="text"
+                                value={subjectName}
+                                disabled
+                                style={{
+                                    backgroundColor: '#f1f5f9',
+                                    color: '#64748b',
+                                    cursor: 'not-allowed'
+                                }}
+                            />
+                        </div>
+                    )}
+
                     {/* Class Selection */}
                     <div className="form-group">
                         <label className="form-label required">Select Class</label>
@@ -213,10 +355,14 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false, 
                             disabled={viewMode}
                         >
                             <option value="">Choose a class</option>
-                            {uniqueClasses.map(cls => (
-                                <option key={cls.id} value={cls.id}>
-                                    {cls.className}
-                                </option>
+                            {classesWithSchedules.map(cls => (
+                                <optgroup key={cls.className} label={cls.className}>
+                                    {cls.schedules.map(schedule => (
+                                        <option key={schedule.id} value={schedule.id}>
+                                            {schedule.day} {schedule.start} - {schedule.end}
+                                        </option>
+                                    ))}
+                                </optgroup>
                             ))}
                         </select>
                     </div>
@@ -463,6 +609,191 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false, 
                         )}
                     </div>
                 </form>
+                )}
+
+                {/* Results Tab */}
+                {activeTab === 'results' && (
+                    <div className="results-container" style={{ padding: '20px' }}>
+                        {results.length === 0 ? (
+                            <div style={{ 
+                                textAlign: 'center', 
+                                padding: '40px', 
+                                color: '#64748b',
+                                fontSize: '16px'
+                            }}>
+                                No submissions yet
+                            </div>
+                        ) : (
+                            <div className="results-list">
+                                {/* Results Summary */}
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(3, 1fr)',
+                                    gap: '16px',
+                                    marginBottom: '24px'
+                                }}>
+                                    <div style={{
+                                        background: '#f0fdf4',
+                                        border: '1px solid #86efac',
+                                        borderRadius: '8px',
+                                        padding: '16px',
+                                        textAlign: 'center'
+                                    }}>
+                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#10b981' }}>
+                                            {results.length}
+                                        </div>
+                                        <div style={{ fontSize: '14px', color: '#64748b' }}>Total Submissions</div>
+                                    </div>
+                                    <div style={{
+                                        background: '#eff6ff',
+                                        border: '1px solid #93c5fd',
+                                        borderRadius: '8px',
+                                        padding: '16px',
+                                        textAlign: 'center'
+                                    }}>
+                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#3b82f6' }}>
+                                            {results.length > 0 ? (results.reduce((sum, r) => sum + r.percentage, 0) / results.length).toFixed(1) : 0}%
+                                        </div>
+                                        <div style={{ fontSize: '14px', color: '#64748b' }}>Average Score</div>
+                                    </div>
+                                    <div style={{
+                                        background: '#fefce8',
+                                        border: '1px solid #fde047',
+                                        borderRadius: '8px',
+                                        padding: '16px',
+                                        textAlign: 'center'
+                                    }}>
+                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#eab308' }}>
+                                            {results.filter(r => r.percentage >= 60).length}
+                                        </div>
+                                        <div style={{ fontSize: '14px', color: '#64748b' }}>Passed (≥60%)</div>
+                                    </div>
+                                </div>
+
+                                {results.map((result) => (
+                                    <div 
+                                        key={result.id} 
+                                        className="result-item"
+                                        style={{
+                                            border: '1px solid #e2e8f0',
+                                            borderRadius: '8px',
+                                            padding: '16px',
+                                            marginBottom: '16px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            backgroundColor: selectedResult?.id === result.id ? '#f8fafc' : 'white'
+                                        }}
+                                        onClick={() => setSelectedResult(selectedResult?.id === result.id ? null : result)}
+                                    >
+                                        <div style={{ 
+                                            display: 'flex', 
+                                            justifyContent: 'space-between', 
+                                            alignItems: 'center',
+                                            marginBottom: selectedResult?.id === result.id ? '16px' : '0'
+                                        }}>
+                                            <div>
+                                                <div style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '4px', color: '#1e293b' }}>
+                                                    {result.studentName}
+                                                </div>
+                                                <div style={{ fontSize: '14px', color: '#64748b' }}>
+                                                    Submitted: {result.submittedAt?.toDate ? result.submittedAt.toDate().toLocaleString() : new Date(result.submittedAt).toLocaleString()}
+                                                </div>
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <div style={{ 
+                                                    fontSize: '24px', 
+                                                    fontWeight: 'bold',
+                                                    color: result.percentage >= 60 ? '#10b981' : '#ef4444'
+                                                }}>
+                                                    {result.percentage.toFixed(1)}%
+                                                </div>
+                                                <div style={{ fontSize: '14px', color: '#64748b' }}>
+                                                    {result.totalScore}/{result.totalMarks} points
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Detailed Answer Review */}
+                                        {selectedResult?.id === result.id && (
+                                            <div style={{ 
+                                                borderTop: '1px solid #e2e8f0', 
+                                                paddingTop: '16px',
+                                                marginTop: '8px'
+                                            }}>
+                                                <h4 style={{ 
+                                                    fontSize: '16px', 
+                                                    fontWeight: 'bold', 
+                                                    marginBottom: '12px',
+                                                    color: '#1e293b'
+                                                }}>
+                                                    Answer Details
+                                                </h4>
+                                                {result.answers.map((answer: any, index: number) => {
+                                                    const questionText = quiz?.questions[answer.questionIndex]?.question || `Question ${answer.questionIndex + 1}`;
+                                                    return (
+                                                        <div 
+                                                            key={index}
+                                                            style={{
+                                                                backgroundColor: answer.isCorrect ? '#f0fdf4' : '#fef2f2',
+                                                                border: `1px solid ${answer.isCorrect ? '#86efac' : '#fca5a5'}`,
+                                                                borderRadius: '6px',
+                                                                padding: '12px',
+                                                                marginBottom: '12px'
+                                                            }}
+                                                        >
+                                                            <div style={{ 
+                                                                display: 'flex', 
+                                                                justifyContent: 'space-between',
+                                                                marginBottom: '8px'
+                                                            }}>
+                                                                <span style={{ fontWeight: 'bold', color: '#1e293b' }}>
+                                                                    Question {answer.questionIndex + 1}
+                                                                </span>
+                                                                <span style={{
+                                                                    fontWeight: 'bold',
+                                                                    color: answer.isCorrect ? '#10b981' : '#ef4444'
+                                                                }}>
+                                                                    {answer.isCorrect ? '✓' : '✗'} {answer.marksAwarded}/{answer.maxMarks} points
+                                                                </span>
+                                                            </div>
+                                                            <div style={{ 
+                                                                fontSize: '14px', 
+                                                                color: '#475569',
+                                                                marginBottom: '8px'
+                                                            }}>
+                                                                <strong>Question:</strong> {questionText}
+                                                            </div>
+                                                            <div style={{ 
+                                                                fontSize: '14px', 
+                                                                marginBottom: '4px'
+                                                            }}>
+                                                                <strong style={{ color: '#1e293b' }}>Student Answer:</strong>{' '}
+                                                                <span style={{ 
+                                                                    color: answer.isCorrect ? '#10b981' : '#ef4444',
+                                                                    fontWeight: 'bold'
+                                                                }}>
+                                                                    {answer.selectedAnswer || 'No answer'}
+                                                                </span>
+                                                            </div>
+                                                            {!answer.isCorrect && (
+                                                                <div style={{ 
+                                                                    fontSize: '14px',
+                                                                    color: '#10b981'
+                                                                }}>
+                                                                    <strong>Correct Answer:</strong> {answer.correctAnswer}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );
