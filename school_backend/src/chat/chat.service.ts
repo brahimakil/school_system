@@ -143,6 +143,8 @@ export class ChatService {
           updatedAt: data.updatedAt?.toDate() || new Date(),
           lastMessage: data.lastMessage || '',
           lastMessageTime: data.lastMessageTime?.toDate(),
+          studentUnreadCount: data.studentUnreadCount || 0,
+          teacherName: data.teacherName || '',
         } as any);
       }
 
@@ -207,6 +209,7 @@ export class ChatService {
               updatedAt: data.updatedAt?.toDate() || new Date(),
               lastMessage: data.lastMessage || '',
               lastMessageTime: data.lastMessageTime?.toDate(),
+              studentUnreadCount: data.studentUnreadCount || 0,
             } as any);
           }
         }
@@ -225,9 +228,9 @@ export class ChatService {
           teacherMap.set(doc.id, data?.fullName || data?.name || 'Teacher');
         }
 
-        // Update private room names with teacher names
+        // Update private room names with teacher names (student should see teacher name, not their own name)
         for (const room of rooms) {
-          if (room.type === 'private' && !room.name) {
+          if (room.type === 'private') {
             room.name = teacherMap.get(room.teacherId) || 'Teacher';
           }
         }
@@ -305,16 +308,23 @@ export class ChatService {
         };
       }
 
-      // Create new room
+      // Create new room - store both student and teacher names
       const studentDoc = await this.db.collection('students').doc(studentId).get();
       const studentName = studentDoc.data()?.fullName || 'Student';
+      
+      const teacherDoc = await this.db.collection('teachers').doc(teacherId).get();
+      const teacherName = teacherDoc.data()?.fullName || teacherDoc.data()?.name || 'Teacher';
 
       const roomRef = await this.db.collection('chatRooms').add({
-        name: studentName,
+        name: studentName,  // For teacher's view
+        teacherName: teacherName,  // For student's view
+        studentName: studentName,  // Explicit student name
         type: 'private',
         teacherId,
         studentId,
         isActive: true,
+        teacherUnreadCount: 0,
+        studentUnreadCount: 0,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
@@ -399,11 +409,14 @@ export class ChatService {
 
       const messageRef = await this.db.collection('messages').add(messageData);
 
-      // Update room's last message and time
+      // Update room's last message, time, and increment unread count for the recipient
+      // If student sends, increment teacherUnreadCount; if teacher sends, increment studentUnreadCount
+      const unreadField = senderType === 'student' ? 'teacherUnreadCount' : 'studentUnreadCount';
       await this.db.collection('chatRooms').doc(roomId).update({
         lastMessage: content,
         lastMessageTime: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        [unreadField]: admin.firestore.FieldValue.increment(1),
       });
 
       const messageDoc = await messageRef.get();
@@ -424,6 +437,18 @@ export class ChatService {
       };
     } catch (error) {
       console.error('Error sending message:', error);
+      throw error;
+    }
+  }
+
+  async markRoomAsRead(roomId: string, userType: 'teacher' | 'student'): Promise<void> {
+    try {
+      const unreadField = userType === 'teacher' ? 'teacherUnreadCount' : 'studentUnreadCount';
+      await this.db.collection('chatRooms').doc(roomId).update({
+        [unreadField]: 0,
+      });
+    } catch (error) {
+      console.error('Error marking room as read:', error);
       throw error;
     }
   }
@@ -465,13 +490,15 @@ export class ChatService {
         };
       }
 
-      // Create new room
+      // Create new room - default to OPEN
       const roomRef = await this.db.collection('chatRooms').add({
         name: className,
         type: 'class',
         classId,
         teacherId,
-        isActive: false, // Default to closed
+        isActive: true, // Default to OPEN
+        teacherUnreadCount: 0,
+        studentUnreadCount: 0,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
@@ -482,7 +509,7 @@ export class ChatService {
         type: 'class',
         classId,
         teacherId,
-        isActive: false,
+        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -523,6 +550,10 @@ export class ChatService {
       let created = 0;
       let existing = 0;
 
+      // Get teacher name once
+      const teacherDoc = await this.db.collection('teachers').doc(teacherId).get();
+      const teacherName = teacherDoc.data()?.fullName || teacherDoc.data()?.name || 'Teacher';
+
       // Create or get private chat room for each student
       for (const studentId of studentIds) {
         // Check if room already exists
@@ -535,22 +566,35 @@ export class ChatService {
           .get();
 
         if (existingRoomSnapshot.empty) {
-          // Create new room
+          // Create new room with both names
           const studentDoc = await this.db.collection('students').doc(studentId).get();
           const studentData = studentDoc.data();
           const studentName = studentData?.fullName || studentData?.name || 'Student';
 
           await this.db.collection('chatRooms').add({
-            name: studentName,
+            name: studentName,  // For teacher's view
+            teacherName: teacherName,  // For student's view
+            studentName: studentName,  // Explicit student name
             type: 'private',
             teacherId,
             studentId,
             isActive: true,
+            teacherUnreadCount: 0,
+            studentUnreadCount: 0,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
           });
           created++;
         } else {
+          // Update existing room to add teacherName if missing
+          const existingRoom = existingRoomSnapshot.docs[0];
+          const existingData = existingRoom.data();
+          if (!existingData.teacherName) {
+            await existingRoom.ref.update({
+              teacherName: teacherName,
+              studentName: existingData.name || 'Student',
+            });
+          }
           existing++;
         }
       }

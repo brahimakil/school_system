@@ -53,12 +53,15 @@ export class ClassesService {
       }
 
       // Create new chat room (only one per class name per teacher)
+      // Default to OPEN (isActive: true) so students can chat immediately
       await this.db.collection('chatRooms').add({
         name: className,
         type: 'class',
         classId, // Keep first classId for reference
         teacherId,
-        isActive: false, // Default to closed
+        isActive: true, // Default to OPEN
+        teacherUnreadCount: 0,
+        studentUnreadCount: 0,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });

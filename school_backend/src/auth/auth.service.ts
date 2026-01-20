@@ -169,14 +169,17 @@ export class AuthService {
         throw new UnauthorizedException('Your account is not active. Please contact administration.');
       }
 
-      // Look up the subject name from the subjects collection
-      let subjectName = '';
-      const subjectId = teacherData.subjects?.[0];
-      if (subjectId) {
+      // Look up all subject names from the subjects collection
+      const teacherSubjectIds = teacherData.subjects || [];
+      const subjectNames: string[] = [];
+      
+      for (const subjectId of teacherSubjectIds) {
         const subjectDoc = await this.db.collection('subjects').doc(subjectId).get();
         if (subjectDoc.exists) {
           const subjectData = subjectDoc.data();
-          subjectName = subjectData?.name || '';
+          if (subjectData?.name) {
+            subjectNames.push(subjectData.name);
+          }
         }
       }
 
@@ -187,7 +190,9 @@ export class AuthService {
           id: uid,
           email: email,
           name: teacherData.fullName,
-          subject: subjectName,
+          subject: subjectNames[0] || '', // Keep for backwards compatibility
+          subjects: subjectNames, // Array of all subject names
+          subjectIds: teacherSubjectIds, // Array of all subject IDs
           token: idToken, // Return the ID token from Firebase
         },
       };

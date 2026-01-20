@@ -89,6 +89,16 @@ export class ChatController {
     return { success: true, message: 'Chat status updated' };
   }
 
+  // Mark room as read (reset unread count)
+  @Patch('rooms/:roomId/read')
+  async markRoomAsRead(
+    @Param('roomId') roomId: string,
+    @Body() body: { userType: 'teacher' | 'student' },
+  ) {
+    await this.chatService.markRoomAsRead(roomId, body.userType);
+    return { success: true, message: 'Room marked as read' };
+  }
+
   // Create or get private chat room
   @Post('rooms/private')
   async getOrCreatePrivateRoom(
