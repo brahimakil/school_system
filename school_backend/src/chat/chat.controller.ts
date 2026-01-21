@@ -120,6 +120,13 @@ export class ChatController {
     return { success: true, data: result };
   }
 
+  // Initialize all chat rooms for existing data (run once to fix existing students/classes)
+  @Post('rooms/initialize-all')
+  async initializeAllChatRooms() {
+    const result = await this.chatService.initializeAllChatRooms();
+    return { success: true, data: result };
+  }
+
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {

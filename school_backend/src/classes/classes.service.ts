@@ -72,6 +72,59 @@ export class ClassesService {
     }
   }
 
+  // Auto-create private chat rooms for all students in the class's grade-sections
+  private async createPrivateChatRoomsForStudents(teacherId: string, gradeSections: GradeSection[]): Promise<void> {
+    try {
+      // Get teacher name
+      const teacherDoc = await this.teachersCollection.doc(teacherId).get();
+      const teacherData = teacherDoc.data();
+      const teacherName = teacherData?.fullName || teacherData?.name || 'Teacher';
+
+      // Get all students matching the grade-sections
+      for (const gs of gradeSections) {
+        const studentsSnapshot = await this.studentsCollection
+          .where('currentGrade.grade', '==', gs.grade)
+          .where('currentGrade.section', '==', gs.section)
+          .get();
+
+        for (const studentDoc of studentsSnapshot.docs) {
+          const studentId = studentDoc.id;
+          const studentData = studentDoc.data();
+          const studentName = studentData?.fullName || studentData?.name || 'Student';
+
+          // Check if private chat room already exists
+          const existingRoomSnapshot = await this.db
+            .collection('chatRooms')
+            .where('type', '==', 'private')
+            .where('teacherId', '==', teacherId)
+            .where('studentId', '==', studentId)
+            .limit(1)
+            .get();
+
+          if (existingRoomSnapshot.empty) {
+            // Create new private chat room
+            await this.db.collection('chatRooms').add({
+              name: studentName,  // For teacher's view
+              teacherName: teacherName,  // For student's view
+              studentName: studentName,
+              type: 'private',
+              teacherId,
+              studentId,
+              isActive: true,
+              teacherUnreadCount: 0,
+              studentUnreadCount: 0,
+              createdAt: admin.firestore.FieldValue.serverTimestamp(),
+              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+            console.log(`Created private chat room: Teacher ${teacherName} <-> Student ${studentName}`);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error creating private chat rooms for students:', error);
+    }
+  }
+
   // Helper: Check if two time ranges overlap
   private timeRangesOverlap(start1: string, end1: string, start2: string, end2: string): boolean {
     const toMinutes = (time: string) => {
@@ -207,6 +260,9 @@ export class ClassesService {
 
     // Create chat room for the class
     await this.createClassChatRoom(classId, createClassDto.teacherId, createClassDto.className);
+
+    // Auto-create private chat rooms for all students in the class's grade-sections
+    await this.createPrivateChatRoomsForStudents(createClassDto.teacherId, createClassDto.gradeSections);
 
     return { id: classId, ...classData };
   }

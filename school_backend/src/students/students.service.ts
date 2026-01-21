@@ -82,6 +82,66 @@ export class StudentsService {
     }
   }
 
+  // Auto-create private chat rooms for a student with all their teachers
+  private async createPrivateChatRoomsForStudent(studentId: string, studentName: string, currentGrade: { grade: string; section: string }): Promise<void> {
+    try {
+      // Find all classes for this student's grade and section
+      const classesSnapshot = await this.db.collection('classes').get();
+      const teacherIds = new Set<string>();
+
+      for (const classDoc of classesSnapshot.docs) {
+        const classData = classDoc.data();
+        const gradeSections = classData.gradeSections || [];
+
+        // Check if this class is for the student's grade/section
+        const isMatchingClass = gradeSections.some(
+          (gs: any) => gs.grade === currentGrade.grade && gs.section === currentGrade.section
+        );
+
+        if (isMatchingClass && classData.teacherId) {
+          teacherIds.add(classData.teacherId);
+        }
+      }
+
+      // Create private chat room with each teacher
+      for (const teacherId of teacherIds) {
+        // Check if private chat room already exists
+        const existingRoomSnapshot = await this.db
+          .collection('chatRooms')
+          .where('type', '==', 'private')
+          .where('teacherId', '==', teacherId)
+          .where('studentId', '==', studentId)
+          .limit(1)
+          .get();
+
+        if (existingRoomSnapshot.empty) {
+          // Get teacher name
+          const teacherDoc = await this.db.collection('teachers').doc(teacherId).get();
+          const teacherData = teacherDoc.data();
+          const teacherName = teacherData?.fullName || teacherData?.name || 'Teacher';
+
+          // Create new private chat room
+          await this.db.collection('chatRooms').add({
+            name: studentName,  // For teacher's view
+            teacherName: teacherName,  // For student's view
+            studentName: studentName,
+            type: 'private',
+            teacherId,
+            studentId,
+            isActive: true,
+            teacherUnreadCount: 0,
+            studentUnreadCount: 0,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+          console.log(`Created private chat room: Teacher ${teacherName} <-> Student ${studentName}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error creating private chat rooms for student:', error);
+    }
+  }
+
   async create(createStudentDto: CreateStudentDto, file?: Express.Multer.File) {
     const { email, password, fullName, phoneNumber, currentGrade, passedGrades, status } = createStudentDto;
 
@@ -122,6 +182,11 @@ export class StudentsService {
 
     // Send credentials email to the new student
     await this.sendCredentialsEmail(email, fullName, password, true);
+
+    // Auto-create private chat rooms with all teachers who teach this student's grade/section
+    if (currentGrade?.grade && currentGrade?.section) {
+      await this.createPrivateChatRoomsForStudent(userRecord.uid, fullName, currentGrade);
+    }
 
     return { success: true, message: 'Student created successfully', data: studentData };
   }

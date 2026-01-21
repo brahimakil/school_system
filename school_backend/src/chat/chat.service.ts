@@ -605,4 +605,112 @@ export class ChatService {
       throw error;
     }
   }
+
+  // Initialize ALL chat rooms for the entire system (for existing data migration)
+  async initializeAllChatRooms(): Promise<{ 
+    classRoomsCreated: number; 
+    privateRoomsCreated: number; 
+    existingRooms: number 
+  }> {
+    try {
+      let classRoomsCreated = 0;
+      let privateRoomsCreated = 0;
+      let existingRooms = 0;
+
+      // Get all classes
+      const classesSnapshot = await this.db.collection('classes').get();
+
+      // Create class chat rooms
+      for (const classDoc of classesSnapshot.docs) {
+        const classData = classDoc.data();
+        const classId = classDoc.id;
+        const teacherId = classData.teacherId;
+        const className = classData.className;
+        const gradeSections = classData.gradeSections || [];
+
+        if (!teacherId || !className) continue;
+
+        // Check if class chat room exists
+        const existingClassRoom = await this.db
+          .collection('chatRooms')
+          .where('type', '==', 'class')
+          .where('name', '==', className)
+          .where('teacherId', '==', teacherId)
+          .limit(1)
+          .get();
+
+        if (existingClassRoom.empty) {
+          await this.db.collection('chatRooms').add({
+            name: className,
+            type: 'class',
+            classId,
+            teacherId,
+            isActive: true,
+            teacherUnreadCount: 0,
+            studentUnreadCount: 0,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+          classRoomsCreated++;
+          console.log(`Created class chat room: ${className}`);
+        } else {
+          existingRooms++;
+        }
+
+        // Get teacher name
+        const teacherDoc = await this.db.collection('teachers').doc(teacherId).get();
+        const teacherName = teacherDoc.data()?.fullName || teacherDoc.data()?.name || 'Teacher';
+
+        // Create private chat rooms for all students in this class
+        for (const gs of gradeSections) {
+          const studentsSnapshot = await this.db
+            .collection('students')
+            .where('currentGrade.grade', '==', gs.grade)
+            .where('currentGrade.section', '==', gs.section)
+            .get();
+
+          for (const studentDoc of studentsSnapshot.docs) {
+            const studentId = studentDoc.id;
+            const studentData = studentDoc.data();
+            const studentName = studentData?.fullName || studentData?.name || 'Student';
+
+            // Check if private chat room exists
+            const existingPrivateRoom = await this.db
+              .collection('chatRooms')
+              .where('type', '==', 'private')
+              .where('teacherId', '==', teacherId)
+              .where('studentId', '==', studentId)
+              .limit(1)
+              .get();
+
+            if (existingPrivateRoom.empty) {
+              await this.db.collection('chatRooms').add({
+                name: studentName,
+                teacherName: teacherName,
+                studentName: studentName,
+                type: 'private',
+                teacherId,
+                studentId,
+                isActive: true,
+                teacherUnreadCount: 0,
+                studentUnreadCount: 0,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+              });
+              privateRoomsCreated++;
+              console.log(`Created private chat room: ${teacherName} <-> ${studentName}`);
+            } else {
+              existingRooms++;
+            }
+          }
+        }
+      }
+
+      console.log(`Initialization complete: ${classRoomsCreated} class rooms, ${privateRoomsCreated} private rooms created, ${existingRooms} already existed`);
+      return { classRoomsCreated, privateRoomsCreated, existingRooms };
+    } catch (error) {
+      console.error('Error initializing all chat rooms:', error);
+      throw error;
+    }
+  }
 }
