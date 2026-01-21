@@ -160,7 +160,7 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
     // Group classes by className and collect all schedules
     const classesWithSchedules = myClasses.reduce((acc, cls) => {
         const existing = acc.find(c => c.className === cls.className);
-        const schedule = { id: cls.id, day: cls.dayOfWeek, start: cls.startTime, end: cls.endTime };
+        const schedule = { id: cls.id || '', day: cls.dayOfWeek, start: cls.startTime, end: cls.endTime };
         if (existing) {
             existing.schedules.push(schedule);
         } else {
