@@ -205,8 +205,35 @@ export class QuizzesService {
 
   private async autoUpdateExpiredQuizzes(quizzes: any[]): Promise<number> {
     const now = new Date();
-    console.log('Checking for expired quizzes. Current time:', now.toISOString());
+    console.log('Checking for quiz status updates. Current time:', now.toISOString());
 
+    let updatedCount = 0;
+
+    // Auto-activate pending quizzes whose start time has passed
+    const pendingQuizzes = quizzes.filter(quiz => {
+      if (quiz.status !== QuizStatus.PENDING) {
+        return false;
+      }
+      const startDateTime = new Date(quiz.startDateTime);
+      const endDateTime = new Date(quiz.endDateTime);
+      // Activate if start time has passed but end time hasn't
+      return startDateTime <= now && endDateTime > now;
+    });
+
+    if (pendingQuizzes.length > 0) {
+      console.log(`Found ${pendingQuizzes.length} pending quiz(es) to activate...`);
+      const activatePromises = pendingQuizzes.map(quiz =>
+        this.quizzesCollection.doc(quiz.id).update({
+          status: QuizStatus.AVAILABLE,
+          updatedAt: admin.firestore.Timestamp.now(),
+        })
+      );
+      await Promise.all(activatePromises);
+      updatedCount += pendingQuizzes.length;
+      console.log(`Auto-activated ${pendingQuizzes.length} quiz(es)`);
+    }
+
+    // Auto-expire available quizzes whose end time has passed
     const expiredQuizzes = quizzes.filter(quiz => {
       if (quiz.status === QuizStatus.COMPLETED || quiz.status === QuizStatus.CANCELLED) {
         return false;
@@ -227,11 +254,12 @@ export class QuizzesService {
       );
 
       await Promise.all(updatePromises);
+      updatedCount += expiredQuizzes.length;
       console.log(`Auto-expired ${expiredQuizzes.length} quiz(es)`);
     } else {
       console.log('No expired quizzes found');
     }
 
-    return expiredQuizzes.length;
+    return updatedCount;
   }
 }
