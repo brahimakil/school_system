@@ -21,7 +21,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
     const [selectedGradeSections, setSelectedGradeSections] = useState<string[]>([]);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [status, setStatus] = useState<'pending' | 'active' | 'completed' | 'overdue'>('pending');
+    const [status, setStatus] = useState<'pending' | 'active' | 'completed' | 'overdue'>('active');
     const [attachmentUrl, setAttachmentUrl] = useState('');
     const [attachmentType, setAttachmentType] = useState<'video' | 'pdf' | 'image' | 'other'>('other');
     const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
@@ -43,9 +43,11 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
         }
     }, [course, myClasses]);
 
+    // Filter classes by the selected subject
+    const subjectFilteredClasses = myClasses.filter((cls: Class) => cls.className === selectedSubject);
 
     // Group classes by className and collect all schedules
-    const classesWithSchedules = subjectFilteredClasses.reduce((acc, cls) => {
+    const classesWithSchedules = subjectFilteredClasses.reduce((acc: { className: string; gradeSections: any[]; schedules: { id: string; day: string; start: string; end: string }[] }[], cls: Class) => {
         const existing = acc.find(c => c.className === cls.className);
         const schedule = { id: cls.id, day: cls.dayOfWeek, start: cls.startTime, end: cls.endTime };
         if (existing) {
