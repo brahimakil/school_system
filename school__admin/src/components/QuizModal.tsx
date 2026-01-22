@@ -147,9 +147,9 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
     }
   };
 
-  // Filter classes by selected teacher
+  // Filter classes by selected teacher AND selected subject
   const teacherClasses = selectedTeacherId 
-    ? classes.filter(c => c.teacherId === selectedTeacherId)
+    ? classes.filter(c => c.teacherId === selectedTeacherId && (subjectName ? c.className === subjectName : true))
     : [];
 
   // Group classes by className and collect all schedules
@@ -429,32 +429,19 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
             <div className="form-row">
               <div className="form-group">
                 <label className="form-label required">Subject</label>
-                {teacherAvailableSubjects.length === 1 ? (
-                  <input
-                    type="text"
-                    value={subjectName}
-                    disabled
-                    style={{ 
-                      backgroundColor: '#f1f5f9', 
-                      color: '#64748b',
-                      cursor: 'not-allowed'
-                    }}
-                  />
-                ) : (
-                  <select
-                    value={selectedSubjectId}
-                    onChange={(e) => handleSubjectChange(e.target.value)}
-                    required
-                    disabled={viewMode}
-                  >
-                    <option value="">Select a subject</option>
-                    {teacherAvailableSubjects.map(subject => (
-                      <option key={subject.id} value={subject.id}>
-                        {subject.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                <select
+                  value={selectedSubjectId}
+                  onChange={(e) => handleSubjectChange(e.target.value)}
+                  required
+                  disabled={viewMode}
+                >
+                  <option value="">Select a subject</option>
+                  {teacherAvailableSubjects.map(subject => (
+                    <option key={subject.id} value={subject.id}>
+                      {subject.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               {subjectCode && (
                 <div className="form-group">
@@ -474,10 +461,10 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
             </div>
           )}
 
-          {/* Class Selection (only for selected teacher) */}
-          {selectedTeacherId && classesWithSchedules.length > 0 && (
+          {/* Class Selection (only for selected teacher and subject) */}
+          {selectedTeacherId && subjectName && classesWithSchedules.length > 0 && (
             <div className="form-group">
-              <label className="form-label required">Select Class</label>
+              <label className="form-label required">Select Class Schedule</label>
               <select
                 value={selectedClassId}
                 onChange={(e) => {
@@ -487,17 +474,22 @@ const QuizModal: React.FC<QuizModalProps> = ({ quiz, onClose, viewMode = false }
                 required
                 disabled={viewMode}
               >
-                <option value="">Choose a class</option>
+                <option value="">Choose a schedule</option>
                 {classesWithSchedules.map(cls => (
-                  <optgroup key={cls.className} label={cls.className}>
-                    {cls.schedules.map(schedule => (
-                      <option key={schedule.id} value={schedule.id}>
-                        {schedule.day} {schedule.start} - {schedule.end}
-                      </option>
-                    ))}
-                  </optgroup>
+                  cls.schedules.map(schedule => (
+                    <option key={schedule.id} value={schedule.id}>
+                      {schedule.day} {schedule.start} - {schedule.end}
+                    </option>
+                  ))
                 ))}
               </select>
+            </div>
+          )}
+          {selectedTeacherId && subjectName && classesWithSchedules.length === 0 && (
+            <div className="form-group">
+              <p style={{ color: '#ef4444', fontSize: '14px' }}>
+                No classes found for this teacher with the selected subject.
+              </p>
             </div>
           )}
 

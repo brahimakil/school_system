@@ -85,8 +85,11 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
     }
   };
 
-  // Filter classes based on selected teacher
-  const teacherClasses = classes.filter(cls => cls.teacherId === selectedTeacherId);
+  // Filter classes based on selected teacher AND selected subject
+  const teacherClasses = classes.filter(cls => 
+    cls.teacherId === selectedTeacherId && 
+    (subjectName ? cls.className === subjectName : true)
+  );
 
   // Group classes by className and collect all schedules
   const classesWithSchedules = teacherClasses.reduce((acc, cls) => {
@@ -102,7 +105,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
       });
     }
     return acc;
-  }, [] as { className: string; gradeSections: any[]; schedules: { id: string; day: string; start: string; end: string }[] }[]);
+  }, [] as { className: string; gradeSections: any[]; schedules: { id: string; day: string; start: string; end: string }[] });
 
   // Get available grade/sections from selected class
   const selectedClass = classes.find(c => c.id === selectedClassId);
@@ -263,35 +266,26 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
           {selectedTeacherId && teacherAvailableSubjects.length > 0 && (
             <div className="form-group">
               <label className="form-label required">Subject</label>
-              {teacherAvailableSubjects.length === 1 ? (
-                <input
-                  type="text"
-                  value={subjectName}
-                  disabled
-                  style={{ backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'not-allowed' }}
-                />
-              ) : (
-                <select
-                  value={selectedSubjectId}
-                  onChange={(e) => handleSubjectChange(e.target.value)}
-                  required
-                  disabled={viewMode}
-                >
-                  <option value="">Choose a subject</option>
-                  {teacherAvailableSubjects.map(subject => (
-                    <option key={subject.id} value={subject.id}>
-                      {subject.name}
-                    </option>
-                  ))}
-                </select>
-              )}
+              <select
+                value={selectedSubjectId}
+                onChange={(e) => handleSubjectChange(e.target.value)}
+                required
+                disabled={viewMode}
+              >
+                <option value="">Choose a subject</option>
+                {teacherAvailableSubjects.map(subject => (
+                  <option key={subject.id} value={subject.id}>
+                    {subject.name}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
 
           {/* Class Selection */}
-          {selectedTeacherId && classesWithSchedules.length > 0 && (
+          {selectedTeacherId && subjectName && classesWithSchedules.length > 0 && (
             <div className="form-group">
-              <label className="form-label required">Select Class</label>
+              <label className="form-label required">Select Class Schedule</label>
               <select
                 value={selectedClassId}
                 onChange={(e) => {
@@ -301,17 +295,22 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
                 required
                 disabled={viewMode}
               >
-                <option value="">Choose a class</option>
+                <option value="">Choose a schedule</option>
                 {classesWithSchedules.map(cls => (
-                  <optgroup key={cls.className} label={cls.className}>
-                    {cls.schedules.map(schedule => (
-                      <option key={schedule.id} value={schedule.id}>
-                        {schedule.day} {schedule.start} - {schedule.end}
-                      </option>
-                    ))}
-                  </optgroup>
+                  cls.schedules.map(schedule => (
+                    <option key={schedule.id} value={schedule.id}>
+                      {schedule.day} {schedule.start} - {schedule.end}
+                    </option>
+                  ))
                 ))}
               </select>
+            </div>
+          )}
+          {selectedTeacherId && subjectName && classesWithSchedules.length === 0 && (
+            <div className="form-group">
+              <p style={{ color: '#ef4444', fontSize: '14px' }}>
+                No classes found for this teacher with the selected subject.
+              </p>
             </div>
           )}
 

@@ -183,6 +183,17 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
     }
   }, [isOpen, classData, relatedClasses]);
 
+  // Set selectedSubjectId when subjects are loaded and we're in edit mode
+  useEffect(() => {
+    if (classData && subjects.length > 0) {
+      // Find subject by name (className is the subject name)
+      const matchingSubject = subjects.find(s => s.name === classData.className);
+      if (matchingSubject) {
+        setSelectedSubjectId(matchingSubject.id);
+      }
+    }
+  }, [classData, subjects]);
+
   const loadTeachers = async () => {
     try {
       const response = await teachersAPI.getAll();
@@ -440,21 +451,18 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
           )}
 
           <div className="form-group">
-            <label>Class Name *</label>
-            <input
-              type="text"
-              value={formData.className}
-              onChange={e => setFormData({ ...formData, className: e.target.value })}
-              placeholder="e.g., Chemistry 101, Math Advanced"
-              required
-            />
-          </div>
-
-          <div className="form-group">
             <label>Subject *</label>
             <select
               value={selectedSubjectId}
-              onChange={e => setSelectedSubjectId(e.target.value)}
+              onChange={e => {
+                const subjectId = e.target.value;
+                setSelectedSubjectId(subjectId);
+                // Also set className to the subject's name
+                const subject = subjects.find(s => s.id === subjectId);
+                if (subject) {
+                  setFormData(prev => ({ ...prev, className: subject.name }));
+                }
+              }}
               required
             >
               <option value="">Select Subject</option>
@@ -462,6 +470,11 @@ const ClassModal: React.FC<ClassModalProps> = ({ isOpen, onClose, onSubmit, clas
                 <option key={subject.id} value={subject.id}>{subject.name}</option>
               ))}
             </select>
+            {formData.className && (
+              <small style={{ color: '#6b7280', marginTop: '4px', display: 'block' }}>
+                Class will be named: {formData.className}
+              </small>
+            )}
           </div>
 
           <div className="form-group">
