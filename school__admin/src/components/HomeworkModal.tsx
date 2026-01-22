@@ -202,7 +202,7 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
       });
     }
     return acc;
-  }, [] as { className: string; gradeSections: any[]; schedules: { id: string; day: string; start: string; end: string }[] });
+  }, [] as { className: string; gradeSections: any[]; schedules: { id: string; day: string; start: string; end: string }[] }[]);
 
   // Get grade/sections for selected class
   const availableGradeSections = selectedClassId

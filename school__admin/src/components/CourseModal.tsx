@@ -105,7 +105,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, onClose, viewMode = f
       });
     }
     return acc;
-  }, [] as { className: string; gradeSections: any[]; schedules: { id: string; day: string; start: string; end: string }[] });
+  }, [] as { className: string; gradeSections: any[]; schedules: { id: string; day: string; start: string; end: string }[] }[]);
 
   // Get available grade/sections from selected class
   const selectedClass = classes.find(c => c.id === selectedClassId);
