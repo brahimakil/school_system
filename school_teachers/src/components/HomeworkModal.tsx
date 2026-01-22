@@ -157,8 +157,11 @@ const HomeworkModal: React.FC<HomeworkModalProps> = ({ homework, onClose, viewMo
         }
     };
 
+    // Filter classes by the selected subject
+    const subjectFilteredClasses = myClasses.filter((cls: Class) => cls.className === selectedSubject);
+
     // Group classes by className and collect all schedules
-    const classesWithSchedules = myClasses.reduce((acc, cls) => {
+    const classesWithSchedules = subjectFilteredClasses.reduce((acc, cls) => {
         const existing = acc.find(c => c.className === cls.className);
         const schedule = { id: cls.id || '', day: cls.dayOfWeek, start: cls.startTime, end: cls.endTime };
         if (existing) {

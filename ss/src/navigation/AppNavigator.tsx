@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -14,7 +14,8 @@ import CoursesScreen from '../screens/CoursesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ChatScreen from '../screens/ChatScreen';
 import AIChatScreen from '../screens/AIChatScreen';
-import { ActivityIndicator, View, StyleSheet, Platform } from 'react-native';
+import SplashScreen from '../screens/SplashScreen';
+import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Stack = createStackNavigator();
@@ -33,11 +34,18 @@ const ChatStackScreen = () => {
 const AppNavigator: React.FC = () => {
   const { student, loading } = useAuth();
   const insets = useSafeAreaInsets();
+  const [showSplash, setShowSplash] = useState(true);
 
+  // Show splash screen on app start
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
+
+  // Show nothing while checking auth (brief moment after splash)
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <View style={styles.loadingDot} />
       </View>
     );
   }
@@ -167,7 +175,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#6366f1',
+  },
+  loadingDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
 });
 

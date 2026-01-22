@@ -69,7 +69,15 @@ const ClassesScreen: React.FC<ClassesScreenProps> = ({ navigation, route }) => {
       ]);
       
       if (classesResponse.success) {
-        setClasses(classesResponse.data);
+        // Deduplicate classes by className (same class can appear on multiple days with different IDs)
+        const uniqueClasses = classesResponse.data.reduce((acc: ClassSchedule[], current) => {
+          const exists = acc.find(item => item.className === current.className);
+          if (!exists) {
+            acc.push(current);
+          }
+          return acc;
+        }, []);
+        setClasses(uniqueClasses);
       }
       if (quizzesResponse.success) {
         setQuizzes(quizzesResponse.data);
@@ -78,7 +86,8 @@ const ClassesScreen: React.FC<ClassesScreenProps> = ({ navigation, route }) => {
         setHomeworks(homeworksResponse.data);
       }
       if (coursesResponse.success) {
-        const filteredCourses = coursesResponse.data.filter(c => c.status !== 'pending');
+        // Include all courses except completed ones
+        const filteredCourses = coursesResponse.data.filter(c => c.status !== 'completed');
         setCourses(filteredCourses);
       }
     } catch (error) {
@@ -88,24 +97,32 @@ const ClassesScreen: React.FC<ClassesScreenProps> = ({ navigation, route }) => {
     }
   };
 
-  const getQuizCountForClass = (classId: string) => {
-    return quizzes.filter(quiz => 
-      quiz.classId === classId && 
-      quiz.status === 'available'
-    ).length;
+  const getQuizCountForClass = (className: string) => {
+    const now = new Date();
+    return quizzes.filter(quiz => {
+      if (quiz.className !== className) return false;
+      // Show quizzes that are available OR pending but start time has passed
+      if (quiz.status === 'available') return true;
+      if (quiz.status === 'pending') {
+        const startDateTime = new Date(quiz.startDateTime);
+        const endDateTime = new Date(quiz.endDateTime);
+        return startDateTime <= now && endDateTime > now;
+      }
+      return false;
+    }).length;
   };
 
-  const getHomeworkCountForClass = (classId: string) => {
+  const getHomeworkCountForClass = (className: string) => {
     return homeworks.filter(homework => 
-      homework.classId === classId && 
-      homework.status === HomeworkStatus.ACTIVE
+      homework.className === className && 
+      (homework.status === HomeworkStatus.ACTIVE || homework.status === HomeworkStatus.PENDING)
     ).length;
   };
 
-  const getCoursesCountForClass = (classId: string) => {
+  const getCoursesCountForClass = (className: string) => {
     return courses.filter(course => 
-      course.classId === classId && 
-      (course.status === 'active' || course.status === 'overdue')
+      course.className === className && 
+      (course.status === 'active' || course.status === 'overdue' || course.status === 'pending')
     ).length;
   };
 
@@ -202,7 +219,7 @@ const ClassesScreen: React.FC<ClassesScreenProps> = ({ navigation, route }) => {
             </View>
             <View style={styles.resourceInfo}>
               <Text style={styles.resourceName}>Quizzes</Text>
-              <Text style={styles.resourceCount}>{getQuizCountForClass(selectedClass.id)} active</Text>
+              <Text style={styles.resourceCount}>{getQuizCountForClass(selectedClass.className)} active</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
           </TouchableOpacity>
@@ -219,7 +236,7 @@ const ClassesScreen: React.FC<ClassesScreenProps> = ({ navigation, route }) => {
             </View>
             <View style={styles.resourceInfo}>
               <Text style={styles.resourceName}>Tasks</Text>
-              <Text style={styles.resourceCount}>{getHomeworkCountForClass(selectedClass.id)} active</Text>
+              <Text style={styles.resourceCount}>{getHomeworkCountForClass(selectedClass.className)} active</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
           </TouchableOpacity>
@@ -236,7 +253,7 @@ const ClassesScreen: React.FC<ClassesScreenProps> = ({ navigation, route }) => {
             </View>
             <View style={styles.resourceInfo}>
               <Text style={styles.resourceName}>Courses</Text>
-              <Text style={styles.resourceCount}>{getCoursesCountForClass(selectedClass.id)} active</Text>
+              <Text style={styles.resourceCount}>{getCoursesCountForClass(selectedClass.className)} active</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
           </TouchableOpacity>

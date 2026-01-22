@@ -56,13 +56,23 @@ const QuizzesScreen: React.FC = () => {
       );
       
       if (response.success) {
-        const availableQuizzes = response.data.filter(q => q.status === 'available');
-        setQuizzes(availableQuizzes);
+        const now = new Date();
+        // Show quizzes that are available, pending (if start time has passed), or past due
+        const relevantQuizzes = response.data.filter(q => {
+          if (q.status === 'available') return true;
+          if (q.status === 'pending') {
+            const startDateTime = new Date(q.startDateTime);
+            // Show if start time has passed (including past due ones)
+            return startDateTime <= now;
+          }
+          return false;
+        });
+        setQuizzes(relevantQuizzes);
         
         // Fetch results for each quiz
         const resultsMap: { [quizId: string]: QuizResult } = {};
         await Promise.all(
-          availableQuizzes.map(async (quiz) => {
+          relevantQuizzes.map(async (quiz) => {
             const resultResponse = await quizResultAPI.getByQuizAndStudent(quiz.id, student.uid);
             if (resultResponse.success && resultResponse.data) {
               resultsMap[quiz.id] = resultResponse.data;
@@ -182,13 +192,24 @@ const QuizzesScreen: React.FC = () => {
   const renderQuizCard = (quiz: Quiz) => {
     const result = results[quiz.id];
     const hasCompleted = !!result;
+    const now = new Date();
+    const endDateTime = new Date(quiz.endDateTime);
+    const isPastDue = endDateTime < now && !hasCompleted;
+
+    const getStatusBadge = () => {
+      if (hasCompleted) return { style: styles.completedBadge, text: 'Completed' };
+      if (isPastDue) return { style: styles.pastDueBadge, text: 'Past Due' };
+      return { style: styles.availableBadge, text: 'Available' };
+    };
+
+    const statusBadge = getStatusBadge();
 
     return (
-      <View key={quiz.id} style={styles.quizCard}>
+      <View key={quiz.id} style={[styles.quizCard, isPastDue && styles.pastDueCard]}>
         <View style={styles.quizHeader}>
           <Text style={styles.quizTitle}>{quiz.title}</Text>
-          <View style={[styles.statusBadge, hasCompleted ? styles.completedBadge : styles.availableBadge]}>
-            <Text style={styles.statusText}>{hasCompleted ? 'Completed' : 'Available'}</Text>
+          <View style={[styles.statusBadge, statusBadge.style]}>
+            <Text style={[styles.statusText, isPastDue && styles.pastDueText]}>{statusBadge.text}</Text>
           </View>
         </View>
         
@@ -207,7 +228,12 @@ const QuizzesScreen: React.FC = () => {
         </View>
 
         <View style={styles.dateInfo}>
-          <Text style={styles.dateText}>Ends: {new Date(quiz.endDateTime).toLocaleString()}</Text>
+          <Text style={[styles.dateText, isPastDue && styles.pastDueDateText]}>
+            {isPastDue ? 'Ended: ' : 'Ends: '}{new Date(quiz.endDateTime).toLocaleString()}
+          </Text>
+          {isPastDue && (
+            <Text style={styles.pastDueWarning}>This quiz is no longer available</Text>
+          )}
         </View>
 
         {hasCompleted ? (
@@ -224,6 +250,11 @@ const QuizzesScreen: React.FC = () => {
             >
               <Text style={styles.viewButtonText}>View Results</Text>
             </TouchableOpacity>
+          </View>
+        ) : isPastDue ? (
+          <View style={styles.pastDueContainer}>
+            <Ionicons name="time-outline" size={20} color="#dc2626" />
+            <Text style={styles.pastDueButtonText}>Quiz Expired</Text>
           </View>
         ) : (
           <TouchableOpacity
@@ -515,6 +546,41 @@ const styles = StyleSheet.create({
   },
   completedBadge: {
     backgroundColor: '#d1fae5',
+  },
+  pastDueBadge: {
+    backgroundColor: '#fee2e2',
+  },
+  pastDueCard: {
+    opacity: 0.85,
+    borderColor: '#fca5a5',
+    borderWidth: 1,
+  },
+  pastDueText: {
+    color: '#dc2626',
+  },
+  pastDueDateText: {
+    color: '#dc2626',
+    fontWeight: '600',
+  },
+  pastDueWarning: {
+    fontSize: 12,
+    color: '#dc2626',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  pastDueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 14,
+    backgroundColor: '#fee2e2',
+    borderRadius: 8,
+    gap: 8,
+  },
+  pastDueButtonText: {
+    color: '#dc2626',
+    fontSize: 16,
+    fontWeight: '600',
   },
   statusText: {
     fontSize: 12,

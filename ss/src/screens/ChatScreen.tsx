@@ -59,6 +59,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'classes' | 'teachers'>('classes');
   const flatListRef = useRef<FlatList>(null);
 
   // Fetch chat rooms from API and set up real-time listeners
@@ -537,46 +538,68 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ navigation }) => {
         </View>
       ) : (
         <>
-          {/* AI Helper Pinned Chat */}
-          <TouchableOpacity style={styles.aiHelperItem} onPress={handleAIHelperPress}>
-            <View style={styles.aiHelperAvatar}>
-              <Text style={styles.aiHelperAvatarText}>🤖</Text>
+          {/* AI Helper - Compact Version */}
+          <TouchableOpacity style={styles.aiHelperItemCompact} onPress={handleAIHelperPress}>
+            <View style={styles.aiHelperAvatarCompact}>
+              <Text style={styles.aiHelperAvatarTextCompact}>🤖</Text>
             </View>
-            <View style={styles.aiHelperInfo}>
-              <View style={styles.aiHelperHeader}>
-                <Text style={styles.aiHelperName}>AI Helper</Text>
-                <View style={styles.pinnedBadge}>
-                  <Ionicons name="pin" size={12} color="#fff" />
-                  <Text style={styles.pinnedText}>Pinned</Text>
-                </View>
-              </View>
-              <Text style={styles.aiHelperDescription}>
-                Ask me about your courses, homework, or anything!
-              </Text>
-              <View style={styles.aiHelperFeatures}>
-                <Text style={styles.aiFeature}>📚 Course Help</Text>
-                <Text style={styles.aiFeature}>📝 Homework Support</Text>
-                <Text style={styles.aiFeature}>📷 Image Analysis</Text>
-              </View>
+            <View style={styles.aiHelperInfoCompact}>
+              <Text style={styles.aiHelperNameCompact}>AI Helper</Text>
+              <Text style={styles.aiHelperDescriptionCompact}>Ask me anything!</Text>
             </View>
+            <Ionicons name="chevron-forward" size={20} color="#fff" />
           </TouchableOpacity>
 
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>Your Chats</Text>
-            <View style={styles.dividerLine} />
+          {/* Tabs */}
+          <View style={styles.tabContainer}>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'classes' && styles.activeTab]}
+              onPress={() => setActiveTab('classes')}
+            >
+              <Ionicons 
+                name="people" 
+                size={18} 
+                color={activeTab === 'classes' ? '#6366f1' : '#94a3b8'} 
+              />
+              <Text style={[styles.tabText, activeTab === 'classes' && styles.activeTabText]}>
+                Classes ({rooms.filter(r => r.type === 'class').length})
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'teachers' && styles.activeTab]}
+              onPress={() => setActiveTab('teachers')}
+            >
+              <Ionicons 
+                name="person" 
+                size={18} 
+                color={activeTab === 'teachers' ? '#6366f1' : '#94a3b8'} 
+              />
+              <Text style={[styles.tabText, activeTab === 'teachers' && styles.activeTabText]}>
+                Teachers ({rooms.filter(r => r.type === 'private').length})
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          {rooms.length === 0 ? (
+          {/* Filtered Room List */}
+          {rooms.filter(r => activeTab === 'classes' ? r.type === 'class' : r.type === 'private').length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Ionicons name="chatbubbles-outline" size={80} color="#cbd5e1" />
-              <Text style={styles.emptyTitle}>No conversations yet</Text>
-              <Text style={styles.emptySubtitle}>Your class chats will appear here</Text>
+              <Ionicons 
+                name={activeTab === 'classes' ? 'people-outline' : 'person-outline'} 
+                size={60} 
+                color="#cbd5e1" 
+              />
+              <Text style={styles.emptyTitle}>
+                No {activeTab === 'classes' ? 'class' : 'teacher'} chats yet
+              </Text>
+              <Text style={styles.emptySubtitle}>
+                {activeTab === 'classes' 
+                  ? 'Your class group chats will appear here' 
+                  : 'Private chats with teachers will appear here'}
+              </Text>
             </View>
           ) : (
             <FlatList
-              data={rooms}
+              data={rooms.filter(r => activeTab === 'classes' ? r.type === 'class' : r.type === 'private')}
               renderItem={renderRoom}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.roomsList}
@@ -874,81 +897,72 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     marginTop: 8,
   },
-  aiHelperItem: {
+  aiHelperItemCompact: {
     flexDirection: 'row',
-    padding: 16,
+    alignItems: 'center',
+    padding: 12,
     backgroundColor: '#6366f1',
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 16,
-    shadowColor: '#6366f1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
+    marginHorizontal: 12,
+    marginTop: 12,
+    borderRadius: 12,
   },
-  aiHelperAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  aiHelperAvatarCompact: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  aiHelperAvatarText: {
-    fontSize: 32,
+  aiHelperAvatarTextCompact: {
+    fontSize: 20,
   },
-  aiHelperInfo: {
+  aiHelperInfoCompact: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 10,
   },
-  aiHelperHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  aiHelperName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginRight: 8,
-  },
-  pinnedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-    gap: 4,
-  },
-  pinnedText: {
-    fontSize: 10,
-    color: '#fff',
+  aiHelperNameCompact: {
+    fontSize: 15,
     fontWeight: '600',
+    color: '#fff',
   },
-  aiHelperDescription: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.95)',
-    marginBottom: 8,
-  },
-  aiHelperFeatures: {
-    flexDirection: 'row',
-    gap: 8,
-    flexWrap: 'wrap',
-  },
-  aiFeature: {
-    fontSize: 11,
+  aiHelperDescriptionCompact: {
+    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.85)',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    marginHorizontal: 12,
+    marginTop: 12,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 12,
+    padding: 4,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 10,
+    gap: 6,
+  },
+  activeTab: {
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#94a3b8',
+  },
+  activeTabText: {
+    color: '#6366f1',
+    fontWeight: '600',
   },
   divider: {
     flexDirection: 'row',

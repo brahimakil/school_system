@@ -42,12 +42,19 @@ const CoursesScreen: React.FC<CoursesScreenProps> = ({ navigation }) => {
       ]);
       
       if (classesResponse.success) {
-        setClasses(classesResponse.data);
+        // Deduplicate classes by className (same class can appear on multiple days with different IDs)
+        const uniqueClasses = classesResponse.data.reduce((acc: ClassSchedule[], current) => {
+          const exists = acc.find(item => item.className === current.className);
+          if (!exists) {
+            acc.push(current);
+          }
+          return acc;
+        }, []);
+        setClasses(uniqueClasses);
       }
       if (coursesResponse.success) {
-        // Filter out pending courses
-        const filteredCourses = coursesResponse.data.filter(course => course.status !== 'pending');
-        setCourses(filteredCourses);
+        // Show all courses including completed ones
+        setCourses(coursesResponse.data);
       }
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -56,8 +63,8 @@ const CoursesScreen: React.FC<CoursesScreenProps> = ({ navigation }) => {
     }
   };
 
-  const getCoursesForClass = (classId: string) => {
-    return courses.filter(course => course.classId === classId);
+  const getCoursesForClass = (className: string) => {
+    return courses.filter(course => course.className === className);
   };
 
   const handleMarkAsCompleted = async (courseId: string) => {
@@ -188,7 +195,7 @@ const CoursesScreen: React.FC<CoursesScreenProps> = ({ navigation }) => {
 
   // Show courses for selected class
   if (selectedClass) {
-    const classCourses = getCoursesForClass(selectedClass.id);
+    const classCourses = getCoursesForClass(selectedClass.className);
     
     return (
       <ScrollView style={styles.container}>
@@ -296,8 +303,8 @@ const CoursesScreen: React.FC<CoursesScreenProps> = ({ navigation }) => {
           <Text style={styles.sectionTitle}>My Classes</Text>
           
           {classes.map((classItem) => {
-            const classCoursesCount = getCoursesForClass(classItem.id).length;
-            const activeCount = getCoursesForClass(classItem.id).filter(c => c.status === 'active').length;
+            const classCoursesCount = getCoursesForClass(classItem.className).length;
+            const activeCount = getCoursesForClass(classItem.className).filter(c => c.status === 'active').length;
             
             return (
               <TouchableOpacity
