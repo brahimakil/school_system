@@ -1,0 +1,474 @@
+<mxfile host="app.diagrams.net" modified="2026-01-24T00:00:00.000Z" agent="School Management System" version="22.0.0" type="device">
+  <diagram id="class-diagram-unified" name="School Management System - Complete Class Diagram">
+    <mxGraphModel dx="5000" dy="4000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="5000" pageHeight="4000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- ==================== TITLE ==================== -->
+        <mxCell id="title" value="SCHOOL MANAGEMENT SYSTEM - CLASS DIAGRAM" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=22;fontStyle=1;fontColor=#1565C0;" vertex="1" parent="1">
+          <mxGeometry x="800" y="40" width="2400" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== BASE USER CLASS ==================== -->
+        
+        <mxCell id="User" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;User&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- phone: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- name: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- email: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- role: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- createdAt: Date&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- updatedAt: Date&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ login(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ logout(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ updateProfile(): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1800" y="150" width="200" height="220" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== USER SUBCLASSES ==================== -->
+        
+        <mxCell id="Admin" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Admin&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- adminLevel: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- permissions: string[]&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ manageUsers(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ manageSubjects(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ manageClasses(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ manageCourses(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ viewActivityLog(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ configureAI(): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="500" width="200" height="180" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="Teacher" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Teacher&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- specialization: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- department: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- hireDate: Date&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ createQuiz(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ createHomework(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ gradeSubmission(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ viewStudents(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ publishGrades(): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;fillColor=#BBDEFB;strokeColor=#0D47A1;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1800" y="500" width="200" height="180" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="Student" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Student&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- enrollmentDate: Date&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- grade: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- classId: string&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ enrollCourse(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ takeQuiz(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ submitHomework(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ chatWithAI(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ viewGrades(): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="2400" y="500" width="200" height="180" as="geometry" />
+        </mxCell>
+        
+        <!-- Inheritance arrows from User to subclasses -->
+        <mxCell id="inherit1" value="" style="endArrow=block;endSize=16;endFill=0;html=1;strokeWidth=2;strokeColor=#2E7D32;" edge="1" parent="1" source="Admin" target="User">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1300" y="500" as="sourcePoint" />
+            <mxPoint x="1900" y="370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="inherit2" value="" style="endArrow=block;endSize=16;endFill=0;html=1;strokeWidth=2;strokeColor=#2E7D32;" edge="1" parent="1" source="Teacher" target="User">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1900" y="500" as="sourcePoint" />
+            <mxPoint x="1900" y="370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="inherit3" value="" style="endArrow=block;endSize=16;endFill=0;html=1;strokeWidth=2;strokeColor=#2E7D32;" edge="1" parent="1" source="Student" target="User">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="2500" y="500" as="sourcePoint" />
+            <mxPoint x="1900" y="370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- ==================== ACADEMIC ENTITIES ==================== -->
+        
+        <mxCell id="Subject" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Subject&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- name: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- description: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- credits: number&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- createdAt: Date&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ create(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ update(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ delete(): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;fillColor=#E1F5FE;strokeColor=#01579B;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="200" y="900" width="200" height="180" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="Class" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- name: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- grade: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- section: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- academicYear: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- createdAt: Date&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ create(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ addStudent(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ removeStudent(): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="550" y="900" width="200" height="200" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="Course" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Course&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- subjectId: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- classId: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- teacherId: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- startDate: Date&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- endDate: Date&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- status: string&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ create(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ update(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ delete(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ getEnrolled(): Student[]&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="900" y="900" width="200" height="220" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== ASSESSMENT ENTITIES ==================== -->
+        
+        <mxCell id="Quiz" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Quiz&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- courseId: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- title: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- description: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- duration: number&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- totalPoints: number&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- questions: Question[]&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- isPublished: boolean&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- createdAt: Date&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ create(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ publish(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ addQuestion(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ calculateScore(): number&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;fillColor=#FFF3E0;strokeColor=#E65100;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1350" y="900" width="220" height="270" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="QuizResult" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;QuizResult&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- quizId: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- studentId: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- score: number&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- answers: Answer[]&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- submittedAt: Date&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- timeTaken: number&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ submit(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ calculate(): number&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ getDetails(): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;fillColor=#FFECB3;strokeColor=#FF6F00;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1700" y="900" width="200" height="200" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="Homework" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Homework&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- courseId: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- title: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- description: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- dueDate: Date&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- totalPoints: number&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- attachments: string[]&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- createdAt: Date&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ create(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ update(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ delete(): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;fillColor=#FCE4EC;strokeColor=#C2185B;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="2050" y="900" width="200" height="220" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="Submission" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Submission&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- homeworkId: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- studentId: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- fileUrl: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- grade: number&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- feedback: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- submittedAt: Date&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- gradedAt: Date&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ submit(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ grade(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ update(): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;fillColor=#F8BBD0;strokeColor=#880E4F;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="2400" y="900" width="200" height="210" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== COMMUNICATION ENTITIES ==================== -->
+        
+        <mxCell id="ChatRoom" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;ChatRoom&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- studentId: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- type: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- createdAt: Date&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- lastActivity: Date&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ create(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ getMessages(): Message[]&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ addMessage(): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="2800" y="900" width="200" height="180" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="Message" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Message&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- roomId: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- sender: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- content: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- timestamp: Date&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- isRead: boolean&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ send(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ markAsRead(): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;fillColor=#CE93D8;strokeColor=#4A148C;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="3150" y="900" width="200" height="170" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== AI ENTITIES ==================== -->
+        
+        <mxCell id="AISettings" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;AISettings&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- model: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- temperature: number&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- maxTokens: number&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- systemPrompt: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- isEnabled: boolean&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ configure(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ enable(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ disable(): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;fillColor=#FFCCBC;strokeColor=#BF360C;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="3500" y="900" width="200" height="190" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== SYSTEM ENTITIES ==================== -->
+        
+        <mxCell id="ActivityLog" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;ActivityLog&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- userId: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- action: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- entity: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- details: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- timestamp: Date&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ log(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ query(): ActivityLog[]&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;fillColor=#F5F5F5;strokeColor=#424242;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="200" y="1350" width="200" height="180" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== RELATIONSHIPS ==================== -->
+        
+        <!-- Student to Class (Many-to-One) -->
+        <mxCell id="rel1" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1" source="Student" target="Class">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="2400" y="700" as="sourcePoint" />
+            <mxPoint x="650" y="900" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel1-label1" value="*" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2370" y="680" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel1-label2" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="650" y="870" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel1-name" value="belongs to" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="1400" y="760" width="80" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Course to Subject (Many-to-One) -->
+        <mxCell id="rel2" value="" style="endArrow=diamondThin;endFill=1;endSize=24;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1" source="Course" target="Subject">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="900" y="990" as="sourcePoint" />
+            <mxPoint x="400" y="990" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel2-label1" value="*" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="870" y="970" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel2-label2" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="410" y="970" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel2-name" value="offers" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="600" y="960" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Course to Class (Many-to-One) -->
+        <mxCell id="rel3" value="" style="endArrow=diamondThin;endFill=1;endSize=24;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1" source="Course" target="Class">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="900" y="1050" as="sourcePoint" />
+            <mxPoint x="750" y="1050" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel3-label1" value="*" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="870" y="1050" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel3-label2" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="760" y="1050" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel3-name" value="assigned to" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="780" y="1030" width="80" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Teacher to Course (One-to-Many) -->
+        <mxCell id="rel4" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1" source="Course" target="Teacher">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1000" y="900" as="sourcePoint" />
+            <mxPoint x="1900" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel4-label1" value="*" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1100" y="870" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel4-label2" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1800" y="710" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel4-name" value="teaches" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="1400" y="790" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Quiz to Course (Many-to-One) -->
+        <mxCell id="rel5" value="" style="endArrow=diamondThin;endFill=1;endSize=24;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1" source="Quiz" target="Course">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1350" y="1010" as="sourcePoint" />
+            <mxPoint x="1100" y="1010" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel5-label1" value="*" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1320" y="1010" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel5-label2" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1110" y="1010" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel5-name" value="contains" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="1180" y="990" width="70" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- QuizResult to Quiz (Many-to-One) -->
+        <mxCell id="rel6" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1" source="QuizResult" target="Quiz">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1700" y="1000" as="sourcePoint" />
+            <mxPoint x="1570" y="1000" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel6-label1" value="*" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1670" y="1000" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel6-label2" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1580" y="1000" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel6-name" value="result of" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="1590" y="980" width="70" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- QuizResult to Student (Many-to-One) -->
+        <mxCell id="rel7" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1" source="QuizResult" target="Student">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1800" y="900" as="sourcePoint" />
+            <mxPoint x="2400" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel7-label1" value="*" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1800" y="870" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel7-label2" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2400" y="710" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel7-name" value="taken by" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="2000" y="780" width="70" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Homework to Course (Many-to-One) -->
+        <mxCell id="rel8" value="" style="endArrow=diamondThin;endFill=1;endSize=24;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1" source="Homework" target="Course">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="2050" y="1020" as="sourcePoint" />
+            <mxPoint x="1100" y="1020" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel8-label1" value="*" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2020" y="1020" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel8-label2" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1110" y="1020" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel8-name" value="assigned in" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="1500" y="1000" width="80" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Submission to Homework (Many-to-One) -->
+        <mxCell id="rel9" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1" source="Submission" target="Homework">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="2400" y="1000" as="sourcePoint" />
+            <mxPoint x="2250" y="1000" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel9-label1" value="*" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2370" y="1000" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel9-label2" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2260" y="1000" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel9-name" value="for" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="2280" y="980" width="40" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Submission to Student (Many-to-One) -->
+        <mxCell id="rel10" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1" source="Submission" target="Student">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="2500" y="900" as="sourcePoint" />
+            <mxPoint x="2500" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel10-label1" value="*" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2500" y="870" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel10-label2" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2500" y="710" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel10-name" value="submitted by" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="2510" y="790" width="90" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- ChatRoom to Student (Many-to-One) -->
+        <mxCell id="rel11" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1" source="ChatRoom" target="Student">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="2800" y="900" as="sourcePoint" />
+            <mxPoint x="2600" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel11-label1" value="*" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2800" y="870" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel11-label2" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2600" y="710" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel11-name" value="belongs to" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="2660" y="790" width="80" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Message to ChatRoom (Many-to-One) -->
+        <mxCell id="rel12" value="" style="endArrow=diamondThin;endFill=1;endSize=24;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1" source="Message" target="ChatRoom">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="3150" y="990" as="sourcePoint" />
+            <mxPoint x="3000" y="990" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel12-label1" value="*" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="3120" y="990" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel12-label2" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="3010" y="990" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel12-name" value="in" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="3050" y="970" width="30" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- ActivityLog to User (Many-to-One) -->
+        <mxCell id="rel13" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1" source="ActivityLog" target="User">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="400" y="1350" as="sourcePoint" />
+            <mxPoint x="1800" y="370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel13-label1" value="*" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="410" y="1320" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel13-label2" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1770" y="380" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel13-name" value="tracks" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="1000" y="840" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== LEGEND ==================== -->
+        
+        <mxCell id="legend-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#424242;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="200" y="1650" width="3500" height="400" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-title" value="UML CLASS DIAGRAM LEGEND" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=18;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="200" y="1660" width="3500" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Inheritance Example -->
+        <mxCell id="legend-inherit" value="" style="endArrow=block;endSize=16;endFill=0;html=1;strokeWidth=2;strokeColor=#2E7D32;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="320" y="1780" as="sourcePoint" />
+            <mxPoint x="420" y="1780" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend-inherit-text" value="Inheritance (Is-A)" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=0" vertex="1" parent="1">
+          <mxGeometry x="440" y="1770" width="150" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Composition Example -->
+        <mxCell id="legend-comp" value="" style="endArrow=diamondThin;endFill=1;endSize=24;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="320" y="1830" as="sourcePoint" />
+            <mxPoint x="420" y="1830" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend-comp-text" value="Composition (Strong Has-A, lifecycle dependent)" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=0" vertex="1" parent="1">
+          <mxGeometry x="440" y="1820" width="330" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Aggregation Example -->
+        <mxCell id="legend-agg" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;strokeWidth=2;strokeColor=#424242;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="320" y="1880" as="sourcePoint" />
+            <mxPoint x="420" y="1880" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend-agg-text" value="Aggregation (Weak Has-A, lifecycle independent)" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=0" vertex="1" parent="1">
+          <mxGeometry x="440" y="1870" width="340" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Multiplicity Example -->
+        <mxCell id="legend-mult-text1" value="Multiplicity: 1 = One, * = Many, 0..1 = Zero or One, 1..* = One or More" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=0" vertex="1" parent="1">
+          <mxGeometry x="320" y="1930" width="500" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Color Coding -->
+        <mxCell id="legend-color-title" value="Color Coding:" style="text;html=1;align=left;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="900" y="1740" width="120" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-c1" value="User Base Class" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="900" y="1770" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-c2" value="Admin" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;strokeWidth=2;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="1070" y="1770" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-c3" value="Teacher" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#0D47A1;strokeWidth=2;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="1240" y="1770" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-c4" value="Student" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;strokeWidth=2;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="1410" y="1770" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-c5" value="Subject" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1F5FE;strokeColor=#01579B;strokeWidth=2;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="900" y="1820" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-c6" value="Class" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;strokeWidth=2;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="1070" y="1820" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-c7" value="Course" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="1240" y="1820" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-c8" value="Quiz" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;strokeWidth=2;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="1410" y="1820" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-c9" value="Quiz Result" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFECB3;strokeColor=#FF6F00;strokeWidth=2;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="900" y="1870" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-c10" value="Homework" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#C2185B;strokeWidth=2;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="1070" y="1870" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-c11" value="Submission" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8BBD0;strokeColor=#880E4F;strokeWidth=2;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="1240" y="1870" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-c12" value="Chat Room" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;strokeWidth=2;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="1410" y="1870" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-c13" value="Message" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#CE93D8;strokeColor=#4A148C;strokeWidth=2;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="900" y="1920" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-c14" value="AI Settings" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFCCBC;strokeColor=#BF360C;strokeWidth=2;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="1070" y="1920" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-c15" value="Activity Log" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#424242;strokeWidth=2;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="1240" y="1920" width="150" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Class Notation -->
+        <mxCell id="legend-notation-title" value="Class Structure:" style="text;html=1;align=left;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1700" y="1740" width="150" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-notation-text1" value="- private attribute" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=0;fontFamily=Courier New" vertex="1" parent="1">
+          <mxGeometry x="1700" y="1770" width="200" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-notation-text2" value="+ public method" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=0;fontFamily=Courier New" vertex="1" parent="1">
+          <mxGeometry x="1700" y="1800" width="200" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-notation-text3" value="attribute: type" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=0;fontFamily=Courier New" vertex="1" parent="1">
+          <mxGeometry x="1700" y="1830" width="200" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend-notation-text4" value="method(): returnType" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=0;fontFamily=Courier New" vertex="1" parent="1">
+          <mxGeometry x="1700" y="1860" width="200" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Summary -->
+        <mxCell id="summary" value="&lt;b&gt;System Overview:&lt;/b&gt; This class diagram models a comprehensive school management system with user roles (Admin, Teacher, Student), academic entities (Subject, Class, Course), assessment tools (Quiz, Homework with Results and Submissions), AI-powered chat functionality, and system activity logging. All relationships use proper UML notation with multiplicity indicators." style="text;html=1;strokeColor=#1565C0;fillColor=#E3F2FD;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=12;strokeWidth=2;spacingLeft=10;spacingTop=10" vertex="1" parent="1">
+          <mxGeometry x="2050" y="1740" width="1630" height="210" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

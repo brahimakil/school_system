@@ -1,0 +1,505 @@
+<mxfile host="app.diagrams.net" modified="2026-01-24T00:00:00.000Z" agent="School Management System" version="22.0.0" type="device">
+  <diagram id="class-diagram-sms" name="School Management System Class Diagram">
+    <mxGraphModel dx="1434" dy="844" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1400" math="0" shadow="0">
+      <root>
+        <mxCell id="CD-0" />
+        <mxCell id="CD-1" parent="CD-0" />
+        
+        <!-- ==================== USER HIERARCHY ==================== -->
+        
+        <!-- Base User Class (Abstract) -->
+        <mxCell id="CLASS-USER" value="User" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#E1F5FE;strokeColor=#01579B;fontColor=#000000;fontSize=12;" vertex="1" parent="CD-1">
+          <mxGeometry x="750" y="40" width="200" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-USER-ATTR" value="- id: String&#xa;- email: String&#xa;- password: String&#xa;- fullName: String&#xa;- phoneNumber: String&#xa;- photoUrl: String&#xa;- status: String&#xa;- createdAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-USER">
+          <mxGeometry y="26" width="200" height="114" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-USER-LINE" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#01579B;" vertex="1" parent="CLASS-USER">
+          <mxGeometry y="140" width="200" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-USER-METH" value="+ login(): Boolean&#xa;+ logout(): void&#xa;+ updateProfile(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-USER">
+          <mxGeometry y="148" width="200" height="32" as="geometry" />
+        </mxCell>
+        
+        <!-- Admin Class -->
+        <mxCell id="CLASS-ADMIN" value="Admin" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#C8E6C9;strokeColor=#2E7D32;fontColor=#000000;fontSize=12;" vertex="1" parent="CD-1">
+          <mxGeometry x="400" y="300" width="220" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-ADMIN-ATTR" value="- role: String&#xa;- permissions: Array&lt;String&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-ADMIN">
+          <mxGeometry y="26" width="220" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-ADMIN-LINE" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#2E7D32;" vertex="1" parent="CLASS-ADMIN">
+          <mxGeometry y="60" width="220" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-ADMIN-METH" value="+ manageUsers(): void&#xa;+ viewStatistics(): Object&#xa;+ configureSystem(): void&#xa;+ viewActivityLog(): Array" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-ADMIN">
+          <mxGeometry y="68" width="220" height="62" as="geometry" />
+        </mxCell>
+        
+        <!-- Teacher Class -->
+        <mxCell id="CLASS-TEACHER" value="Teacher" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#BBDEFB;strokeColor=#0D47A1;fontColor=#000000;fontSize=12;" vertex="1" parent="CD-1">
+          <mxGeometry x="740" y="300" width="220" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-TEACHER-ATTR" value="- subjects: Array&lt;String&gt;&#xa;- specialization: String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-TEACHER">
+          <mxGeometry y="26" width="220" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-TEACHER-LINE" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#0D47A1;" vertex="1" parent="CLASS-TEACHER">
+          <mxGeometry y="60" width="220" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-TEACHER-METH" value="+ getMyClasses(): Array&lt;Class&gt;&#xa;+ createCourse(): Course&#xa;+ createQuiz(): Quiz&#xa;+ createHomework(): Homework&#xa;+ gradeSubmission(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-TEACHER">
+          <mxGeometry y="68" width="220" height="77" as="geometry" />
+        </mxCell>
+        
+        <!-- Student Class -->
+        <mxCell id="CLASS-STUDENT" value="Student" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#FFF9C4;strokeColor=#F57F17;fontColor=#000000;fontSize=12;" vertex="1" parent="CD-1">
+          <mxGeometry x="1080" y="300" width="220" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-STUDENT-ATTR" value="- currentGrade: Object&#xa;- passedGrades: Array&lt;Object&gt;&#xa;- enrollmentDate: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-STUDENT">
+          <mxGeometry y="26" width="220" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-STUDENT-LINE" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#F57F17;" vertex="1" parent="CLASS-STUDENT">
+          <mxGeometry y="74" width="220" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-STUDENT-METH" value="+ viewCourses(): Array&lt;Course&gt;&#xa;+ takeQuiz(): QuizResult&#xa;+ submitHomework(): Submission&#xa;+ viewResults(): Array&#xa;+ chatWithAI(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-STUDENT">
+          <mxGeometry y="82" width="220" height="78" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== ACADEMIC ENTITIES ==================== -->
+        
+        <!-- Class Entity -->
+        <mxCell id="CLASS-CLASS" value="Class" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#E3F2FD;strokeColor=#1565C0;fontColor=#000000;fontSize=12;" vertex="1" parent="CD-1">
+          <mxGeometry x="50" y="540" width="220" height="165" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-CLASS-ATTR" value="- id: String&#xa;- className: String&#xa;- teacherId: String&#xa;- gradeSections: Array&lt;Object&gt;&#xa;- dayOfWeek: String&#xa;- startTime: String&#xa;- endTime: String&#xa;- createdAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-CLASS">
+          <mxGeometry y="26" width="220" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-CLASS-LINE" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#1565C0;" vertex="1" parent="CLASS-CLASS">
+          <mxGeometry y="130" width="220" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-CLASS-METH" value="+ getStudents(): Array&lt;Student&gt;&#xa;+ update(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-CLASS">
+          <mxGeometry y="138" width="220" height="27" as="geometry" />
+        </mxCell>
+        
+        <!-- Subject Entity -->
+        <mxCell id="CLASS-SUBJECT" value="Subject" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#E3F2FD;strokeColor=#1565C0;fontColor=#000000;fontSize=12;" vertex="1" parent="CD-1">
+          <mxGeometry x="310" y="540" width="220" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-SUBJECT-ATTR" value="- id: String&#xa;- name: String&#xa;- description: String&#xa;- code: String&#xa;- icon: String&#xa;- createdAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-SUBJECT">
+          <mxGeometry y="26" width="220" height="84" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-SUBJECT-LINE" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#1565C0;" vertex="1" parent="CLASS-SUBJECT">
+          <mxGeometry y="110" width="220" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-SUBJECT-METH" value="+ update(): void&#xa;+ delete(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-SUBJECT">
+          <mxGeometry y="118" width="220" height="22" as="geometry" />
+        </mxCell>
+        
+        <!-- Course Entity -->
+        <mxCell id="CLASS-COURSE" value="Course" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#E8F5E9;strokeColor=#2E7D32;fontColor=#000000;fontSize=12;" vertex="1" parent="CD-1">
+          <mxGeometry x="570" y="540" width="220" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-COURSE-ATTR" value="- id: String&#xa;- title: String&#xa;- description: String&#xa;- subjectId: String&#xa;- teacherId: String&#xa;- classId: String&#xa;- attachmentUrl: String&#xa;- createdAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-COURSE">
+          <mxGeometry y="26" width="220" height="114" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-COURSE-LINE" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#2E7D32;" vertex="1" parent="CLASS-COURSE">
+          <mxGeometry y="140" width="220" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-COURSE-METH" value="+ update(): void&#xa;+ delete(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-COURSE">
+          <mxGeometry y="148" width="220" height="27" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== ASSESSMENT ENTITIES ==================== -->
+        
+        <!-- Quiz Entity -->
+        <mxCell id="CLASS-QUIZ" value="Quiz" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#FFF3E0;strokeColor=#E65100;fontColor=#000000;fontSize=12;" vertex="1" parent="CD-1">
+          <mxGeometry x="50" y="780" width="220" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-QUIZ-ATTR" value="- id: String&#xa;- title: String&#xa;- description: String&#xa;- subjectId: String&#xa;- classId: String&#xa;- teacherId: String&#xa;- questions: Array&lt;Object&gt;&#xa;- duration: Number&#xa;- status: String&#xa;- dueDate: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-QUIZ">
+          <mxGeometry y="26" width="220" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-QUIZ-LINE" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#E65100;" vertex="1" parent="CLASS-QUIZ">
+          <mxGeometry y="160" width="220" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-QUIZ-METH" value="+ updateStatus(): void&#xa;+ delete(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-QUIZ">
+          <mxGeometry y="168" width="220" height="22" as="geometry" />
+        </mxCell>
+        
+        <!-- QuizResult Entity -->
+        <mxCell id="CLASS-QUIZRESULT" value="QuizResult" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#FFF3E0;strokeColor=#E65100;fontColor=#000000;fontSize=12;" vertex="1" parent="CD-1">
+          <mxGeometry x="310" y="780" width="220" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-QUIZRESULT-ATTR" value="- id: String&#xa;- quizId: String&#xa;- studentId: String&#xa;- answers: Array&lt;Object&gt;&#xa;- score: Number&#xa;- totalScore: Number&#xa;- submittedAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-QUIZRESULT">
+          <mxGeometry y="26" width="220" height="99" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-QUIZRESULT-LINE" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#E65100;" vertex="1" parent="CLASS-QUIZRESULT">
+          <mxGeometry y="125" width="220" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-QUIZRESULT-METH" value="+ calculateScore(): Number&#xa;+ delete(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-QUIZRESULT">
+          <mxGeometry y="133" width="220" height="22" as="geometry" />
+        </mxCell>
+        
+        <!-- Homework Entity -->
+        <mxCell id="CLASS-HOMEWORK" value="Homework" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#FCE4EC;strokeColor=#C2185B;fontColor=#000000;fontSize=12;" vertex="1" parent="CD-1">
+          <mxGeometry x="570" y="780" width="220" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-HOMEWORK-ATTR" value="- id: String&#xa;- title: String&#xa;- description: String&#xa;- subjectId: String&#xa;- classId: String&#xa;- teacherId: String&#xa;- attachmentUrl: String&#xa;- dueDate: Date&#xa;- createdAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-HOMEWORK">
+          <mxGeometry y="26" width="220" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-HOMEWORK-LINE" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#C2185B;" vertex="1" parent="CLASS-HOMEWORK">
+          <mxGeometry y="160" width="220" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-HOMEWORK-METH" value="+ update(): void&#xa;+ delete(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-HOMEWORK">
+          <mxGeometry y="168" width="220" height="22" as="geometry" />
+        </mxCell>
+        
+        <!-- Submission Entity -->
+        <mxCell id="CLASS-SUBMISSION" value="Submission" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#FCE4EC;strokeColor=#C2185B;fontColor=#000000;fontSize=12;" vertex="1" parent="CD-1">
+          <mxGeometry x="830" y="780" width="220" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-SUBMISSION-ATTR" value="- id: String&#xa;- homeworkId: String&#xa;- studentId: String&#xa;- content: String&#xa;- attachmentUrl: String&#xa;- grade: Number&#xa;- feedback: String&#xa;- submittedAt: Date&#xa;- gradedAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-SUBMISSION">
+          <mxGeometry y="26" width="220" height="119" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-SUBMISSION-LINE" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#C2185B;" vertex="1" parent="CLASS-SUBMISSION">
+          <mxGeometry y="145" width="220" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-SUBMISSION-METH" value="+ update(): void&#xa;+ delete(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-SUBMISSION">
+          <mxGeometry y="153" width="220" height="22" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== COMMUNICATION ENTITIES ==================== -->
+        
+        <!-- ChatRoom Entity -->
+        <mxCell id="CLASS-CHATROOM" value="ChatRoom" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontColor=#000000;fontSize=12;" vertex="1" parent="CD-1">
+          <mxGeometry x="1110" y="540" width="220" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-CHATROOM-ATTR" value="- id: String&#xa;- teacherId: String&#xa;- studentId: String&#xa;- roomType: String&#xa;- isActive: Boolean&#xa;- unreadCountTeacher: Number&#xa;- unreadCountStudent: Number&#xa;- lastMessage: String&#xa;- lastMessageAt: Date&#xa;- createdAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-CHATROOM">
+          <mxGeometry y="26" width="220" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-CHATROOM-LINE" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#6A1B9A;" vertex="1" parent="CLASS-CHATROOM">
+          <mxGeometry y="160" width="220" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-CHATROOM-METH" value="+ markAsRead(): void&#xa;+ toggleStatus(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-CHATROOM">
+          <mxGeometry y="168" width="220" height="22" as="geometry" />
+        </mxCell>
+        
+        <!-- Message Entity -->
+        <mxCell id="CLASS-MESSAGE" value="Message" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontColor=#000000;fontSize=12;" vertex="1" parent="CD-1">
+          <mxGeometry x="1370" y="540" width="220" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-MESSAGE-ATTR" value="- id: String&#xa;- roomId: String&#xa;- senderId: String&#xa;- senderName: String&#xa;- senderType: String&#xa;- content: String&#xa;- messageType: String&#xa;- mediaUrl: String&#xa;- fileName: String&#xa;- createdAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-MESSAGE">
+          <mxGeometry y="26" width="220" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-MESSAGE-LINE" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#6A1B9A;" vertex="1" parent="CLASS-MESSAGE">
+          <mxGeometry y="160" width="220" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-MESSAGE-METH" value="+ send(): void&#xa;+ delete(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-MESSAGE">
+          <mxGeometry y="168" width="220" height="22" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== AI & SYSTEM ENTITIES ==================== -->
+        
+        <!-- AISettings Entity -->
+        <mxCell id="CLASS-AISETTINGS" value="AISettings" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#FFCCBC;strokeColor=#BF360C;fontColor=#000000;fontSize=12;" vertex="1" parent="CD-1">
+          <mxGeometry x="1110" y="780" width="220" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-AISETTINGS-ATTR" value="- id: String&#xa;- apiKey: String&#xa;- enabled: Boolean&#xa;- model: String&#xa;- lastUpdated: Date&#xa;- lastTestedAt: Date&#xa;- lastTestResult: String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-AISETTINGS">
+          <mxGeometry y="26" width="220" height="99" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-AISETTINGS-LINE" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#BF360C;" vertex="1" parent="CLASS-AISETTINGS">
+          <mxGeometry y="125" width="220" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-AISETTINGS-METH" value="+ testConnection(): Boolean&#xa;+ toggle(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-AISETTINGS">
+          <mxGeometry y="133" width="220" height="22" as="geometry" />
+        </mxCell>
+        
+        <!-- ActivityLog Entity -->
+        <mxCell id="CLASS-ACTIVITYLOG" value="ActivityLog" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#F5F5F5;strokeColor=#424242;fontColor=#000000;fontSize=12;" vertex="1" parent="CD-1">
+          <mxGeometry x="1370" y="780" width="220" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-ACTIVITYLOG-ATTR" value="- id: String&#xa;- userId: String&#xa;- userName: String&#xa;- action: String&#xa;- entityType: String&#xa;- entityId: String&#xa;- timestamp: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-ACTIVITYLOG">
+          <mxGeometry y="26" width="220" height="99" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-ACTIVITYLOG-LINE" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=#424242;" vertex="1" parent="CLASS-ACTIVITYLOG">
+          <mxGeometry y="125" width="220" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CLASS-ACTIVITYLOG-METH" value="+ log(): void&#xa;+ getRecent(): Array" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="CLASS-ACTIVITYLOG">
+          <mxGeometry y="133" width="220" height="22" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== RELATIONSHIPS ==================== -->
+        
+        <!-- Inheritance: Admin extends User -->
+        <mxCell id="REL-ADMIN-USER" value="" style="endArrow=block;endSize=16;endFill=0;html=1;exitX=0.5;exitY=0;entryX=0.25;entryY=1;strokeWidth=2;strokeColor=#01579B;" edge="1" parent="CD-1" source="CLASS-ADMIN" target="CLASS-USER">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="280" as="sourcePoint" />
+            <mxPoint x="800" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Inheritance: Teacher extends User -->
+        <mxCell id="REL-TEACHER-USER" value="" style="endArrow=block;endSize=16;endFill=0;html=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;strokeWidth=2;strokeColor=#01579B;" edge="1" parent="CD-1" source="CLASS-TEACHER" target="CLASS-USER">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="850" y="280" as="sourcePoint" />
+            <mxPoint x="850" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Inheritance: Student extends User -->
+        <mxCell id="REL-STUDENT-USER" value="" style="endArrow=block;endSize=16;endFill=0;html=1;exitX=0.5;exitY=0;entryX=0.75;entryY=1;strokeWidth=2;strokeColor=#01579B;" edge="1" parent="CD-1" source="CLASS-STUDENT" target="CLASS-USER">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1190" y="280" as="sourcePoint" />
+            <mxPoint x="900" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Teacher manages Classes -->
+        <mxCell id="REL-TEACHER-CLASS" value="" style="endArrow=diamond;endFill=0;endSize=12;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.25;strokeWidth=1.5;strokeColor=#333333;" edge="1" parent="CD-1" source="CLASS-TEACHER" target="CLASS-CLASS">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="700" y="370" as="sourcePoint" />
+            <mxPoint x="300" y="580" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="700" y="370" />
+              <mxPoint x="700" y="480" />
+              <mxPoint x="320" y="480" />
+              <mxPoint x="320" y="581" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-TEACHER-CLASS-LABEL-1" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#000000;" vertex="1" connectable="0" parent="REL-TEACHER-CLASS">
+          <mxGeometry x="-0.95" y="2" relative="1" as="geometry">
+            <mxPoint x="10" y="8" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-TEACHER-CLASS-LABEL-N" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#000000;" vertex="1" connectable="0" parent="REL-TEACHER-CLASS">
+          <mxGeometry x="0.92" y="1" relative="1" as="geometry">
+            <mxPoint x="15" y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-TEACHER-CLASS-NAME" value="teaches" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=2" vertex="1" connectable="0" parent="REL-TEACHER-CLASS">
+          <mxGeometry x="-0.1" y="-1" relative="1" as="geometry">
+            <mxPoint x="35" y="-12" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Student enrolls in Classes -->
+        <mxCell id="REL-STUDENT-CLASS" value="" style="endArrow=diamond;endFill=0;endSize=12;html=1;exitX=0;exitY=0.5;entryX=0.5;entryY=0;strokeWidth=1.5;strokeColor=#333333;" edge="1" parent="CD-1" source="CLASS-STUDENT" target="CLASS-CLASS">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1080" y="380" as="sourcePoint" />
+            <mxPoint x="160" y="540" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1020" y="380" />
+              <mxPoint x="1020" y="500" />
+              <mxPoint x="160" y="500" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-STUDENT-CLASS-LABEL-N" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#000000;" vertex="1" connectable="0" parent="REL-STUDENT-CLASS">
+          <mxGeometry x="-0.95" y="1" relative="1" as="geometry">
+            <mxPoint x="10" y="8" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-STUDENT-CLASS-LABEL-M" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#000000;" vertex="1" connectable="0" parent="REL-STUDENT-CLASS">
+          <mxGeometry x="0.91" y="-2" relative="1" as="geometry">
+            <mxPoint x="-10" y="-15" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-STUDENT-CLASS-NAME" value="enrolls" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=2" vertex="1" connectable="0" parent="REL-STUDENT-CLASS">
+          <mxGeometry x="0.1" y="-1" relative="1" as="geometry">
+            <mxPoint x="30" y="-12" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Course belongs to Subject -->
+        <mxCell id="REL-COURSE-SUBJECT" value="" style="endArrow=diamond;endFill=1;endSize=12;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;strokeWidth=1.5;strokeColor=#333333;" edge="1" parent="CD-1" source="CLASS-COURSE" target="CLASS-SUBJECT">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="570" y="627" as="sourcePoint" />
+            <mxPoint x="530" y="627" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-COURSE-SUBJECT-LABEL-1" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#000000;" vertex="1" connectable="0" parent="REL-COURSE-SUBJECT">
+          <mxGeometry x="0.7" y="1" relative="1" as="geometry">
+            <mxPoint x="5" y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-COURSE-SUBJECT-LABEL-N" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#000000;" vertex="1" connectable="0" parent="REL-COURSE-SUBJECT">
+          <mxGeometry x="-0.7" y="-1" relative="1" as="geometry">
+            <mxPoint x="-5" y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Teacher creates Courses -->
+        <mxCell id="REL-TEACHER-COURSE" value="" style="endArrow=open;endFill=0;html=1;exitX=0.25;exitY=1;entryX=0.5;entryY=0;strokeWidth=1.5;strokeColor=#333333;dashed=1;" edge="1" parent="CD-1" source="CLASS-TEACHER" target="CLASS-COURSE">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="795" y="445" as="sourcePoint" />
+            <mxPoint x="680" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-TEACHER-COURSE-NAME" value="creates" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=2" vertex="1" connectable="0" parent="REL-TEACHER-COURSE">
+          <mxGeometry x="-0.2" y="1" relative="1" as="geometry">
+            <mxPoint x="15" y="5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Quiz has QuizResults -->
+        <mxCell id="REL-QUIZ-QUIZRESULT" value="" style="endArrow=diamond;endFill=0;endSize=12;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=1.5;strokeColor=#333333;" edge="1" parent="CD-1" source="CLASS-QUIZ" target="CLASS-QUIZRESULT">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="270" y="875" as="sourcePoint" />
+            <mxPoint x="310" y="875" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-QUIZ-QUIZRESULT-LABEL-1" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#000000;" vertex="1" connectable="0" parent="REL-QUIZ-QUIZRESULT">
+          <mxGeometry x="-0.7" y="1" relative="1" as="geometry">
+            <mxPoint x="-5" y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-QUIZ-QUIZRESULT-LABEL-N" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#000000;" vertex="1" connectable="0" parent="REL-QUIZ-QUIZRESULT">
+          <mxGeometry x="0.7" y="-1" relative="1" as="geometry">
+            <mxPoint x="5" y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Student takes QuizResults -->
+        <mxCell id="REL-STUDENT-QUIZRESULT" value="" style="endArrow=open;endFill=0;html=1;exitX=0.25;exitY=1;entryX=0.5;entryY=0;strokeWidth=1.5;strokeColor=#333333;dashed=1;" edge="1" parent="CD-1" source="CLASS-STUDENT" target="CLASS-QUIZRESULT">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1135" y="460" as="sourcePoint" />
+            <mxPoint x="420" y="780" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1135" y="520" />
+              <mxPoint x="420" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-STUDENT-QUIZRESULT-NAME" value="submits" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=2" vertex="1" connectable="0" parent="REL-STUDENT-QUIZRESULT">
+          <mxGeometry x="0.3" y="1" relative="1" as="geometry">
+            <mxPoint x="30" y="-11" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Homework has Submissions -->
+        <mxCell id="REL-HOMEWORK-SUBMISSION" value="" style="endArrow=diamond;endFill=0;endSize=12;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=1.5;strokeColor=#333333;" edge="1" parent="CD-1" source="CLASS-HOMEWORK" target="CLASS-SUBMISSION">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="790" y="867" as="sourcePoint" />
+            <mxPoint x="830" y="867" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-HOMEWORK-SUBMISSION-LABEL-1" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#000000;" vertex="1" connectable="0" parent="REL-HOMEWORK-SUBMISSION">
+          <mxGeometry x="-0.7" y="1" relative="1" as="geometry">
+            <mxPoint x="-5" y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-HOMEWORK-SUBMISSION-LABEL-N" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#000000;" vertex="1" connectable="0" parent="REL-HOMEWORK-SUBMISSION">
+          <mxGeometry x="0.7" y="-1" relative="1" as="geometry">
+            <mxPoint x="5" y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Student submits Homework -->
+        <mxCell id="REL-STUDENT-SUBMISSION" value="" style="endArrow=open;endFill=0;html=1;exitX=0.75;exitY=1;entryX=0.5;entryY=0;strokeWidth=1.5;strokeColor=#333333;dashed=1;" edge="1" parent="CD-1" source="CLASS-STUDENT" target="CLASS-SUBMISSION">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1245" y="460" as="sourcePoint" />
+            <mxPoint x="940" y="780" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1245" y="750" />
+              <mxPoint x="940" y="750" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-STUDENT-SUBMISSION-NAME" value="creates" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=2" vertex="1" connectable="0" parent="REL-STUDENT-SUBMISSION">
+          <mxGeometry x="0.2" y="1" relative="1" as="geometry">
+            <mxPoint x="-20" y="-11" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Teacher and Student communicate via ChatRoom -->
+        <mxCell id="REL-TEACHER-CHATROOM" value="" style="endArrow=open;endFill=0;html=1;exitX=1;exitY=0.75;entryX=0;entryY=0.25;strokeWidth=1.5;strokeColor=#333333;dashed=1;" edge="1" parent="CD-1" source="CLASS-TEACHER" target="CLASS-CHATROOM">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="960" y="400" as="sourcePoint" />
+            <mxPoint x="1110" y="580" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-TEACHER-CHATROOM-NAME" value="chats in" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=2" vertex="1" connectable="0" parent="REL-TEACHER-CHATROOM">
+          <mxGeometry x="-0.2" y="1" relative="1" as="geometry">
+            <mxPoint x="-10" y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="REL-STUDENT-CHATROOM" value="" style="endArrow=open;endFill=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeWidth=1.5;strokeColor=#333333;dashed=1;" edge="1" parent="CD-1" source="CLASS-STUDENT" target="CLASS-CHATROOM">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1190" y="460" as="sourcePoint" />
+            <mxPoint x="1220" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-STUDENT-CHATROOM-NAME" value="chats in" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=2" vertex="1" connectable="0" parent="REL-STUDENT-CHATROOM">
+          <mxGeometry x="-0.2" y="1" relative="1" as="geometry">
+            <mxPoint x="20" y="5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- ChatRoom contains Messages -->
+        <mxCell id="REL-CHATROOM-MESSAGE" value="" style="endArrow=diamond;endFill=1;endSize=12;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=1.5;strokeColor=#333333;" edge="1" parent="CD-1" source="CLASS-CHATROOM" target="CLASS-MESSAGE">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1330" y="635" as="sourcePoint" />
+            <mxPoint x="1370" y="635" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-CHATROOM-MESSAGE-LABEL-1" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#000000;" vertex="1" connectable="0" parent="REL-CHATROOM-MESSAGE">
+          <mxGeometry x="-0.7" y="1" relative="1" as="geometry">
+            <mxPoint x="-5" y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-CHATROOM-MESSAGE-LABEL-N" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontColor=#000000;" vertex="1" connectable="0" parent="REL-CHATROOM-MESSAGE">
+          <mxGeometry x="0.7" y="-1" relative="1" as="geometry">
+            <mxPoint x="5" y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Student uses AISettings -->
+        <mxCell id="REL-STUDENT-AI" value="" style="endArrow=open;endFill=0;html=1;exitX=1;exitY=1;entryX=0;entryY=0;strokeWidth=1.5;strokeColor=#333333;dashed=1;" edge="1" parent="CD-1" source="CLASS-STUDENT" target="CLASS-AISETTINGS">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1300" y="460" as="sourcePoint" />
+            <mxPoint x="1110" y="780" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-STUDENT-AI-NAME" value="uses AI" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=2" vertex="1" connectable="0" parent="REL-STUDENT-AI">
+          <mxGeometry x="-0.2" y="1" relative="1" as="geometry">
+            <mxPoint x="10" y="-5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Admin manages AISettings -->
+        <mxCell id="REL-ADMIN-AI" value="" style="endArrow=open;endFill=0;html=1;exitX=1;exitY=1;entryX=0;entryY=0;strokeWidth=1.5;strokeColor=#333333;dashed=1;" edge="1" parent="CD-1" source="CLASS-ADMIN" target="CLASS-AISETTINGS">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="620" y="430" as="sourcePoint" />
+            <mxPoint x="1110" y="780" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="650" y="750" />
+              <mxPoint x="1060" y="750" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-ADMIN-AI-NAME" value="configures" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=2" vertex="1" connectable="0" parent="REL-ADMIN-AI">
+          <mxGeometry x="0.1" y="1" relative="1" as="geometry">
+            <mxPoint x="-40" y="-11" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- System logs to ActivityLog -->
+        <mxCell id="REL-SYSTEM-LOG" value="" style="endArrow=open;endFill=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeWidth=1.5;strokeColor=#333333;dashed=1;" edge="1" parent="CD-1" source="CLASS-AISETTINGS" target="CLASS-ACTIVITYLOG">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1220" y="935" as="sourcePoint" />
+            <mxPoint x="1480" y="780" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1220" y="1000" />
+              <mxPoint x="1480" y="1000" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="REL-SYSTEM-LOG-NAME" value="logs to" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#333333;fontStyle=2" vertex="1" connectable="0" parent="REL-SYSTEM-LOG">
+          <mxGeometry x="0.0" y="1" relative="1" as="geometry">
+            <mxPoint y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

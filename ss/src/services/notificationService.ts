@@ -77,7 +77,7 @@ export class NotificationService {
       case 'quiz':
         icon = '📝';
         notificationTitle = `${icon} New Quiz Added!`;
-        notificationBody = subject 
+        notificationBody = subject
           ? `A new quiz "${title}" has been assigned for ${subject}. Check it out!`
           : `A new quiz "${title}" has been assigned. Check it out!`;
         break;
@@ -178,7 +178,7 @@ export class NotificationService {
     console.log(`[Notification] Quiz reminder sent: ${quiz.title} - ${timeText} remaining`);
   }
 
-  // Check quiz reminders (5 hours before, every 30 minutes)
+  // Check quiz reminders (5 hours before, every 10 minutes)
   static async checkQuizReminders(quizzes: Quiz[]) {
     const now = new Date();
     const reminderData = await this.getQuizReminderData();
@@ -191,15 +191,15 @@ export class NotificationService {
 
       // Only remind if quiz is within 5 hours and hasn't started yet
       if (hoursUntilStart > 0 && hoursUntilStart <= 5) {
-        // Check if we should send a reminder (every 30 minutes)
+        // Check if we should send a reminder (every 10 minutes)
         const lastReminder = reminderData[quiz.id] || 0;
         const timeSinceLastReminder = now.getTime() - lastReminder;
-        const thirtyMinutes = 30 * 60 * 1000;
+        const tenMinutes = 10 * 60 * 1000;
 
-        if (timeSinceLastReminder >= thirtyMinutes) {
+        if (timeSinceLastReminder >= tenMinutes) {
           const hours = Math.floor(hoursUntilStart);
           const minutes = minutesUntilStart % 60;
-          
+
           await this.sendQuizReminder(quiz, hours, minutes);
           reminderData[quiz.id] = now.getTime();
         }
@@ -279,7 +279,7 @@ export class NotificationService {
     const newQuizzes = await this.checkNewQuizzes(quizzes);
     const newCourses = await this.checkNewCourses(courses);
 
-    // Check quiz reminders (5 hours before, every 30 minutes)
+    // Check quiz reminders (5 hours before, every 10 minutes)
     await this.checkQuizReminders(quizzes);
 
     console.log('[Notifications] Check complete:', {

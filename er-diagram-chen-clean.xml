@@ -1,0 +1,657 @@
+<mxfile host="app.diagrams.net" modified="2026-01-24T00:00:00.000Z" agent="School Management System" version="22.0.0" type="device">
+  <diagram id="er-diagram-chen-clean" name="School Management System - Chen ER Diagram (Clean)">
+    <mxGraphModel dx="3800" dy="3000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="4200" pageHeight="3200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- ==================== TITLE ==================== -->
+        <mxCell id="title" value="SCHOOL MANAGEMENT SYSTEM - CHEN ER DIAGRAM" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=20;fontStyle=1;fontColor=#1565C0;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="40" width="600" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== TOP SECTION: USER HIERARCHY ==================== -->
+        
+        <!-- User Entity (Supertype) -->
+        <mxCell id="entity-user" value="USER" style="whiteSpace=wrap;html=1;fillColor=#E1F5FE;strokeColor=#01579B;strokeWidth=3;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1720" y="150" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- User Attributes -->
+        <mxCell id="attr-user-id" value="&lt;u&gt;user_id&lt;/u&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#01579B;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="130" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-user-email" value="email" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#01579B;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1570" y="100" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-user-name" value="full_name" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#01579B;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1750" y="80" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-user-phone" value="phone_number" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#01579B;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1900" y="100" width="110" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-user-photo" value="photo_url" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#01579B;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="2020" y="140" width="100" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Attribute Connections -->
+        <mxCell id="line-user-attr1" value="" style="endArrow=none;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=1.5;strokeColor=#01579B;" edge="1" parent="1" source="attr-user-id" target="entity-user">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-user-attr2" value="" style="endArrow=none;html=1;exitX=1;exitY=1;entryX=0.25;entryY=0;strokeWidth=1.5;strokeColor=#01579B;" edge="1" parent="1" source="attr-user-email" target="entity-user">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-user-attr3" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeWidth=1.5;strokeColor=#01579B;" edge="1" parent="1" source="attr-user-name" target="entity-user">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-user-attr4" value="" style="endArrow=none;html=1;exitX=0;exitY=1;entryX=0.75;entryY=0;strokeWidth=1.5;strokeColor=#01579B;" edge="1" parent="1" source="attr-user-phone" target="entity-user">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-user-attr5" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;strokeWidth=1.5;strokeColor=#01579B;" edge="1" parent="1" source="attr-user-photo" target="entity-user">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- ISA Relationship -->
+        <mxCell id="rel-isa" value="ISA" style="rhombus;whiteSpace=wrap;html=1;fillColor=#E0E0E0;strokeColor=#424242;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1740" y="320" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-user-isa" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeWidth=2.5;strokeColor=#424242;" edge="1" parent="1" source="entity-user" target="rel-isa">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Admin Entity -->
+        <mxCell id="entity-admin" value="ADMIN" style="whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;strokeWidth=3;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1120" y="500" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-isa-admin" value="" style="endArrow=none;html=1;exitX=0;exitY=1;entryX=0.5;entryY=0;strokeWidth=2.5;strokeColor=#424242;" edge="1" parent="1" source="rel-isa" target="entity-admin">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Teacher Entity -->
+        <mxCell id="entity-teacher" value="TEACHER" style="whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#0D47A1;strokeWidth=3;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1720" y="500" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-isa-teacher" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeWidth=2.5;strokeColor=#424242;" edge="1" parent="1" source="rel-isa" target="entity-teacher">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Student Entity -->
+        <mxCell id="entity-student" value="STUDENT" style="whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;strokeWidth=3;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2320" y="500" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-isa-student" value="" style="endArrow=none;html=1;exitX=1;exitY=1;entryX=0.5;entryY=0;strokeWidth=2.5;strokeColor=#424242;" edge="1" parent="1" source="rel-isa" target="entity-student">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== LEFT SECTION: CLASS & SUBJECT ==================== -->
+        
+        <!-- Class Entity -->
+        <mxCell id="entity-class" value="CLASS" style="whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;strokeWidth=3;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="500" y="850" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Class Attributes -->
+        <mxCell id="attr-class-id" value="&lt;u&gt;class_id&lt;/u&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1565C0;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="280" y="830" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-class-name" value="class_name" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1565C0;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="350" y="910" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-class-schedule" value="schedule" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1565C0;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="690" y="820" width="100" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-class-attr1" value="" style="endArrow=none;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.25;strokeWidth=1.5;strokeColor=#1565C0;" edge="1" parent="1" source="attr-class-id" target="entity-class">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-class-attr2" value="" style="endArrow=none;html=1;exitX=1;exitY=0;entryX=0;entryY=0.75;strokeWidth=1.5;strokeColor=#1565C0;" edge="1" parent="1" source="attr-class-name" target="entity-class">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-class-attr3" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.25;strokeWidth=1.5;strokeColor=#1565C0;" edge="1" parent="1" source="attr-class-schedule" target="entity-class">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Teacher Teaches Class -->
+        <mxCell id="rel-teaches" value="TEACHES" style="rhombus;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#0D47A1;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1140" y="850" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-teacher-teaches" value="" style="endArrow=none;html=1;exitX=0;exitY=1;entryX=1;entryY=0;strokeWidth=2.5;strokeColor=#0D47A1;" edge="1" parent="1" source="entity-teacher" target="rel-teaches">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-teaches-1" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#0D47A1;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="1680" y="600" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-teaches-class" value="" style="endArrow=none;html=1;exitX=1;exitY=0.25;entryX=0;entryY=0.5;strokeWidth=2.5;strokeColor=#0D47A1;" edge="1" parent="1" source="entity-class" target="rel-teaches">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-teaches-n" value="N" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#0D47A1;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="690" y="855" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Subject Entity -->
+        <mxCell id="entity-subject" value="SUBJECT" style="whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;strokeWidth=3;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="500" y="1200" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Subject Attributes -->
+        <mxCell id="attr-subject-id" value="&lt;u&gt;subject_id&lt;/u&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1565C0;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="280" y="1180" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-subject-name" value="name" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1565C0;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="350" y="1260" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-subject-code" value="code" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1565C0;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="690" y="1170" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-subject-desc" value="description" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1565C0;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="690" y="1250" width="100" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-subject-attr1" value="" style="endArrow=none;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.25;strokeWidth=1.5;strokeColor=#1565C0;" edge="1" parent="1" source="attr-subject-id" target="entity-subject">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-subject-attr2" value="" style="endArrow=none;html=1;exitX=1;exitY=0;entryX=0;entryY=0.75;strokeWidth=1.5;strokeColor=#1565C0;" edge="1" parent="1" source="attr-subject-name" target="entity-subject">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-subject-attr3" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.25;strokeWidth=1.5;strokeColor=#1565C0;" edge="1" parent="1" source="attr-subject-code" target="entity-subject">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-subject-attr4" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.75;strokeWidth=1.5;strokeColor=#1565C0;" edge="1" parent="1" source="attr-subject-desc" target="entity-subject">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Student Enrolls Class -->
+        <mxCell id="rel-enrolls" value="ENROLLS_IN" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1540" y="850" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-student-enrolls" value="" style="endArrow=none;html=1;exitX=0;exitY=1;entryX=1;entryY=0;strokeWidth=2.5;strokeColor=#F57F17;" edge="1" parent="1" source="entity-student" target="rel-enrolls">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-enrolls-n" value="N" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#F57F17;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2270" y="600" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-enrolls-class" value="" style="endArrow=none;html=1;exitX=0.5;exitY=0;entryX=0;entryY=1;strokeWidth=2.5;strokeColor=#F57F17;" edge="1" parent="1" source="entity-class" target="rel-enrolls">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-enrolls-m" value="M" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#F57F17;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="550" y="800" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== CENTER SECTION: COURSE ==================== -->
+        
+        <!-- Course Entity -->
+        <mxCell id="entity-course" value="COURSE" style="whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=3;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1120" y="1200" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Course Attributes -->
+        <mxCell id="attr-course-id" value="&lt;u&gt;course_id&lt;/u&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1150" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-course-title" value="title" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="1100" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-course-attach" value="attachment" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="1100" width="100" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-course-attr1" value="" style="endArrow=none;html=1;exitX=1;exitY=1;entryX=0;entryY=0.25;strokeWidth=1.5;strokeColor=#2E7D32;" edge="1" parent="1" source="attr-course-id" target="entity-course">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-course-attr2" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0.25;entryY=0;strokeWidth=1.5;strokeColor=#2E7D32;" edge="1" parent="1" source="attr-course-title" target="entity-course">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-course-attr3" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0.75;entryY=0;strokeWidth=1.5;strokeColor=#2E7D32;" edge="1" parent="1" source="attr-course-attach" target="entity-course">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Course Belongs To Subject -->
+        <mxCell id="rel-belongs" value="BELONGS_TO" style="rhombus;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="820" y="1200" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-course-belongs" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;strokeWidth=2.5;strokeColor=#2E7D32;" edge="1" parent="1" source="entity-course" target="rel-belongs">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-belongs-n" value="N" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#2E7D32;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="1070" y="1225" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-belongs-subject" value="" style="endArrow=none;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=2.5;strokeColor=#2E7D32;" edge="1" parent="1" source="entity-subject" target="rel-belongs">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-belongs-1" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#2E7D32;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="680" y="1225" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Teacher Creates Course -->
+        <mxCell id="rel-creates-course" value="CREATES" style="rhombus;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#0D47A1;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1540" y="1200" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-teacher-creates-course" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeWidth=2.5;strokeColor=#0D47A1;" edge="1" parent="1" source="entity-teacher" target="rel-creates-course">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-creates-course-1" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#0D47A1;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="1785" y="1000" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-creates-course-course" value="" style="endArrow=none;html=1;exitX=1;exitY=0.5;entryX=0;entryY=1;strokeWidth=2.5;strokeColor=#0D47A1;" edge="1" parent="1" source="entity-course" target="rel-creates-course">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-creates-course-n" value="N" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#0D47A1;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="1310" y="1225" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== RIGHT-TOP SECTION: QUIZ & QUIZ_RESULT ==================== -->
+        
+        <!-- Quiz Entity -->
+        <mxCell id="entity-quiz" value="QUIZ" style="whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;strokeWidth=3;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2320" y="850" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Quiz Attributes -->
+        <mxCell id="attr-quiz-id" value="&lt;u&gt;quiz_id&lt;/u&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E65100;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="2120" y="800" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-quiz-title" value="title" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E65100;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="2230" y="760" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-quiz-duration" value="duration" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E65100;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="2120" y="920" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-quiz-questions" value="questions" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E65100;strokeWidth=2;fontSize=11;dashed=1" vertex="1" parent="1">
+          <mxGeometry x="2510" y="760" width="100" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-quiz-attr1" value="" style="endArrow=none;html=1;exitX=1;exitY=1;entryX=0;entryY=0.25;strokeWidth=1.5;strokeColor=#E65100;" edge="1" parent="1" source="attr-quiz-id" target="entity-quiz">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-quiz-attr2" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0.25;entryY=0;strokeWidth=1.5;strokeColor=#E65100;" edge="1" parent="1" source="attr-quiz-title" target="entity-quiz">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-quiz-attr3" value="" style="endArrow=none;html=1;exitX=1;exitY=0;entryX=0;entryY=0.75;strokeWidth=1.5;strokeColor=#E65100;" edge="1" parent="1" source="attr-quiz-duration" target="entity-quiz">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-quiz-attr4" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.25;strokeWidth=1.5;strokeColor=#E65100;dashed=1" edge="1" parent="1" source="attr-quiz-questions" target="entity-quiz">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Teacher Creates Quiz -->
+        <mxCell id="rel-creates-quiz" value="CREATES" style="rhombus;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#0D47A1;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1940" y="850" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-teacher-creates-quiz" value="" style="endArrow=none;html=1;exitX=1;exitY=1;entryX=0;entryY=0;strokeWidth=2.5;strokeColor=#0D47A1;" edge="1" parent="1" source="entity-teacher" target="rel-creates-quiz">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-creates-quiz-1" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#0D47A1;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="1900" y="600" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-creates-quiz-quiz" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;strokeWidth=2.5;strokeColor=#0D47A1;" edge="1" parent="1" source="entity-quiz" target="rel-creates-quiz">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-creates-quiz-n" value="N" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#0D47A1;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2270" y="875" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- QuizResult Entity -->
+        <mxCell id="entity-quiz-result" value="QUIZ_RESULT" style="whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;strokeWidth=3;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2820" y="850" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- QuizResult Attributes -->
+        <mxCell id="attr-result-id" value="&lt;u&gt;result_id&lt;/u&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E65100;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="2800" y="730" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-result-score" value="score" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E65100;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="2920" y="730" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-result-answers" value="answers" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E65100;strokeWidth=2;fontSize=11;dashed=1" vertex="1" parent="1">
+          <mxGeometry x="3010" y="865" width="100" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-result-attr1" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0.25;entryY=0;strokeWidth=1.5;strokeColor=#E65100;" edge="1" parent="1" source="attr-result-id" target="entity-quiz-result">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-result-attr2" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0.75;entryY=0;strokeWidth=1.5;strokeColor=#E65100;" edge="1" parent="1" source="attr-result-score" target="entity-quiz-result">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-result-attr3" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;strokeWidth=1.5;strokeColor=#E65100;dashed=1" edge="1" parent="1" source="attr-result-answers" target="entity-quiz-result">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Quiz Has Results -->
+        <mxCell id="rel-has-result" value="HAS_RESULT" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2570" y="850" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-quiz-results" value="" style="endArrow=none;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=2.5;strokeColor=#E65100;" edge="1" parent="1" source="entity-quiz" target="rel-has-result">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-quiz-1" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#E65100;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2500" y="875" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-results-result" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;strokeWidth=2.5;strokeColor=#E65100;" edge="1" parent="1" source="entity-quiz-result" target="rel-has-result">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-results-n" value="N" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#E65100;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2770" y="875" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Student Takes Quiz -->
+        <mxCell id="rel-takes" value="TAKES" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2840" y="650" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-student-takes" value="" style="endArrow=none;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0;strokeWidth=2.5;strokeColor=#F57F17;" edge="1" parent="1" source="entity-student" target="rel-takes">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-takes-m" value="M" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#F57F17;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2510" y="515" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-takes-result" value="" style="endArrow=none;html=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;strokeWidth=2.5;strokeColor=#F57F17;" edge="1" parent="1" source="entity-quiz-result" target="rel-takes">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-takes-n" value="N" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#F57F17;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2885" y="770" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== RIGHT-BOTTOM SECTION: HOMEWORK & SUBMISSION ==================== -->
+        
+        <!-- Homework Entity -->
+        <mxCell id="entity-homework" value="HOMEWORK" style="whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#C2185B;strokeWidth=3;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2320" y="1200" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Homework Attributes -->
+        <mxCell id="attr-hw-id" value="&lt;u&gt;homework_id&lt;/u&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C2185B;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="2100" y="1180" width="110" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-hw-title" value="title" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C2185B;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="2230" y="1130" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-hw-due" value="due_date" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C2185B;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="2350" y="1120" width="100" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-hw-attr1" value="" style="endArrow=none;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.25;strokeWidth=1.5;strokeColor=#C2185B;" edge="1" parent="1" source="attr-hw-id" target="entity-homework">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-hw-attr2" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0.25;entryY=0;strokeWidth=1.5;strokeColor=#C2185B;" edge="1" parent="1" source="attr-hw-title" target="entity-homework">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-hw-attr3" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeWidth=1.5;strokeColor=#C2185B;" edge="1" parent="1" source="attr-hw-due" target="entity-homework">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Teacher Creates Homework -->
+        <mxCell id="rel-creates-homework" value="CREATES" style="rhombus;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#0D47A1;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1940" y="1200" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-teacher-creates-hw" value="" style="endArrow=none;html=1;exitX=1;exitY=1;entryX=0;entryY=0;strokeWidth=2.5;strokeColor=#0D47A1;" edge="1" parent="1" source="entity-teacher" target="rel-creates-homework">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-creates-hw-1" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#0D47A1;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="1900" y="1000" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-creates-hw-hw" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;entryX=1;entryY=1;strokeWidth=2.5;strokeColor=#0D47A1;" edge="1" parent="1" source="entity-homework" target="rel-creates-homework">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-creates-hw-n" value="N" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#0D47A1;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2270" y="1225" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Submission Entity -->
+        <mxCell id="entity-submission" value="SUBMISSION" style="whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#C2185B;strokeWidth=3;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2820" y="1200" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Submission Attributes -->
+        <mxCell id="attr-sub-id" value="&lt;u&gt;submission_id&lt;/u&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C2185B;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="2800" y="1100" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-sub-grade" value="grade" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C2185B;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="2940" y="1110" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-sub-feedback" value="feedback" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C2185B;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="3010" y="1215" width="100" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-sub-attr1" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0.25;entryY=0;strokeWidth=1.5;strokeColor=#C2185B;" edge="1" parent="1" source="attr-sub-id" target="entity-submission">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-sub-attr2" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.25;strokeWidth=1.5;strokeColor=#C2185B;" edge="1" parent="1" source="attr-sub-grade" target="entity-submission">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-sub-attr3" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;strokeWidth=1.5;strokeColor=#C2185B;" edge="1" parent="1" source="attr-sub-feedback" target="entity-submission">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Homework Has Submissions -->
+        <mxCell id="rel-has-submission" value="HAS" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#C2185B;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2570" y="1200" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-hw-submissions" value="" style="endArrow=none;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=2.5;strokeColor=#C2185B;" edge="1" parent="1" source="entity-homework" target="rel-has-submission">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-hw-1" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#C2185B;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2500" y="1225" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-submissions-submission" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;strokeWidth=2.5;strokeColor=#C2185B;" edge="1" parent="1" source="entity-submission" target="rel-has-submission">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-submissions-n" value="N" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#C2185B;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2770" y="1225" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Student Submits Homework -->
+        <mxCell id="rel-submits" value="SUBMITS" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2840" y="1000" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-student-submits" value="" style="endArrow=none;html=1;exitX=1;exitY=1;entryX=0;entryY=0;strokeWidth=2.5;strokeColor=#F57F17;" edge="1" parent="1" source="entity-student" target="rel-submits">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-submits-m" value="M" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#F57F17;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2510" y="730" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-submits-submission" value="" style="endArrow=none;html=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;strokeWidth=2.5;strokeColor=#F57F17;" edge="1" parent="1" source="entity-submission" target="rel-submits">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-submits-n" value="N" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#F57F17;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2885" y="1150" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- ==================== BOTTOM SECTION: CHAT, AI, LOGS ==================== -->
+        
+        <!-- ChatRoom Entity -->
+        <mxCell id="entity-chatroom" value="CHAT_ROOM" style="whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;strokeWidth=3;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="500" y="1700" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- ChatRoom Attributes -->
+        <mxCell id="attr-room-id" value="&lt;u&gt;room_id&lt;/u&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6A1B9A;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="1680" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-room-type" value="room_type" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6A1B9A;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="380" y="1770" width="100" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-room-attr1" value="" style="endArrow=none;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.35;strokeWidth=1.5;strokeColor=#6A1B9A;" edge="1" parent="1" source="attr-room-id" target="entity-chatroom">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-room-attr2" value="" style="endArrow=none;html=1;exitX=1;exitY=0;entryX=0;entryY=0.75;strokeWidth=1.5;strokeColor=#6A1B9A;" edge="1" parent="1" source="attr-room-type" target="entity-chatroom">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Teacher Participates in ChatRoom -->
+        <mxCell id="rel-participates-teacher" value="PARTICIPATES" style="rhombus;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1140" y="1700" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-teacher-chat" value="" style="endArrow=none;html=1;exitX=0.25;exitY=1;entryX=0.5;entryY=0;strokeWidth=2.5;strokeColor=#6A1B9A;" edge="1" parent="1" source="entity-teacher" target="rel-participates-teacher">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-teacher-chat-1" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#6A1B9A;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="1730" y="1100" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-chat-teacher-room" value="" style="endArrow=none;html=1;exitX=1;exitY=0.25;entryX=0;entryY=0.5;strokeWidth=2.5;strokeColor=#6A1B9A;" edge="1" parent="1" source="entity-chatroom" target="rel-participates-teacher">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-chat-teacher-n" value="N" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#6A1B9A;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="690" y="1705" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Student Participates in ChatRoom -->
+        <mxCell id="rel-participates-student" value="PARTICIPATES" style="rhombus;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1540" y="1700" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-student-chat" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeWidth=2.5;strokeColor=#6A1B9A;" edge="1" parent="1" source="entity-student" target="rel-participates-student">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-student-chat-1" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#6A1B9A;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2385" y="1100" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-chat-student-room" value="" style="endArrow=none;html=1;exitX=0.5;exitY=0;entryX=0;entryY=1;strokeWidth=2.5;strokeColor=#6A1B9A;" edge="1" parent="1" source="entity-chatroom" target="rel-participates-student">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-chat-student-m" value="M" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#6A1B9A;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="550" y="1650" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Message Entity -->
+        <mxCell id="entity-message" value="MESSAGE" style="whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;strokeWidth=3;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1120" y="1950" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Message Attributes -->
+        <mxCell id="attr-msg-id" value="&lt;u&gt;message_id&lt;/u&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6A1B9A;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1930" width="110" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-msg-content" value="content" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6A1B9A;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="2070" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="attr-msg-type" value="message_type" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6A1B9A;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="2070" width="110" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-msg-attr1" value="" style="endArrow=none;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.25;strokeWidth=1.5;strokeColor=#6A1B9A;" edge="1" parent="1" source="attr-msg-id" target="entity-message">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-msg-attr2" value="" style="endArrow=none;html=1;exitX=0.5;exitY=0;entryX=0.25;entryY=1;strokeWidth=1.5;strokeColor=#6A1B9A;" edge="1" parent="1" source="attr-msg-content" target="entity-message">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line-msg-attr3" value="" style="endArrow=none;html=1;exitX=0.5;exitY=0;entryX=0.75;entryY=1;strokeWidth=1.5;strokeColor=#6A1B9A;" edge="1" parent="1" source="attr-msg-type" target="entity-message">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- ChatRoom Contains Messages -->
+        <mxCell id="rel-contains" value="CONTAINS" style="rhombus;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="820" y="1820" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-room-contains" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0;entryY=0;strokeWidth=2.5;strokeColor=#6A1B9A;" edge="1" parent="1" source="entity-chatroom" target="rel-contains">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-room-1" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#6A1B9A;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="610" y="1810" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-contains-message" value="" style="endArrow=none;html=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;strokeWidth=2.5;strokeColor=#6A1B9A;" edge="1" parent="1" source="entity-message" target="rel-contains">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-contains-n" value="N" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#6A1B9A;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="1185" y="1900" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- AISettings Entity -->
+        <mxCell id="entity-ai" value="AI_SETTINGS" style="whiteSpace=wrap;html=1;fillColor=#FFCCBC;strokeColor=#BF360C;strokeWidth=3;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2320" y="1700" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Student Uses AI -->
+        <mxCell id="rel-uses-ai" value="USES" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFCCBC;strokeColor=#BF360C;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2340" y="1500" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-student-ai" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeWidth=2.5;strokeColor=#BF360C;" edge="1" parent="1" source="entity-student" target="rel-uses-ai">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-student-ai-n" value="N" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#BF360C;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2385" y="1400" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-uses-ai" value="" style="endArrow=none;html=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;strokeWidth=2.5;strokeColor=#BF360C;" edge="1" parent="1" source="entity-ai" target="rel-uses-ai">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-uses-ai-1" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#BF360C;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2385" y="1650" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Admin Configures AI -->
+        <mxCell id="rel-configures" value="CONFIGURES" style="rhombus;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1540" y="1950" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-admin-configures" value="" style="endArrow=none;html=1;exitX=0.5;exitY=1;entryX=0;entryY=0;strokeWidth=2.5;strokeColor=#2E7D32;" edge="1" parent="1" source="entity-admin" target="rel-configures">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-admin-config-1" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#2E7D32;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="1185" y="1100" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-configures-ai" value="" style="endArrow=none;html=1;exitX=0;exitY=1;entryX=1;entryY=0.5;strokeWidth=2.5;strokeColor=#2E7D32;" edge="1" parent="1" source="entity-ai" target="rel-configures">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-configures-1" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#2E7D32;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2270" y="1810" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- ActivityLog Entity -->
+        <mxCell id="entity-log" value="ACTIVITY_LOG" style="whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#424242;strokeWidth=3;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2820" y="1700" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- System Logs Activity -->
+        <mxCell id="rel-logs" value="LOGS_TO" style="rhombus;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#424242;strokeWidth=2;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="2570" y="1700" width="120" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-ai-logs" value="" style="endArrow=none;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeWidth=2.5;strokeColor=#424242;" edge="1" parent="1" source="entity-ai" target="rel-logs">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-logs-1" value="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#424242;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2500" y="1725" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="line-logs-log" value="" style="endArrow=none;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;strokeWidth=2.5;strokeColor=#424242;" edge="1" parent="1" source="entity-log" target="rel-logs">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label-logs-n" value="N" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=#FFFFFF;strokeColor=#424242;strokeWidth=1" vertex="1" parent="1">
+          <mxGeometry x="2770" y="1725" width="30" height="30" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
