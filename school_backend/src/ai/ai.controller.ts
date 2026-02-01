@@ -83,7 +83,7 @@ export class AiController {
 
       const { GoogleGenerativeAI } = require('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(settings.apiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
       const result = await model.generateContent(message);
       const response = await result.response;

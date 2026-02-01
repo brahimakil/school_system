@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Global model name for easy configuration
-export const GEMINI_MODEL_NAME = 'gemini-2.0-flash-exp';
+export const GEMINI_MODEL_NAME = 'gemini-3-flash-preview';
 
 // AI Settings document ID in Firestore
 const AI_SETTINGS_DOC = 'ai_settings';
