@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-01-29T13:40:00.000Z" agent="Mozilla/5.0" version="21.0.0" type="device">
+  <diagram id="class-diagram-sms" name="School Management System">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- STUDENT CLASS -->
+        <mxCell id="student-1" value="Student" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="220" height="280" as="geometry"/>
+        </mxCell>
+        <mxCell id="student-2" value="+ id: string&#xa;+ email: string&#xa;+ fullName: string&#xa;+ password: string&#xa;+ phoneNumber: string&#xa;+ currentGrade: GradeSection&#xa;+ passedGrades: GradeSection[]&#xa;+ status: string&#xa;+ photoUrl: string&#xa;+ token: string&#xa;+ createdAt: Date&#xa;+ updatedAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="student-1">
+          <mxGeometry y="26" width="220" height="184" as="geometry"/>
+        </mxCell>
+        <mxCell id="student-3" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="student-1">
+          <mxGeometry y="210" width="220" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="student-4" value="+ signup()&#xa;+ login()&#xa;+ getProfile()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="student-1">
+          <mxGeometry y="218" width="220" height="62" as="geometry"/>
+        </mxCell>
+
+        <!-- TEACHER CLASS -->
+        <mxCell id="teacher-1" value="Teacher" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="300" y="40" width="220" height="260" as="geometry"/>
+        </mxCell>
+        <mxCell id="teacher-2" value="+ id: string&#xa;+ email: string&#xa;+ fullName: string&#xa;+ password: string&#xa;+ phoneNumber: string&#xa;+ subjects: string[]&#xa;+ status: string&#xa;+ photoUrl: string&#xa;+ createdAt: Date&#xa;+ updatedAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="teacher-1">
+          <mxGeometry y="26" width="220" height="164" as="geometry"/>
+        </mxCell>
+        <mxCell id="teacher-3" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="teacher-1">
+          <mxGeometry y="190" width="220" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="teacher-4" value="+ create()&#xa;+ update()&#xa;+ delete()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="teacher-1">
+          <mxGeometry y="198" width="220" height="62" as="geometry"/>
+        </mxCell>
+
+        <!-- CLASS (Schedule) -->
+        <mxCell id="class-1" value="Class" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="560" y="40" width="220" height="260" as="geometry"/>
+        </mxCell>
+        <mxCell id="class-2" value="+ id: string&#xa;+ className: string&#xa;+ teacherId: string&#xa;+ gradeSections: GradeSection[]&#xa;+ dayOfWeek: string&#xa;+ startTime: string&#xa;+ endTime: string&#xa;+ createdAt: Date&#xa;+ updatedAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="class-1">
+          <mxGeometry y="26" width="220" height="154" as="geometry"/>
+        </mxCell>
+        <mxCell id="class-3" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="class-1">
+          <mxGeometry y="180" width="220" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="class-4" value="+ create()&#xa;+ update()&#xa;+ delete()&#xa;+ getByGrade()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="class-1">
+          <mxGeometry y="188" width="220" height="72" as="geometry"/>
+        </mxCell>
+
+        <!-- SUBJECT CLASS -->
+        <mxCell id="subject-1" value="Subject" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="820" y="40" width="200" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="subject-2" value="+ id: string&#xa;+ name: string&#xa;+ code: string&#xa;+ description: string&#xa;+ createdAt: Date&#xa;+ updatedAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="subject-1">
+          <mxGeometry y="26" width="200" height="104" as="geometry"/>
+        </mxCell>
+        <mxCell id="subject-3" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="subject-1">
+          <mxGeometry y="130" width="200" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="subject-4" value="+ create()&#xa;+ update()&#xa;+ delete()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="subject-1">
+          <mxGeometry y="138" width="200" height="42" as="geometry"/>
+        </mxCell>
+
+        <!-- GRADE SECTION INTERFACE -->
+        <mxCell id="gradesection-1" value="&lt;&lt;interface&gt;&gt;&#xa;GradeSection" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="40" width="180" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="gradesection-2" value="+ grade: string&#xa;+ section: string" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="gradesection-1">
+          <mxGeometry y="40" width="180" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- QUIZ CLASS -->
+        <mxCell id="quiz-1" value="Quiz" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="40" y="360" width="240" height="300" as="geometry"/>
+        </mxCell>
+        <mxCell id="quiz-2" value="+ id: string&#xa;+ classId: string&#xa;+ className: string&#xa;+ gradeSections: string[]&#xa;+ title: string&#xa;+ description: string&#xa;+ startDateTime: Date&#xa;+ endDateTime: Date&#xa;+ quizDurationMinutes: number&#xa;+ questions: QuizQuestion[]&#xa;+ status: QuizStatus&#xa;+ totalMarks: number" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="quiz-1">
+          <mxGeometry y="26" width="240" height="194" as="geometry"/>
+        </mxCell>
+        <mxCell id="quiz-3" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="quiz-1">
+          <mxGeometry y="220" width="240" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="quiz-4" value="+ create()&#xa;+ update()&#xa;+ delete()&#xa;+ getById()&#xa;+ getByGrade()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="quiz-1">
+          <mxGeometry y="228" width="240" height="72" as="geometry"/>
+        </mxCell>
+
+        <!-- QUIZ QUESTION CLASS -->
+        <mxCell id="quizquestion-1" value="QuizQuestion" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="320" y="360" width="200" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="quizquestion-2" value="+ question: string&#xa;+ answers: string[]&#xa;+ correctAnswer: string&#xa;+ marks: number" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="quizquestion-1">
+          <mxGeometry y="26" width="200" height="114" as="geometry"/>
+        </mxCell>
+
+        <!-- QUIZ RESULT CLASS -->
+        <mxCell id="quizresult-1" value="QuizResult" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="320" y="520" width="220" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="quizresult-2" value="+ id: string&#xa;+ quizId: string&#xa;+ studentId: string&#xa;+ studentName: string&#xa;+ answers: QuizAnswerResult[]&#xa;+ totalScore: number&#xa;+ totalMarks: number&#xa;+ percentage: number&#xa;+ submittedAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="quizresult-1">
+          <mxGeometry y="26" width="220" height="154" as="geometry"/>
+        </mxCell>
+        <mxCell id="quizresult-3" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="quizresult-1">
+          <mxGeometry y="180" width="220" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="quizresult-4" value="+ submit()&#xa;+ getByStudent()&#xa;+ getByQuiz()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="quizresult-1">
+          <mxGeometry y="188" width="220" height="52" as="geometry"/>
+        </mxCell>
+
+        <!-- HOMEWORK CLASS -->
+        <mxCell id="homework-1" value="Homework" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="580" y="360" width="240" height="300" as="geometry"/>
+        </mxCell>
+        <mxCell id="homework-2" value="+ id: string&#xa;+ classId: string&#xa;+ className: string&#xa;+ gradeSections: string[]&#xa;+ subject: string&#xa;+ title: string&#xa;+ description: string&#xa;+ dueDate: Date&#xa;+ status: HomeworkStatus&#xa;+ totalMarks: number&#xa;+ attachmentUrl: string&#xa;+ attachmentType: AttachmentType" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="homework-1">
+          <mxGeometry y="26" width="240" height="194" as="geometry"/>
+        </mxCell>
+        <mxCell id="homework-3" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="homework-1">
+          <mxGeometry y="220" width="240" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="homework-4" value="+ create()&#xa;+ update()&#xa;+ delete()&#xa;+ getByGrade()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="homework-1">
+          <mxGeometry y="228" width="240" height="72" as="geometry"/>
+        </mxCell>
+
+        <!-- SUBMISSION CLASS -->
+        <mxCell id="submission-1" value="Submission" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="860" y="360" width="220" height="280" as="geometry"/>
+        </mxCell>
+        <mxCell id="submission-2" value="+ id: string&#xa;+ homeworkId: string&#xa;+ studentId: string&#xa;+ studentName: string&#xa;+ textContent: string&#xa;+ fileUrl: string&#xa;+ fileName: string&#xa;+ grade: number&#xa;+ teacherFeedback: string&#xa;+ gradedBy: string&#xa;+ gradedAt: Date&#xa;+ submittedAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="submission-1">
+          <mxGeometry y="26" width="220" height="184" as="geometry"/>
+        </mxCell>
+        <mxCell id="submission-3" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="submission-1">
+          <mxGeometry y="210" width="220" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="submission-4" value="+ create()&#xa;+ update()&#xa;+ delete()&#xa;+ getByHomework()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="submission-1">
+          <mxGeometry y="218" width="220" height="62" as="geometry"/>
+        </mxCell>
+
+        <!-- COURSE CLASS -->
+        <mxCell id="course-1" value="Course" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="360" width="220" height="280" as="geometry"/>
+        </mxCell>
+        <mxCell id="course-2" value="+ id: string&#xa;+ classId: string&#xa;+ className: string&#xa;+ gradeSections: string[]&#xa;+ subject: string&#xa;+ title: string&#xa;+ description: string&#xa;+ status: CourseStatus&#xa;+ attachmentUrl: string&#xa;+ attachmentType: AttachmentType&#xa;+ createdAt: Date&#xa;+ updatedAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="course-1">
+          <mxGeometry y="26" width="220" height="184" as="geometry"/>
+        </mxCell>
+        <mxCell id="course-3" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="course-1">
+          <mxGeometry y="210" width="220" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="course-4" value="+ create()&#xa;+ update()&#xa;+ delete()&#xa;+ markAsCompleted()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="course-1">
+          <mxGeometry y="218" width="220" height="62" as="geometry"/>
+        </mxCell>
+
+        <!-- CHATROOM CLASS -->
+        <mxCell id="chatroom-1" value="ChatRoom" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="700" width="220" height="260" as="geometry"/>
+        </mxCell>
+        <mxCell id="chatroom-2" value="+ id: string&#xa;+ name: string&#xa;+ type: string&#xa;+ classId: string&#xa;+ teacherId: string&#xa;+ studentId: string&#xa;+ isActive: boolean&#xa;+ unreadCount: number&#xa;+ lastMessage: string&#xa;+ lastMessageTime: Date&#xa;+ createdAt: Date&#xa;+ updatedAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="chatroom-1">
+          <mxGeometry y="26" width="220" height="184" as="geometry"/>
+        </mxCell>
+        <mxCell id="chatroom-3" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="chatroom-1">
+          <mxGeometry y="210" width="220" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="chatroom-4" value="+ getOrCreate()&#xa;+ markAsRead()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="chatroom-1">
+          <mxGeometry y="218" width="220" height="42" as="geometry"/>
+        </mxCell>
+
+        <!-- MESSAGE CLASS -->
+        <mxCell id="message-1" value="Message" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="300" y="700" width="220" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="message-2" value="+ id: string&#xa;+ roomId: string&#xa;+ senderId: string&#xa;+ senderName: string&#xa;+ senderType: string&#xa;+ content: string&#xa;+ messageType: string&#xa;+ mediaUrl: string&#xa;+ fileName: string&#xa;+ fileSize: number&#xa;+ timestamp: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="message-1">
+          <mxGeometry y="26" width="220" height="174" as="geometry"/>
+        </mxCell>
+        <mxCell id="message-3" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="message-1">
+          <mxGeometry y="200" width="220" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="message-4" value="+ send()&#xa;+ getMessages()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="message-1">
+          <mxGeometry y="208" width="220" height="32" as="geometry"/>
+        </mxCell>
+
+        <!-- ACTIVITY LOG CLASS -->
+        <mxCell id="activitylog-1" value="ActivityLogEntry" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="560" y="700" width="220" height="220" as="geometry"/>
+        </mxCell>
+        <mxCell id="activitylog-2" value="+ id: string&#xa;+ type: string&#xa;+ action: string&#xa;+ entityId: string&#xa;+ entityName: string&#xa;+ details: string&#xa;+ performedBy: string&#xa;+ createdAt: Date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="activitylog-1">
+          <mxGeometry y="26" width="220" height="134" as="geometry"/>
+        </mxCell>
+        <mxCell id="activitylog-3" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="activitylog-1">
+          <mxGeometry y="160" width="220" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="activitylog-4" value="+ logActivity()&#xa;+ getRecentActivities()&#xa;+ getByType()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="activitylog-1">
+          <mxGeometry y="168" width="220" height="52" as="geometry"/>
+        </mxCell>
+
+        <!-- ENUMS -->
+        <mxCell id="enum-quizstatus" value="&lt;&lt;enumeration&gt;&gt;&#xa;QuizStatus" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="820" y="700" width="160" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="enum-quizstatus-vals" value="PENDING&#xa;AVAILABLE&#xa;COMPLETED&#xa;CANCELLED" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="enum-quizstatus">
+          <mxGeometry y="40" width="160" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="enum-homeworkstatus" value="&lt;&lt;enumeration&gt;&gt;&#xa;HomeworkStatus" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="700" width="160" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="enum-homeworkstatus-vals" value="PENDING&#xa;ACTIVE&#xa;COMPLETED&#xa;PAST_DUE" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="enum-homeworkstatus">
+          <mxGeometry y="40" width="160" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="enum-coursestatus" value="&lt;&lt;enumeration&gt;&gt;&#xa;CourseStatus" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="700" width="160" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="enum-coursestatus-vals" value="PENDING&#xa;ACTIVE&#xa;COMPLETED&#xa;OVERDUE" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="enum-coursestatus">
+          <mxGeometry y="40" width="160" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="enum-attachmenttype" value="&lt;&lt;enumeration&gt;&gt;&#xa;AttachmentType" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="820" y="840" width="160" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="enum-attachmenttype-vals" value="VIDEO&#xa;PDF&#xa;IMAGE&#xa;OTHER" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="enum-attachmenttype">
+          <mxGeometry y="40" width="160" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- RELATIONSHIPS -->
+        <!-- Teacher teaches Class (1 to many) -->
+        <mxCell id="rel-teacher-class" value="teaches" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=0;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="teacher-2" target="class-2">
+          <mxGeometry x="-0.2" y="10" relative="1" as="geometry">
+            <mxPoint x="530" y="140" as="sourcePoint"/>
+            <mxPoint x="560" y="140" as="targetPoint"/>
+            <mxPoint as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-teacher-class-label" value="1..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="rel-teacher-class">
+          <mxGeometry x="0.7" y="-1" relative="1" as="geometry">
+            <mxPoint x="-10" y="-11" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Class has Quiz (1 to many) -->
+        <mxCell id="rel-class-quiz" value="has" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="class-1" target="quiz-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="580" y="300" as="sourcePoint"/>
+            <mxPoint x="280" y="360" as="targetPoint"/>
+            <Array as="points">
+              <mxPoint x="580" y="330"/>
+              <mxPoint x="160" y="330"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-class-quiz-label" value="1..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="rel-class-quiz">
+          <mxGeometry x="0.8" relative="1" as="geometry">
+            <mxPoint x="-10" y="-10" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Quiz contains QuizQuestion (composition) -->
+        <mxCell id="rel-quiz-question" value="contains" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="quiz-2" target="quizquestion-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="290" y="450" as="sourcePoint"/>
+            <mxPoint x="320" y="450" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-quiz-question-label" value="1..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="rel-quiz-question">
+          <mxGeometry x="0.7" relative="1" as="geometry">
+            <mxPoint x="-10" y="-10" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Quiz has QuizResult -->
+        <mxCell id="rel-quiz-result" value="has" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=0;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="quiz-1" target="quizresult-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="160" y="660" as="sourcePoint"/>
+            <mxPoint x="320" y="640" as="targetPoint"/>
+            <Array as="points">
+              <mxPoint x="160" y="680"/>
+              <mxPoint x="290" y="680"/>
+              <mxPoint x="290" y="600"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-quiz-result-label" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="rel-quiz-result">
+          <mxGeometry x="0.7" relative="1" as="geometry">
+            <mxPoint x="-10" y="-10" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Student takes QuizResult -->
+        <mxCell id="rel-student-quizresult" value="takes" style="endArrow=open;html=1;endSize=12;startArrow=none;startSize=14;startFill=0;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="student-1" target="quizresult-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="150" y="320" as="sourcePoint"/>
+            <mxPoint x="430" y="520" as="targetPoint"/>
+            <Array as="points">
+              <mxPoint x="150" y="340"/>
+              <mxPoint x="20" y="340"/>
+              <mxPoint x="20" y="780"/>
+              <mxPoint x="300" y="780"/>
+              <mxPoint x="300" y="640"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-student-quizresult-label" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="rel-student-quizresult">
+          <mxGeometry x="0.8" relative="1" as="geometry">
+            <mxPoint x="10" y="10" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Class has Homework -->
+        <mxCell id="rel-class-homework" value="has" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="class-1" target="homework-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="670" y="300" as="sourcePoint"/>
+            <mxPoint x="700" y="360" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-class-homework-label" value="1..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="rel-class-homework">
+          <mxGeometry x="0.7" relative="1" as="geometry">
+            <mxPoint x="-10" y="-10" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Homework has Submission -->
+        <mxCell id="rel-homework-submission" value="has" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=0;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="homework-2" target="submission-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="830" y="500" as="sourcePoint"/>
+            <mxPoint x="860" y="500" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-homework-submission-label" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="rel-homework-submission">
+          <mxGeometry x="0.7" relative="1" as="geometry">
+            <mxPoint x="-10" y="-10" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Class has Course -->
+        <mxCell id="rel-class-course" value="has" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="class-1" target="course-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="780" y="300" as="sourcePoint"/>
+            <mxPoint x="1230" y="360" as="targetPoint"/>
+            <Array as="points">
+              <mxPoint x="780" y="340"/>
+              <mxPoint x="1230" y="340"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-class-course-label" value="1..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="rel-class-course">
+          <mxGeometry x="0.7" relative="1" as="geometry">
+            <mxPoint x="10" y="-10" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ChatRoom has Message -->
+        <mxCell id="rel-chatroom-message" value="contains" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="chatroom-2" target="message-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="270" y="820" as="sourcePoint"/>
+            <mxPoint x="300" y="820" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-chatroom-message-label" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="rel-chatroom-message">
+          <mxGeometry x="0.7" relative="1" as="geometry">
+            <mxPoint x="-10" y="-10" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Teacher has ChatRoom -->
+        <mxCell id="rel-teacher-chatroom" value="participates" style="endArrow=open;html=1;endSize=12;startArrow=none;startFill=0;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="teacher-1" target="chatroom-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="410" y="300" as="sourcePoint"/>
+            <mxPoint x="150" y="700" as="targetPoint"/>
+            <Array as="points">
+              <mxPoint x="410" y="330"/>
+              <mxPoint x="0" y="330"/>
+              <mxPoint x="0" y="800"/>
+              <mxPoint x="40" y="800"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-teacher-chatroom-label" value="1..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="rel-teacher-chatroom">
+          <mxGeometry x="0.8" relative="1" as="geometry">
+            <mxPoint x="-10" y="-10" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Student uses GradeSection -->
+        <mxCell id="rel-student-gradesection" value="uses" style="endArrow=open;html=1;endSize=12;startArrow=none;startFill=0;dashed=1;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="student-1" target="gradesection-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="90" as="sourcePoint"/>
+            <mxPoint x="1060" y="90" as="targetPoint"/>
+            <Array as="points">
+              <mxPoint x="260" y="20"/>
+              <mxPoint x="1150" y="20"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Class uses GradeSection -->
+        <mxCell id="rel-class-gradesection" value="uses" style="endArrow=open;html=1;endSize=12;startArrow=none;startFill=0;dashed=1;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="class-2" target="gradesection-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="780" y="100" as="sourcePoint"/>
+            <mxPoint x="1060" y="100" as="targetPoint"/>
+            <Array as="points">
+              <mxPoint x="1040" y="105"/>
+              <mxPoint x="1040" y="100"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Teacher teaches Subject -->
+        <mxCell id="rel-teacher-subject" value="teaches" style="endArrow=open;html=1;endSize=12;startArrow=none;startFill=0;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="teacher-2" target="subject-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="530" y="140" as="sourcePoint"/>
+            <mxPoint x="820" y="100" as="targetPoint"/>
+            <Array as="points">
+              <mxPoint x="540" y="130"/>
+              <mxPoint x="540" y="100"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-teacher-subject-label" value="1..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="rel-teacher-subject">
+          <mxGeometry x="0.7" relative="1" as="geometry">
+            <mxPoint x="-10" y="-10" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

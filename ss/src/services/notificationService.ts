@@ -1,16 +1,9 @@
 import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Homework, Quiz, Course } from './api';
 
-// Configure how notifications should behave when app is in foreground
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+// Note: setNotificationHandler is now in App.tsx to ensure it's called early
 
 // Storage keys for tracking notified items
 const NOTIFIED_QUIZZES_KEY = 'notified_quiz_ids';
@@ -24,24 +17,39 @@ export class NotificationService {
 
   // Request permissions for notifications
   static async requestPermissions(): Promise<boolean> {
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
-      });
+    try {
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'Default',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#FF231F7C',
+          sound: 'default',
+          enableVibrate: true,
+          showBadge: true,
+        });
+        console.log('[NotificationService] Android channel created');
+      }
+
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      console.log('[NotificationService] Current permission status:', existingStatus);
+
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+        console.log('[NotificationService] Requested permission, new status:', status);
+      }
+
+      const granted = finalStatus === 'granted';
+      console.log('[NotificationService] Permission granted:', granted);
+      
+      return granted;
+    } catch (error) {
+      console.error('[NotificationService] Error requesting permissions:', error);
+      return false;
     }
-
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    return finalStatus === 'granted';
   }
 
   // Get already notified IDs from storage
@@ -66,8 +74,13 @@ export class NotificationService {
 
   // Show immediate notification for new item
   static async showNewItemNotification(type: 'quiz' | 'homework' | 'course', title: string, subject?: string) {
+    console.log(`[NotificationService] Attempting to show notification for ${type}: ${title}`);
+    
     const hasPermission = await this.requestPermissions();
-    if (!hasPermission) return;
+    if (!hasPermission) {
+      console.log('[NotificationService] No permission - notification not sent');
+      return;
+    }
 
     let notificationTitle = '';
     let notificationBody = '';
@@ -97,16 +110,23 @@ export class NotificationService {
         break;
     }
 
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: notificationTitle,
-        body: notificationBody,
-        data: { type, title },
-      },
-      trigger: null, // Show immediately
-    });
+    try {
+      const notificationId = await Notifications.scheduleNotificationAsync({
+        content: {
+          title: notificationTitle,
+          body: notificationBody,
+          data: { type, title },
+          sound: 'default',
+        },
+        trigger: null, // Show immediately
+      });
 
-    console.log(`[Notification] Sent new ${type} notification: ${title}`);
+      console.log(`[NotificationService] ✅ Notification scheduled with ID: ${notificationId}`);
+      console.log(`[NotificationService] Title: ${notificationTitle}`);
+      console.log(`[NotificationService] Body: ${notificationBody}`);
+    } catch (error) {
+      console.error('[NotificationService] ❌ Failed to schedule notification:', error);
+    }
   }
 
   // Check for new quizzes and notify
@@ -361,5 +381,55 @@ export class NotificationService {
     } catch (error) {
       console.error('Error clearing notification data:', error);
     }
+  }
+
+  // Test notification - Call this to verify notifications work
+  static async sendTestNotification(): Promise<boolean> {
+    console.log('[NotificationService] === TESTING NOTIFICATIONS ===');
+    
+    try {
+      const hasPermission = await this.requestPermissions();
+      console.log('[NotificationService] Permission check result:', hasPermission);
+      
+      if (!hasPermission) {
+        console.log('[NotificationService] ❌ TEST FAILED - No permission');
+        return false;
+      }
+
+      const notificationId = await Notifications.scheduleNotificationAsync({
+        content: {
+          title: '🧪 Test Notification',
+          body: 'If you see this, notifications are working correctly!',
+          data: { type: 'test', timestamp: new Date().toISOString() },
+          sound: 'default',
+        },
+        trigger: null,
+      });
+
+      console.log('[NotificationService] ✅ TEST SUCCESS - Notification ID:', notificationId);
+      return true;
+    } catch (error) {
+      console.error('[NotificationService] ❌ TEST FAILED - Error:', error);
+      return false;
+    }
+  }
+
+  // Debug method to check current notification settings
+  static async debugNotificationStatus(): Promise<void> {
+    console.log('[NotificationService] === DEBUG STATUS ===');
+    console.log('[NotificationService] Platform:', Platform.OS);
+    
+    const permissions = await Notifications.getPermissionsAsync();
+    console.log('[NotificationService] Permissions:', JSON.stringify(permissions, null, 2));
+    
+    if (Platform.OS === 'android') {
+      const channels = await Notifications.getNotificationChannelsAsync();
+      console.log('[NotificationService] Android Channels:', JSON.stringify(channels, null, 2));
+    }
+    
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    console.log('[NotificationService] Scheduled notifications:', scheduled.length);
+    
+    console.log('[NotificationService] === END DEBUG ===');
   }
 }
