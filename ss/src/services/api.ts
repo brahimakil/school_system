@@ -130,6 +130,7 @@ export interface Quiz {
   status: string;
   gradeSections: string[];
   questions?: QuizQuestion[];
+  createdAt?: any;
 }
 
 export interface QuizQuestion {
@@ -163,6 +164,7 @@ export interface Homework {
   gradeSections: string[];
   attachmentUrl?: string;
   attachmentType?: 'video' | 'pdf' | 'image' | 'other';
+  createdAt?: any;
 }
 
 export enum HomeworkStatus {

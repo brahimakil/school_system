@@ -10,6 +10,7 @@ const NOTIFIED_QUIZZES_KEY = 'notified_quiz_ids';
 const NOTIFIED_HOMEWORKS_KEY = 'notified_homework_ids';
 const NOTIFIED_COURSES_KEY = 'notified_course_ids';
 const QUIZ_REMINDER_KEY = 'quiz_reminder_times';
+const LAST_CHECK_TIME_KEY = 'notification_last_check_time';
 
 export class NotificationService {
   private static notificationInterval: NodeJS.Timeout | null = null;
@@ -72,6 +73,52 @@ export class NotificationService {
     }
   }
 
+  // Get the last check time from storage
+  private static async getLastCheckTime(): Promise<number> {
+    try {
+      const stored = await AsyncStorage.getItem(LAST_CHECK_TIME_KEY);
+      return stored ? parseInt(stored, 10) : 0;
+    } catch (error) {
+      console.error('Error getting last check time:', error);
+      return 0;
+    }
+  }
+
+  // Save the last check time to storage
+  private static async saveLastCheckTime(timestamp: number): Promise<void> {
+    try {
+      await AsyncStorage.setItem(LAST_CHECK_TIME_KEY, timestamp.toString());
+    } catch (error) {
+      console.error('Error saving last check time:', error);
+    }
+  }
+
+  // Helper to extract timestamp from Firestore or Date object
+  private static extractTimestamp(createdAt: any): number {
+    if (!createdAt) return 0;
+    // Firestore timestamp format (serialized via toJSON): { seconds: number, nanoseconds: number }
+    if (createdAt.seconds) {
+      return createdAt.seconds * 1000; // Convert to milliseconds
+    }
+    // Firestore timestamp format (internal): { _seconds: number, _nanoseconds: number }
+    if (createdAt._seconds) {
+      return createdAt._seconds * 1000; // Convert to milliseconds
+    }
+    // ISO string format
+    if (typeof createdAt === 'string') {
+      return new Date(createdAt).getTime();
+    }
+    // Date object
+    if (createdAt instanceof Date) {
+      return createdAt.getTime();
+    }
+    // Already a number (milliseconds)
+    if (typeof createdAt === 'number') {
+      return createdAt;
+    }
+    return 0;
+  }
+
   // Show immediate notification for new item
   static async showNewItemNotification(type: 'quiz' | 'homework' | 'course', title: string, subject?: string) {
     console.log(`[NotificationService] Attempting to show notification for ${type}: ${title}`);
@@ -132,7 +179,21 @@ export class NotificationService {
   // Check for new quizzes and notify
   static async checkNewQuizzes(quizzes: Quiz[]) {
     const notifiedIds = await this.getNotifiedIds(NOTIFIED_QUIZZES_KEY);
-    const newQuizzes = quizzes.filter(q => !notifiedIds.has(q.id));
+    const lastCheckTime = await this.getLastCheckTime();
+    const now = Date.now();
+
+    // Only notify for items that:
+    // 1. Haven't been notified before (ID not in list)
+    // 2. Were created after the last check time (prevents spam on reinstall/clear data)
+    // 3. Were created within the last hour (safety net - don't notify for very old items)
+    const newQuizzes = quizzes.filter(q => {
+      if (notifiedIds.has(q.id)) return false;
+      const createdTime = this.extractTimestamp(q.createdAt);
+      // If no creation time, only notify if this is the first check (lastCheckTime === 0)
+      if (createdTime === 0) return lastCheckTime === 0;
+      // Notify if created after last check and within last hour
+      return createdTime > lastCheckTime && createdTime > now - 60 * 60 * 1000;
+    });
 
     for (const quiz of newQuizzes) {
       await this.showNewItemNotification('quiz', quiz.title, quiz.className);
@@ -146,7 +207,15 @@ export class NotificationService {
   // Check for new homeworks and notify
   static async checkNewHomeworks(homeworks: Homework[]) {
     const notifiedIds = await this.getNotifiedIds(NOTIFIED_HOMEWORKS_KEY);
-    const newHomeworks = homeworks.filter(h => !notifiedIds.has(h.id));
+    const lastCheckTime = await this.getLastCheckTime();
+    const now = Date.now();
+
+    const newHomeworks = homeworks.filter(h => {
+      if (notifiedIds.has(h.id)) return false;
+      const createdTime = this.extractTimestamp(h.createdAt);
+      if (createdTime === 0) return lastCheckTime === 0;
+      return createdTime > lastCheckTime && createdTime > now - 60 * 60 * 1000;
+    });
 
     for (const homework of newHomeworks) {
       await this.showNewItemNotification('homework', homework.title, homework.subject);
@@ -160,7 +229,15 @@ export class NotificationService {
   // Check for new courses and notify
   static async checkNewCourses(courses: Course[]) {
     const notifiedIds = await this.getNotifiedIds(NOTIFIED_COURSES_KEY);
-    const newCourses = courses.filter(c => !notifiedIds.has(c.id));
+    const lastCheckTime = await this.getLastCheckTime();
+    const now = Date.now();
+
+    const newCourses = courses.filter(c => {
+      if (notifiedIds.has(c.id)) return false;
+      const createdTime = this.extractTimestamp(c.createdAt);
+      if (createdTime === 0) return lastCheckTime === 0;
+      return createdTime > lastCheckTime && createdTime > now - 60 * 60 * 1000;
+    });
 
     for (const course of newCourses) {
       await this.showNewItemNotification('course', course.title, course.subject);
@@ -286,21 +363,104 @@ export class NotificationService {
     }
   }
 
+  // Check homework deadlines and send reminders
+  static async checkHomeworkReminders(homeworks: Homework[]) {
+    const now = new Date();
+    const reminderData = await this.getQuizReminderData(); // Reuse reminder data storage
+
+    for (const homework of homeworks) {
+      if (!homework.dueDate) continue;
+      const dueDate = new Date(homework.dueDate);
+      const timeDiff = dueDate.getTime() - now.getTime();
+      const hoursUntilDue = timeDiff / (1000 * 60 * 60);
+
+      // Remind if homework is due within 24 hours and hasn't passed
+      if (hoursUntilDue > 0 && hoursUntilDue <= 24) {
+        const reminderKey = `hw_${homework.id}`;
+        const lastReminder = reminderData[reminderKey] || 0;
+        const timeSinceLastReminder = now.getTime() - lastReminder;
+        const thirtyMinutes = 30 * 60 * 1000;
+
+        if (timeSinceLastReminder >= thirtyMinutes) {
+          const hours = Math.floor(hoursUntilDue);
+          const minutes = Math.floor((hoursUntilDue - hours) * 60);
+
+          let timeText = '';
+          if (hours > 0) {
+            timeText = `${hours} hour${hours > 1 ? 's' : ''}`;
+            if (minutes > 0) {
+              timeText += ` and ${minutes} minute${minutes > 1 ? 's' : ''}`;
+            }
+          } else {
+            timeText = `${minutes} minute${minutes > 1 ? 's' : ''}`;
+          }
+
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: '📚 Homework Due Soon!',
+              body: `"${homework.title}" is due in ${timeText}. Don't forget to submit!`,
+              data: { type: 'homework_reminder', homeworkId: homework.id },
+            },
+            trigger: null,
+          });
+
+          console.log(`[Notification] Homework reminder sent: ${homework.title} - ${timeText} remaining`);
+          reminderData[reminderKey] = now.getTime();
+        }
+      }
+    }
+
+    await this.saveQuizReminderData(reminderData);
+  }
+
   // Check all homeworks, quizzes, and courses for new items and deadlines
   static async checkAll(homeworks: Homework[], quizzes: Quiz[], courses: Course[]) {
     const hasPermission = await this.requestPermissions();
     if (!hasPermission) {
-      console.log('Notification permissions not granted');
+      console.log('[Notifications] Permissions not granted');
       return;
     }
 
+    let newHomeworks = 0;
+    let newQuizzes = 0;
+    let newCourses = 0;
+
     // Check for new items (will notify user of newly added content)
-    const newHomeworks = await this.checkNewHomeworks(homeworks);
-    const newQuizzes = await this.checkNewQuizzes(quizzes);
-    const newCourses = await this.checkNewCourses(courses);
+    // Each check is wrapped in try-catch so one failure doesn't block others
+    try {
+      newHomeworks = await this.checkNewHomeworks(homeworks);
+    } catch (error) {
+      console.error('[Notifications] Error checking new homeworks:', error);
+    }
+
+    try {
+      newQuizzes = await this.checkNewQuizzes(quizzes);
+    } catch (error) {
+      console.error('[Notifications] Error checking new quizzes:', error);
+    }
+
+    try {
+      newCourses = await this.checkNewCourses(courses);
+    } catch (error) {
+      console.error('[Notifications] Error checking new courses:', error);
+    }
 
     // Check quiz reminders (5 hours before, every 10 minutes)
-    await this.checkQuizReminders(quizzes);
+    try {
+      await this.checkQuizReminders(quizzes);
+    } catch (error) {
+      console.error('[Notifications] Error checking quiz reminders:', error);
+    }
+
+    // Check homework deadline reminders (24 hours before, every 30 minutes)
+    try {
+      await this.checkHomeworkReminders(homeworks);
+    } catch (error) {
+      console.error('[Notifications] Error checking homework reminders:', error);
+    }
+
+    // Save the last check time to prevent duplicate notifications on next check
+    await this.saveLastCheckTime(Date.now());
 
     console.log('[Notifications] Check complete:', {
       newHomeworks,
@@ -376,6 +536,7 @@ export class NotificationService {
         NOTIFIED_HOMEWORKS_KEY,
         NOTIFIED_COURSES_KEY,
         QUIZ_REMINDER_KEY,
+        LAST_CHECK_TIME_KEY,
       ]);
       console.log('[Notifications] Cleared all notification data');
     } catch (error) {
@@ -418,18 +579,28 @@ export class NotificationService {
   static async debugNotificationStatus(): Promise<void> {
     console.log('[NotificationService] === DEBUG STATUS ===');
     console.log('[NotificationService] Platform:', Platform.OS);
-    
+
     const permissions = await Notifications.getPermissionsAsync();
     console.log('[NotificationService] Permissions:', JSON.stringify(permissions, null, 2));
-    
+
     if (Platform.OS === 'android') {
       const channels = await Notifications.getNotificationChannelsAsync();
       console.log('[NotificationService] Android Channels:', JSON.stringify(channels, null, 2));
     }
-    
+
     const scheduled = await Notifications.getAllScheduledNotificationsAsync();
     console.log('[NotificationService] Scheduled notifications:', scheduled.length);
-    
+
+    const lastCheck = await this.getLastCheckTime();
+    console.log('[NotificationService] Last check time:', lastCheck ? new Date(lastCheck).toISOString() : 'Never');
+
+    const notifiedQuizzes = await AsyncStorage.getItem(NOTIFIED_QUIZZES_KEY);
+    const notifiedHomeworks = await AsyncStorage.getItem(NOTIFIED_HOMEWORKS_KEY);
+    const notifiedCourses = await AsyncStorage.getItem(NOTIFIED_COURSES_KEY);
+    console.log('[NotificationService] Notified quizzes:', notifiedQuizzes ? JSON.parse(notifiedQuizzes).length : 0);
+    console.log('[NotificationService] Notified homeworks:', notifiedHomeworks ? JSON.parse(notifiedHomeworks).length : 0);
+    console.log('[NotificationService] Notified courses:', notifiedCourses ? JSON.parse(notifiedCourses).length : 0);
+
     console.log('[NotificationService] === END DEBUG ===');
   }
 }
